@@ -1,0 +1,6 @@
+# created by virtualenv automatically
+/creds/*
+/.env
+/.venv/*
+.idea/*
+*.pyc
