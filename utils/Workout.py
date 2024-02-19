@@ -56,24 +56,24 @@ class Workout:
         self.category = category
         self.sets = sets
 
-    def __sets_dict__(self) -> list:
+    def __sets_to_dict__(self) -> list:
         _list = list()
         length = len(self.sets)
         for index, currSet in zip(range(1, length), self.sets):
             _list.append(currSet.__dict__())
-        return _list
+
+        keys = list(range(1, len(self.sets)))
+        sets_dict = {key: value for (key, value) in zip(keys, _list)}
+        return sets_dict
 
     def __dict__(self) -> dict:
-        keys = list(range(1, len(self.sets)))
-        sets = {key: value for (key, value) in zip(keys, self.__sets_dict__())}
         _dict = {
             "activityId": self.activityId,
             "datetime": self.datetime,
             "name": self.name,
             "category": self.category,
-            "sets": sets
+            "sets": self.__sets_to_dict__()
         }
-
         return _dict
 
     def transverse_by_set(self, targetSet: int) -> list[ExerciseSet]:
@@ -98,5 +98,4 @@ class Workout:
         exerciseNames = list()
         for currSet in sets:
             exerciseNames.append(currSet.exerciseName)
-
         return set(exerciseNames)
