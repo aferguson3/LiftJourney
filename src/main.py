@@ -1,5 +1,8 @@
 import logging
 import garth
+import pandas as pd
+import numpy as np
+import xarray as xr
 
 from datetime import date
 from src.auth import client_auth
@@ -15,7 +18,7 @@ def main():
     client_auth()
     startDate = '2023-01-01'  # future startDate gotten from stored data
     endDate = date.today().isoformat()
-    limit = 999
+    limit = 10
 
     params = {
         "startDate": str(startDate),
@@ -35,7 +38,7 @@ def main():
             continue
         activityIds.append(activity["activityId"])
     logger.info(
-        f"Max limit for Ids: {limit}, Number of Removed Ids: {len(removedIds)}, Number of Ids: {len(activityIds)}\n{activityIds[:10]}...")
+        f"Max limit for Ids: {limit}, Number of Removed Ids: {len(removedIds)}, Number of Ids: {len(activityIds)}\n{activityIds[:5]} ...")
 
     totalWorkouts = list()  # most recent workouts stored first
     for Id in activityIds:
