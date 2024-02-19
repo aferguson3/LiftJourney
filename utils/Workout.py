@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Set
 
 
 @dataclass
@@ -11,13 +10,30 @@ class ExerciseSet:
     stepIndex: int
     startTime: str
 
-    def __init__(self):
-        self.exerciseName = ""
-        self.numReps = ""
-        self.weight_grams = ""
-        self.duration_secs = ""
-        self.stepIndex = ""
-        self.startTime = ""
+    def __init__(self,
+                 exerciseName=None,
+                 numReps=None,
+                 weight_grams=None,
+                 duration_secs=None,
+                 stepIndex=None,
+                 startTime=None):
+        self.exerciseName = exerciseName
+        self.numReps = numReps
+        self.weight_grams = weight_grams
+        self.duration_secs = duration_secs
+        self.stepIndex = stepIndex
+        self.startTime = startTime
+
+    def __dict__(self) -> dict:
+        _dict = {
+            "exerciseName": self.exerciseName,
+            "numReps": self.numReps,
+            "weight_grams": self.weight_grams,
+            "duration_secs": self.duration_secs,
+            "stepIndex": self.stepIndex,
+            "startTime": self.startTime
+        }
+        return _dict
 
 
 @dataclass
@@ -28,12 +44,37 @@ class Workout:
     category: str
     sets: list[ExerciseSet]  # sets ordered by time
 
-    def __init__(self):
-        self.activityId = ""
-        self.datetime = ""
-        self.name = ""
-        self.category = ""
-        self.sets = ""
+    def __init__(self,
+                 activityId=None,
+                 datetime=None,
+                 name=None,
+                 category=None,
+                 sets=None):
+        self.activityId = activityId
+        self.datetime = datetime
+        self.name = name
+        self.category = category
+        self.sets = sets
+
+    def __sets_dict__(self) -> list:
+        _list = list()
+        length = len(self.sets)
+        for index, currSet in zip(range(1, length), self.sets):
+            _list.append(currSet.__dict__())
+        return _list
+
+    def __dict__(self) -> dict:
+        keys = list(range(1, len(self.sets)))
+        sets = {key: value for (key, value) in zip(keys, self.__sets_dict__())}
+        _dict = {
+            "activityId": self.activityId,
+            "datetime": self.datetime,
+            "name": self.name,
+            "category": self.category,
+            "sets": sets
+        }
+
+        return _dict
 
     def transverse_by_set(self, targetSet: int) -> list[ExerciseSet]:
         # only returns exercises with the given set number
