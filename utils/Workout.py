@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-@dataclass(init=False)
+@dataclass
 class ExerciseSet:
     exerciseName: str
     numReps: int
@@ -11,12 +11,12 @@ class ExerciseSet:
     startTime: str
 
     def __init__(self):
-        exerciseName = ""
-        numReps = ""
-        weight_grams = ""
-        duration_secs = ""
-        stepIndex = ""
-        startTime = ""
+        self.exerciseName = ""
+        self.numReps = ""
+        self.weight_grams = ""
+        self.duration_secs = ""
+        self.stepIndex = ""
+        self.startTime = ""
 
 
 @dataclass
@@ -28,8 +28,8 @@ class Workout:
     sets: list[ExerciseSet]
 
     def __init__(self):
-        activityId = ""
-        datetime = ""
-        name = ""
-        category = ""
-        sets = ""
+        self.activityId = ""
+        self.datetime = ""
+        self.name = ""
+        self.category = ""
+        self.sets = ""
