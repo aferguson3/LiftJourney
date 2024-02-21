@@ -1,10 +1,11 @@
+import dataclasses
+import json
 import logging
+from datetime import date
+
 import garth
-import pandas as pd
-import numpy as np
 import xarray as xr
 
-from datetime import date
 from src.auth import client_auth
 from utils.Endpoints import Endpoints
 from utils.Workout import ExerciseSet, Workout
@@ -12,6 +13,57 @@ from utils.Workout import ExerciseSet, Workout
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO)
+
+
+def workouts_to_dict(data: list[Workout]) -> dict:
+    _list = [w.asdict() for w in data]
+    _dict = {"workouts": _list}
+    return _dict
+
+
+def dump_data(data: list | dict, filepath: str, option="a"):
+    data_dict = data
+    if data is list:
+        data_dict = workouts_to_dict(data)
+    match option:
+        case "a" | "w":
+            try:
+                with open(filepath, option) as file:
+                    json.dump(data_dict, file, sort_keys=True)
+            except FileNotFoundError as e:
+                print(f"{filepath} not found.")
+        case _:
+            return -1
+
+
+def load_data(filepath: str) -> list:
+    try:
+        with open(filepath, 'r') as file:
+            json_data = json.load(file)
+            json_data = json_data["workouts"]
+            all_workouts = list()
+            for workout in json_data:
+                a_workout = Workout()
+                a_workout.load(workout)
+                all_workouts.append(a_workout)
+        return all_workouts
+
+    except FileNotFoundError as e:
+        print(f"{filepath} not found.")
+
+
+def transverse_by_set_label(label: str, workouts: dict | list) -> None:
+    # transverse workouts by given dict key
+    allWorkouts = workouts
+    matchedList = list()
+    if workouts is list:
+        allWorkouts = workouts_to_dict(workouts)
+
+    for (key, value) in allWorkouts.items():
+        if label in allWorkouts["1"]:
+            pass
+
+    return None
 
 
 def main():
@@ -48,7 +100,7 @@ def main():
         all_workout_sets = list()
 
         for currSet in data["exerciseSets"]:
-            a_set = ExerciseSet()  # same set = name + same stepIndex
+            a_set = ExerciseSet()
             if currSet["setType"] == "REST":
                 continue
             if currSet["exercises"][0]["category"] == "INDOOR_BIKE" and currWorkoutDate is None:
@@ -66,10 +118,31 @@ def main():
         a_workout.datetime = currWorkoutDate
         a_workout.sets = all_workout_sets
         totalWorkouts.append(a_workout)
+        # logger.info(f"Workout data: datetime: {a_workout.datetime} Num of sets: {len(a_workout.sets)}
 
-        logger.info(f"Workout data: datetime: {a_workout.datetime} Num of sets: {len(a_workout.sets)}")
-        logger.info(f"Num of workouts: {len(totalWorkouts)} activityID: {a_workout.activityId}")
+    logger.info(f"Num of workouts: {len(totalWorkouts)}, Workout 0 set 3: {totalWorkouts[0].view_sets()[3]}")
+    filepath = "../data/workout_data.json"
+    # for workout in totalWorkouts:
+    #     workout.validation_check()
+    # dump_data(totalWorkouts, filepath)
+
+    workout_dict = workouts_to_dict(totalWorkouts)
+    time_dims = [v["datetime"] for (k, v) in workout_dict.items()]
+    sets_dims = [len(v["sets"]) for (k, v) in workout_dict.items()]
+
+    ds = xr.Dataset(data_vars={
+        "duration": (("datetime", "sets"),),
+        "name": "",
+        "reps": "",
+        "weight": "",
+        "stepIndex": ""
+    }, coords={
+        "datetime": time_dims,
+        "sets": sets_dims
+    })
 
 
 if __name__ == "__main__":
     main()
+# TODO: reverse order workouts in json file
+# TODO: get target reps from /workouts

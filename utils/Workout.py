@@ -1,84 +1,74 @@
+import dataclasses
 from dataclasses import dataclass
 
 
 @dataclass
 class ExerciseSet:
+    duration_secs: float
     exerciseName: str
     numReps: int
-    weight_grams: float
-    duration_secs: float
-    stepIndex: int
     startTime: str
+    stepIndex: int
+    weight_grams: float
 
     def __init__(self,
+                 duration_secs=None,
                  exerciseName=None,
                  numReps=None,
-                 weight_grams=None,
-                 duration_secs=None,
+                 startTime=None,
                  stepIndex=None,
-                 startTime=None):
+                 weight_grams=None,
+                 loading_dict: dict = None):
+        if isinstance(loading_dict, dict):
+            self.duration_secs = loading_dict["duration_secs"] if "duration_secs" in loading_dict else None
+            self.exerciseName = loading_dict["exerciseName"] if "exerciseName" in loading_dict else None
+            self.numReps = loading_dict["numReps"] if "numReps" in loading_dict else None
+            self.startTime = loading_dict["startTime"] if "startTime" in loading_dict else None
+            self.stepIndex = loading_dict["stepIndex"] if "stepIndex" in loading_dict else None
+            self.weight_grams = loading_dict["weight_grams"] if "weight_grams" in loading_dict else None
+            return
+
+        self.duration_secs = duration_secs
         self.exerciseName = exerciseName
         self.numReps = numReps
-        self.weight_grams = weight_grams
-        self.duration_secs = duration_secs
-        self.stepIndex = stepIndex
         self.startTime = startTime
+        self.stepIndex = stepIndex
+        self.weight_grams = weight_grams
 
-    def __dict__(self) -> dict:
-        _dict = {
-            "exerciseName": self.exerciseName,
-            "numReps": self.numReps,
-            "weight_grams": self.weight_grams,
-            "duration_secs": self.duration_secs,
-            "stepIndex": self.stepIndex,
-            "startTime": self.startTime
-        }
-        return _dict
+    def asdict(self):
+        return dataclasses.asdict(self)
 
 
 @dataclass
 class Workout:
     activityId: str
+    category: str
     datetime: str
     name: str
-    category: str
-    sets: list[ExerciseSet]  # sets ordered by time
+    sets: list[ExerciseSet]  # most recent --> oldest
+    isIncomplete: bool = False
 
     def __init__(self,
                  activityId=None,
+                 category=None,
                  datetime=None,
                  name=None,
-                 category=None,
                  sets=None):
         self.activityId = activityId
+        self.category = category
         self.datetime = datetime
         self.name = name
-        self.category = category
         self.sets = sets
 
-    def __sets_to_dict__(self) -> list:
-        _list = list()
-        length = len(self.sets)
-        for index, currSet in zip(range(1, length), self.sets):
-            _list.append(currSet.__dict__())
+    def asdict(self) -> dict:
+        return dataclasses.asdict(self)
 
-        keys = list(range(1, len(self.sets)))
-        sets_dict = {key: value for (key, value) in zip(keys, _list)}
-        return sets_dict
-
-    def __dict__(self) -> dict:
-        _dict = {
-            "activityId": self.activityId,
-            "datetime": self.datetime,
-            "name": self.name,
-            "category": self.category,
-            "sets": self.__sets_to_dict__()
-        }
-        return _dict
+    def view_sets(self) -> list[dict]:
+        _list = [s.asdict() for s in self.sets]
+        return _list
 
     def transverse_by_set(self, targetSet: int) -> list[ExerciseSet]:
         # only returns exercises with the given set number
-
         setNumber = 1
         matchedStepIndex = self.sets[0].stepIndex
         matchedExercise = self.sets[0].exerciseName
@@ -99,3 +89,31 @@ class Workout:
         for currSet in sets:
             exerciseNames.append(currSet.exerciseName)
         return set(exerciseNames)
+
+    def load(self, data: dict):
+        self.activityId = self.key_search(data, "activityId")
+        self.category = self.key_search(data, "category")
+        self.datetime = self.key_search(data, "datetime")
+        self.name = self.key_search(data, "name")
+
+        _sets = self.key_search(data, "sets")
+        self.sets = [ExerciseSet(loading_dict=s) for s in _sets]
+
+    def key_search(self, data: dict, key_match: str) -> str | None:
+        for (key, value) in data.items():
+            if key == key_match:
+                return value
+            if isinstance(value, dict):
+                return self.key_search(value, key_match)
+            elif isinstance(value, list):
+                for item in value:
+                    return self.key_search(item, key_match)
+        return None
+
+    def validation_check(self):
+        # checks if set data is incomplete
+        for currSet in self.sets:
+            self.isIncomplete = False
+            if currSet.exerciseName is None:
+                self.isIncomplete = True  # TODO: cross-reference scheduled workouts and fix errors
+                return

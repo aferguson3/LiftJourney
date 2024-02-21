@@ -1,6 +1,7 @@
-import os
-import garth
 import logging
+import os
+
+import garth
 from dotenv import dotenv_values
 
 # Assumes Garmin connect user/pass are saved in .env file
