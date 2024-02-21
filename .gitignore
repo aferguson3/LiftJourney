@@ -4,4 +4,4 @@
 /.venv/*
 .idea/*
 *.pyc
-/data/*
+/src/data/*

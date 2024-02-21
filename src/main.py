@@ -1,14 +1,13 @@
-import dataclasses
 import json
 import logging
 from datetime import date
 
 import garth
-import xarray as xr
 
 from src.auth import client_auth
-from utils.Endpoints import Endpoints
-from utils.Workout import ExerciseSet, Workout
+from src.utils.Endpoints import Endpoints
+from src.models.Workout import Workout
+from src.models.ExerciseSet import ExerciseSet
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -16,40 +15,40 @@ logging.basicConfig(level=logging.INFO)
 
 
 def workouts_to_dict(data: list[Workout]) -> dict:
-    _list = [w.asdict() for w in data]
-    _dict = {"workouts": _list}
-    return _dict
+    workouts = list()
+    for workout in data:
+        workout.validation_check()
+        workouts.append(workout.asdict())
+    return {"workouts": workouts}
 
 
-def dump_data(data: list | dict, filepath: str, option="a"):
-    data_dict = data
-    if data is list:
-        data_dict = workouts_to_dict(data)
+def dump_data(data: dict, filepath: str, option):
     match option:
         case "a" | "w":
             try:
                 with open(filepath, option) as file:
-                    json.dump(data_dict, file, sort_keys=True)
+                    json.dump(data, file, sort_keys=True)
             except FileNotFoundError as e:
                 print(f"{filepath} not found.")
+            except TypeError as e:
+                print(f"{e} Check data's type.")
         case _:
-            return -1
+            raise ValueError(f"Invalid option:{option} used in json.dump().")
 
 
-def load_data(filepath: str) -> list:
+def load_data(filepath: str) -> list[Workout]:
     try:
         with open(filepath, 'r') as file:
             json_data = json.load(file)
-            json_data = json_data["workouts"]
             all_workouts = list()
-            for workout in json_data:
+            for workout in json_data["workouts"]:
                 a_workout = Workout()
                 a_workout.load(workout)
                 all_workouts.append(a_workout)
         return all_workouts
 
     except FileNotFoundError as e:
-        print(f"{filepath} not found.")
+        print(f"{e}")
 
 
 def transverse_by_set_label(label: str, workouts: dict | list) -> None:
@@ -121,28 +120,16 @@ def main():
         # logger.info(f"Workout data: datetime: {a_workout.datetime} Num of sets: {len(a_workout.sets)}
 
     logger.info(f"Num of workouts: {len(totalWorkouts)}, Workout 0 set 3: {totalWorkouts[0].view_sets()[3]}")
-    filepath = "../data/workout_data.json"
-    # for workout in totalWorkouts:
-    #     workout.validation_check()
-    # dump_data(totalWorkouts, filepath)
+    # filepath = "../data/workout_data.json"
+    # dump_data(workouts_to_dict(totalWorkouts), filepath, "w")
 
-    workout_dict = workouts_to_dict(totalWorkouts)
-    time_dims = [v["datetime"] for (k, v) in workout_dict.items()]
-    sets_dims = [len(v["sets"]) for (k, v) in workout_dict.items()]
-
-    ds = xr.Dataset(data_vars={
-        "duration": (("datetime", "sets"),),
-        "name": "",
-        "reps": "",
-        "weight": "",
-        "stepIndex": ""
-    }, coords={
-        "datetime": time_dims,
-        "sets": sets_dims
-    })
+    # workout_dict = workouts_to_dict(totalWorkouts)["workouts"]
+    # xr
 
 
 if __name__ == "__main__":
     main()
 # TODO: reverse order workouts in json file
 # TODO: get target reps from /workouts
+# TODO: plotting sets data
+# TODO: implement testing

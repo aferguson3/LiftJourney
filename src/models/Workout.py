@@ -1,42 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 
-
-@dataclass
-class ExerciseSet:
-    duration_secs: float
-    exerciseName: str
-    numReps: int
-    startTime: str
-    stepIndex: int
-    weight_grams: float
-
-    def __init__(self,
-                 duration_secs=None,
-                 exerciseName=None,
-                 numReps=None,
-                 startTime=None,
-                 stepIndex=None,
-                 weight_grams=None,
-                 loading_dict: dict = None):
-        if isinstance(loading_dict, dict):
-            self.duration_secs = loading_dict["duration_secs"] if "duration_secs" in loading_dict else None
-            self.exerciseName = loading_dict["exerciseName"] if "exerciseName" in loading_dict else None
-            self.numReps = loading_dict["numReps"] if "numReps" in loading_dict else None
-            self.startTime = loading_dict["startTime"] if "startTime" in loading_dict else None
-            self.stepIndex = loading_dict["stepIndex"] if "stepIndex" in loading_dict else None
-            self.weight_grams = loading_dict["weight_grams"] if "weight_grams" in loading_dict else None
-            return
-
-        self.duration_secs = duration_secs
-        self.exerciseName = exerciseName
-        self.numReps = numReps
-        self.startTime = startTime
-        self.stepIndex = stepIndex
-        self.weight_grams = weight_grams
-
-    def asdict(self):
-        return dataclasses.asdict(self)
+from src.models.ExerciseSet import ExerciseSet
 
 
 @dataclass
@@ -95,19 +60,20 @@ class Workout:
         self.category = self.key_search(data, "category")
         self.datetime = self.key_search(data, "datetime")
         self.name = self.key_search(data, "name")
+        self.isIncomplete = self.key_search(data, "isIncomplete")
 
         _sets = self.key_search(data, "sets")
         self.sets = [ExerciseSet(loading_dict=s) for s in _sets]
 
-    def key_search(self, data: dict, key_match: str) -> str | None:
+    def key_search(self, data: dict, key_match: str) -> str | bool | list[ExerciseSet] | None:
         for (key, value) in data.items():
             if key == key_match:
                 return value
             if isinstance(value, dict):
-                return self.key_search(value, key_match)
+                self.key_search(value, key_match)
             elif isinstance(value, list):
                 for item in value:
-                    return self.key_search(item, key_match)
+                    self.key_search(item, key_match)
         return None
 
     def validation_check(self):
