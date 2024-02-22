@@ -1,10 +1,13 @@
 # from src.main import workouts_to_dict
+import dataclasses
+
 from src.models.Workout import Workout
 from src.models.ExerciseSet import ExerciseSet
-from src.main import workouts_to_dict, load_data
+from src.manage_workouts import workouts_to_dict, load_workouts
+from src.manage_workouts import sort_workouts
 import xarray as xr
 
-TEST_DATAFILE = '../data/workout_data_test.json'
+TEST_DATAFILE = 'data/workout_data_test.json'
 
 wo1 = Workout()
 wo1.activityId = 13989374356
@@ -138,22 +141,33 @@ sets3 = [ExerciseSet(exerciseName="BARBELL_BENCH_PRESS", numReps=17, weight_gram
 wo3.sets = sets3
 
 workouts = [wo1, wo2, wo3]
-wo1.key_search(wo1.asdict(), 'isIncomplete')
-
 data_dict = workouts_to_dict(workouts)
-# dump_data(data_dict, TEST_DATAFILE, 'w')
-loaded_data = load_data(TEST_DATAFILE)
+# --------SORTING WORKOUTS OR SETS-----------------
+# lists = sort_workouts(workouts[0], 'category')
+# lists = sort_workouts(workouts[0], 'exerciseName')
+# lists = sort_workouts(workouts, 'exerciseName')
+# lists = sort_workouts(workouts, 'datetime')
 
-time_dims = [v["datetime"] for (k, v) in loaded_data.items()]
-sets_dims = [range(1, len(v["sets"]) + 1) for (k, v) in loaded_data.items()]
+pass
+# ---------BACKUP/LOAD WORKOUTS-------------------
+# dump_to_json(data_dict, TEST_DATAFILE, 'w')
+# loaded_data = load_workouts(TEST_DATAFILE)
+# print(f"Data loaded correctly: {loaded_data == workouts}")
 
-ds = xr.Dataset(data_vars={
-    "duration": (("datetime", "sets"),),
-    "name": "",
-    "reps": "",
-    "weight": "",
-    "stepIndex": ""
-}, coords={
-    "datetime": time_dims,
-    "sets": sets_dims
-})
+
+# new_list = sorted(workouts, key=)
+
+
+# time_dims = [v["datetime"] for (k, v) in loaded_data.items()]
+# sets_dims = [range(1, len(v["sets"]) + 1) for (k, v) in loaded_data.items()]
+#
+# ds = xr.Dataset(data_vars={
+#     "duration": (("datetime", "sets"),),
+#     "name": "",
+#     "reps": "",
+#     "weight": "",
+#     "stepIndex": ""
+# }, coords={
+#     "datetime": time_dims,
+#     "sets": sets_dims
+# })

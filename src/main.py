@@ -1,68 +1,19 @@
-import json
 import logging
 from datetime import date
 
 import garth
 
 from src.auth import client_auth
+from src.manage_workouts import dump_to_json, workouts_to_dict, sort_workouts
 from src.utils.Endpoints import Endpoints
 from src.models.Workout import Workout
 from src.models.ExerciseSet import ExerciseSet
 
+DATA_FILEPATH = "data/workout_data.json"
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO)
-
-
-def workouts_to_dict(data: list[Workout]) -> dict:
-    workouts = list()
-    for workout in data:
-        workout.validation_check()
-        workouts.append(workout.asdict())
-    return {"workouts": workouts}
-
-
-def dump_data(data: dict, filepath: str, option):
-    match option:
-        case "a" | "w":
-            try:
-                with open(filepath, option) as file:
-                    json.dump(data, file, sort_keys=True)
-            except FileNotFoundError as e:
-                print(f"{filepath} not found.")
-            except TypeError as e:
-                print(f"{e} Check data's type.")
-        case _:
-            raise ValueError(f"Invalid option:{option} used in json.dump().")
-
-
-def load_data(filepath: str) -> list[Workout]:
-    try:
-        with open(filepath, 'r') as file:
-            json_data = json.load(file)
-            all_workouts = list()
-            for workout in json_data["workouts"]:
-                a_workout = Workout()
-                a_workout.load(workout)
-                all_workouts.append(a_workout)
-        return all_workouts
-
-    except FileNotFoundError as e:
-        print(f"{e}")
-
-
-def transverse_by_set_label(label: str, workouts: dict | list) -> None:
-    # transverse workouts by given dict key
-    allWorkouts = workouts
-    matchedList = list()
-    if workouts is list:
-        allWorkouts = workouts_to_dict(workouts)
-
-    for (key, value) in allWorkouts.items():
-        if label in allWorkouts["1"]:
-            pass
-
-    return None
 
 
 def main():
@@ -120,8 +71,8 @@ def main():
         # logger.info(f"Workout data: datetime: {a_workout.datetime} Num of sets: {len(a_workout.sets)}
 
     logger.info(f"Num of workouts: {len(totalWorkouts)}, Workout 0 set 3: {totalWorkouts[0].view_sets()[3]}")
-    # filepath = "../data/workout_data.json"
-    # dump_data(workouts_to_dict(totalWorkouts), filepath, "w")
+    sorted_workouts = sort_workouts(totalWorkouts, 'datetime')
+    dump_to_json(workouts_to_dict(sorted_workouts), DATA_FILEPATH, "w")
 
     # workout_dict = workouts_to_dict(totalWorkouts)["workouts"]
     # xr

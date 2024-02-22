@@ -32,7 +32,7 @@ class Workout:
         _list = [s.asdict() for s in self.sets]
         return _list
 
-    def transverse_by_set(self, targetSet: int) -> list[ExerciseSet]:
+    def transverse_by_set_number(self, targetSet: int) -> list[ExerciseSet]:
         # only returns exercises with the given set number
         setNumber = 1
         matchedStepIndex = self.sets[0].stepIndex
@@ -49,13 +49,13 @@ class Workout:
         return matchedSets
 
     def list_exercises(self) -> set[str]:
-        sets = self.transverse_by_set(1)
+        sets = self.transverse_by_set_number(1)
         exerciseNames = list()
         for currSet in sets:
             exerciseNames.append(currSet.exerciseName)
         return set(exerciseNames)
 
-    def load(self, data: dict):
+    def init_workout(self, data: dict):
         self.activityId = self.key_search(data, "activityId")
         self.category = self.key_search(data, "category")
         self.datetime = self.key_search(data, "datetime")
@@ -65,15 +65,16 @@ class Workout:
         _sets = self.key_search(data, "sets")
         self.sets = [ExerciseSet(loading_dict=s) for s in _sets]
 
-    def key_search(self, data: dict, key_match: str) -> str | bool | list[ExerciseSet] | None:
+    @staticmethod
+    def key_search(data: dict, key_match: str) -> str | bool | list[ExerciseSet] | None:
+        # Only finds value of Workout attributes
         for (key, value) in data.items():
+            if key == "sets":
+                pass
             if key == key_match:
                 return value
             if isinstance(value, dict):
-                self.key_search(value, key_match)
-            elif isinstance(value, list):
-                for item in value:
-                    self.key_search(item, key_match)
+                Workout.key_search(value, key_match)
         return None
 
     def validation_check(self):
