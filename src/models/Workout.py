@@ -1,5 +1,6 @@
 import dataclasses
 from dataclasses import dataclass
+from typing import List
 
 from src.models.ExerciseSet import ExerciseSet
 
@@ -48,12 +49,14 @@ class Workout:
             setNumber = setNumber + 1
         return matchedSets
 
-    def list_exercises(self) -> set[str]:
+    def list_exercises(self) -> list[str]:
         sets = self.transverse_by_set_number(1)
         exerciseNames = list()
         for currSet in sets:
             exerciseNames.append(currSet.exerciseName)
-        return set(exerciseNames)
+        ordered_list = list(set(exerciseNames))
+        ordered_list.sort(key=lambda x: (x is None, x))
+        return ordered_list
 
     def init_workout(self, data: dict):
         self.activityId = self.key_search(data, "activityId")

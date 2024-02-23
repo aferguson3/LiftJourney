@@ -27,7 +27,7 @@ def main():
         "endDate": str(endDate),
         "start": 0,
         "limit": str(limit),
-        "activityType": "fitness_equipment"
+        "activityType": "strength_training"
     }
     # Gathers all fitness activities by date
     activity_data = garth.connectapi(f"{Endpoints.garmin_connect_activities}", params=params)
@@ -40,7 +40,8 @@ def main():
             continue
         activityIds.append(activity["activityId"])
     logger.info(
-        f"Max limit for Ids: {limit}, Number of Removed Ids: {len(removedIds)}, Number of Ids: {len(activityIds)}\n{activityIds[:5]} ...")
+        f"Max limit for Ids: {limit}, Number of Removed Ids: {len(removedIds)}, Number of Ids: {len(activityIds)}"
+        f"\n{activityIds[:5]} ...")
 
     totalWorkouts = list()  # most recent workouts stored first
     for Id in activityIds:
@@ -80,7 +81,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-# TODO: reverse order workouts in json file
-# TODO: get target reps from /workouts
-# TODO: plotting sets data
+# TODO: investigate getting workouts from startDate onwards
 # TODO: implement testing
+# TODO: plotting sets data
+# TODO: get target reps from /workouts

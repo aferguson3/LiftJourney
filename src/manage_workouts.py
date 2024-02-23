@@ -16,15 +16,18 @@ def workouts_to_dict(data: list[Workout]) -> dict:
 
 
 def dump_to_json(data: dict, filepath: str, option):
+    if isinstance(data, dict) is not True:
+        raise TypeError(f"{data} is not type dict.")
+
     match option:
         case "a" | "w":
             try:
                 with open(filepath, option) as file:
                     json.dump(data, file, sort_keys=True)
-            except FileNotFoundError as e:
+            except FileNotFoundError:
                 logger.error(f"{filepath} not found.")
-            except TypeError as e:
-                logger.error(f"{e} Check data's type.")
+                raise FileNotFoundError(f"{filepath} not found")
+
         case _:
             raise ValueError(f"Invalid option:{option} used in json.dump().")
 
@@ -42,10 +45,11 @@ def load_workouts(filepath: str) -> list[Workout]:
 
     except FileNotFoundError as e:
         logger.error(f"{e}")
+        raise FileNotFoundError(f"{e}")
 
 
 def sort_workouts(input_data: Workout | list[Workout], key: str, reverse=False) \
-        -> list[Workout] | list[ExerciseSet] | None:
+        -> list[ExerciseSet] | list[Workout] | None:
     searchedData, isValidKey = None, None
     if isinstance(input_data, list):
         isValidKey = hasattr(input_data[0], key)
@@ -60,6 +64,7 @@ def sort_workouts(input_data: Workout | list[Workout], key: str, reverse=False) 
             return sorted_list
         except TypeError as msg:
             logger.error(f"{msg}")
+            raise TypeError(f"{msg}")
 
     else:
         logger.error(f"Sorting {type(input_data)} by key: {key} FAILED.")
