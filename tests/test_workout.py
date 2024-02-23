@@ -1,22 +1,40 @@
 from src.models import ExerciseSet, Workout
-from tests.sample_data import wo1, wo2, wo3
+from tests.sample_data import sets1, sets2, sets3
 import pytest
 
 
 class TestWorkout:
 
+    @pytest.fixture
+    def load_workouts(self):
+        wo1 = Workout()
+        wo1.activityId = 77789374356
+        wo1.datetime = "2024-02-16T13:26:04.0"
+        wo1.sets = sets1
+
+        wo2 = Workout()
+        wo2.activityId = 22944539762
+        wo2.datetime = "2024-02-13T13:19:35.0"
+        wo2.sets = sets2
+
+        wo3 = Workout()
+        wo3.activityId = 10297505921
+        wo3.datetime = "2024-02-15T13:31:41.0"
+        wo3.sets = sets3
+
+        return wo1, wo2, wo3
+
     @pytest.fixture(autouse=True)
-    def init_tests(self):
-        self.workout1 = wo1
-        self.workout2 = wo2
-        self.workout3 = wo3
+    def init_tests(self, load_workouts):
+        self.workout1, self.workout2, self.workout3 = load_workouts
 
     def test_workout_asdict(self):
         assert self.workout1.asdict() is not None
         assert self.workout2.asdict() is not None
         assert self.workout3.asdict() is not None
 
-    def test_workout_init_workout(self):
+    @pytest.fixture
+    def sample_workout(self):
         _dict = {'activityId': 10297505921, 'category': "UPPER", 'datetime': '2024-02-15T13:31:41.0', 'name': "John",
                  'sets': [{'duration_secs': 310.434, 'exerciseName': 'BARBELL_DEADLIFT', 'numReps': 9,
                            'startTime': '2024-02-15T13:43:23.0', 'stepIndex': 2, 'weight_grams': 61234.0},
@@ -26,9 +44,11 @@ class TestWorkout:
                            'startTime': '2024-02-15T13:59:36.0', 'stepIndex': 4, 'weight_grams': 93000.0},
                           ],
                  'isIncomplete': False}
+        return _dict
 
+    def test_workout_init_workout(self, sample_workout):
         new_workout = Workout()
-        new_workout.init_workout(_dict)
+        new_workout.init_workout(sample_workout)
 
         assert new_workout is not None
         assert new_workout.activityId is not None
@@ -39,19 +59,22 @@ class TestWorkout:
         assert new_workout.isIncomplete is not None
         assert new_workout.sets[0] != new_workout.sets[1] != new_workout.sets[2]
 
-    def test_workout_view_sets(self):
+    def test_workout_view_sets(self, sample_workout):
         # Check if the view_sets method returns a non-empty list
+        new_workout = Workout()
+        new_workout.init_workout(sample_workout
+                                 )
+        assert new_workout.view_sets() is not None
         assert self.workout1.view_sets() is not None
         assert self.workout2.view_sets() is not None
-        assert self.workout3.view_sets() is not None
 
         # Check if the number of sets returned matches the expected length
-        assert len(self.workout1.sets) == len(wo1.sets)
-        assert len(self.workout2.sets) == len(wo2.sets)
-        assert len(self.workout3.sets) == len(wo3.sets)
+        assert len(new_workout.sets) == 3
+        assert len(self.workout2.sets) == 10
+        assert len(self.workout3.sets) == 10
 
         # Check if the expected keys & values are present
-        for set_data in self.workout1.view_sets():
+        for set_data in new_workout.view_sets():
             assert 'stepIndex' in set_data
             assert 'exerciseName' in set_data
             assert 'numReps' in set_data
