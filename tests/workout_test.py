@@ -1,12 +1,13 @@
+import pytest
+
 from src.models import ExerciseSet, Workout
 from tests.sample_data import sets1, sets2, sets3
-import pytest
 
 
 class TestWorkout:
 
     @pytest.fixture
-    def load_workouts(self):
+    def init_workouts(self):
         wo1 = Workout()
         wo1.activityId = 77789374356
         wo1.datetime = "2024-02-16T13:26:04.0"
@@ -25,8 +26,8 @@ class TestWorkout:
         return wo1, wo2, wo3
 
     @pytest.fixture(autouse=True)
-    def init_tests(self, load_workouts):
-        self.workout1, self.workout2, self.workout3 = load_workouts
+    def init_tests(self, init_workouts):
+        self.workout1, self.workout2, self.workout3 = init_workouts
 
     def test_workout_asdict(self):
         assert self.workout1.asdict() is not None
@@ -37,11 +38,11 @@ class TestWorkout:
     def sample_workout(self):
         _dict = {'activityId': 10297505921, 'category': "UPPER", 'datetime': '2024-02-15T13:31:41.0', 'name': "John",
                  'sets': [{'duration_secs': 310.434, 'exerciseName': 'BARBELL_DEADLIFT', 'numReps': 9,
-                           'startTime': '2024-02-15T13:43:23.0', 'stepIndex': 2, 'weight_grams': 61234.0},
+                           'startTime': '2024-02-15T13:43:23.0', 'stepIndex': 2, 'weight': 135.0},
                           {'duration_secs': 422.378, 'exerciseName': 'BARBELL_DEADLIFT', 'numReps': 4,
-                           'startTime': '2024-02-15T13:50:03.0', 'stepIndex': 4, 'weight_grams': 93000.0},
+                           'startTime': '2024-02-15T13:50:03.0', 'stepIndex': 4, 'weight': 205.0},
                           {'duration_secs': 474.054, 'exerciseName': 'BARBELL_DEADLIFT', 'numReps': 10,
-                           'startTime': '2024-02-15T13:59:36.0', 'stepIndex': 4, 'weight_grams': 93000.0},
+                           'startTime': '2024-02-15T13:59:36.0', 'stepIndex': 4, 'weight': 205.0},
                           ],
                  'isIncomplete': False}
         return _dict
@@ -78,14 +79,14 @@ class TestWorkout:
             assert 'stepIndex' in set_data
             assert 'exerciseName' in set_data
             assert 'numReps' in set_data
-            assert 'weight_grams' in set_data
+            assert 'weight' in set_data
             assert 'duration_secs' in set_data
             assert 'startTime' in set_data
 
             assert set_data['stepIndex'] is not None
             assert set_data['exerciseName'] is not None
             assert set_data['numReps'] is not None
-            assert set_data['weight_grams'] is not None
+            assert set_data['weight'] is not None
             assert set_data['duration_secs'] is not None
             assert set_data['startTime'] is not None
 
@@ -127,9 +128,9 @@ class TestWorkout:
     @pytest.fixture
     def key_search_data(self):
         sets = [{'duration_secs': 310.434, 'exerciseName': 'BARBELL_DEADLIFT', 'numReps': 9,
-                 'startTime': '2024-02-15T13:43:23.0', 'stepIndex': 2, 'weight_grams': 61234.0},
+                 'startTime': '2024-02-15T13:43:23.0', 'stepIndex': 2, 'weight': 135.0},
                 {'duration_secs': 474.054, 'exerciseName': 'BARBELL_DEADLIFT', 'numReps': 10,
-                 'startTime': '2024-02-15T13:59:36.0', 'stepIndex': 4, 'weight_grams': 93000.0},
+                 'startTime': '2024-02-15T13:59:36.0', 'stepIndex': 4, 'weight': 205.0},
                 ]
         data = {'activityId': 123, 'category': "LEGS", 'datetime': '2024-02-22T10:00:00', 'name': "Morning",
                 'sets': sets,
@@ -155,7 +156,7 @@ class TestWorkout:
         assert Workout.key_search(data, "numReps") is None
         assert Workout.key_search(data, "startTime") is None
         assert Workout.key_search(data, "stepIndex") is None
-        assert Workout.key_search(data, "weight_grams") is None
+        assert Workout.key_search(data, "weight") is None
 
     def test_workout_validation_check(self):
         sets_not_None = [ExerciseSet(exerciseName="BENCH"), ExerciseSet(exerciseName="CURLS"),

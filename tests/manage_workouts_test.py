@@ -1,21 +1,36 @@
-import json
 import os
 
 import pytest
 
-from src.manage_workouts import workouts_to_dict, dump_to_json, load_workouts
+from src.manage_workouts import *
 from src.models import Workout, ExerciseSet
-from tests.sample_data import wo1, wo2, wo3
+from tests.sample_data import sets1, sets2, sets3
 
 
 class TestManageWorkouts:
 
+    @pytest.fixture
+    def init_workouts(self):
+        wo1 = Workout()
+        wo1.activityId = 77789374356
+        wo1.datetime = "2024-02-16T13:26:04.0"
+        wo1.sets = sets1
+
+        wo2 = Workout()
+        wo2.activityId = 22944539762
+        wo2.datetime = "2024-02-13T13:19:35.0"
+        wo2.sets = sets2
+
+        wo3 = Workout()
+        wo3.activityId = 10297505921
+        wo3.datetime = "2024-02-15T13:31:41.0"
+        wo3.sets = sets3
+
+        return wo1, wo2, wo3, [wo1, wo2, wo3]
+
     @pytest.fixture(autouse=True)
-    def init_tests(self):
-        self.workout1: Workout = wo1
-        self.workout2: Workout = wo2
-        self.workout3: Workout = wo3
-        self.allworkouts: list[Workout] = [wo1, wo2, wo3]
+    def init_tests(self, init_workouts):
+        self.workout1, self.workout2, self.workout3, self.allworkouts = init_workouts
 
     def test_workouts_to_dict(self):
         assert workouts_to_dict(self.allworkouts)["workouts"] is not None
@@ -24,7 +39,7 @@ class TestManageWorkouts:
 
     def test_dump_to_json_valid(self, tmp_path):
         _sets = [ExerciseSet(exerciseName="PULL UPS", numReps=10, duration_secs=150),
-                 ExerciseSet(exerciseName="BENCH", numReps=5, duration_secs=10, weight_grams=1000)]
+                 ExerciseSet(exerciseName="BENCH", numReps=5, duration_secs=10, weight=100)]
         self.workout1.sets = _sets
         # Create a temporary directory for the test
         temp_file = os.path.join(tmp_path, "test.json")
@@ -56,6 +71,35 @@ class TestManageWorkouts:
         with pytest.raises(ValueError):
             # Call the function with an invalid option
             dump_to_json(self.workout1.asdict(), os.path.join(tmp_path, "test.json"), "x")
+
+    @pytest.fixture
+    def test_metadata(self):
+        metadata = {"numWorkouts": "", "filepath": "",
+                    "dates": {"firstWorkout": "", "lastWorkout": ""},
+                    "start": 0, "limit": 0
+                    }
+        return metadata
+
+    def test_dump_to_json_correct_metadata(self, tmp_path, test_metadata):
+        _metadata = test_metadata
+        _metadata["filepath"] = os.path.join(tmp_path, 'metadata.json')
+
+        sorted_workouts = sort_workouts(self.allworkouts, 'datetime')
+        dump_to_json(workouts_to_dict(sorted_workouts), os.path.join(tmp_path, "test.json"), 'w', _metadata)
+
+        with open(os.path.join(tmp_path, "metadata.json")) as file:
+            metadata = json.load(file)
+
+        assert metadata is not None
+        assert metadata["numWorkouts"] == 3
+        assert metadata["dates"]["firstWorkout"] == "2024-02-13T13:19:35.0"
+        assert metadata["dates"]["lastWorkout"] == "2024-02-16T13:26:04.0"
+
+    def test_dump_to_json_metadata_file_not_found(self, tmp_path, test_metadata):
+        # Test for FileNotFoundError for metadata
+        metadata = test_metadata
+        with pytest.raises(FileNotFoundError):
+            dump_to_json(workouts_to_dict([self.workout1]), os.path.join(tmp_path, "test.json"), "w", metadata)
 
     @pytest.fixture
     def sample_json_data(self, tmp_path):

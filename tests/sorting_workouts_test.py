@@ -28,6 +28,7 @@ class TestSortingWorkouts:
     def test_sort_workouts_workout_key(self, sample_workouts):
         # Call the function to sort Workout objects by the 'datetime' key
         sorted_workouts = sort_workouts(sample_workouts, key="datetime")
+        sorted_workouts2 = sort_workouts(sample_workouts, key="category")
 
         # Verify that the result is a list
         assert isinstance(sorted_workouts, list)
@@ -37,6 +38,13 @@ class TestSortingWorkouts:
         assert sorted_workouts[1].datetime == "2024-02-23T10:00:00"
         assert sorted_workouts[2].datetime == "2024-02-24T10:00:00"
         assert sorted_workouts[3].datetime == "2024-02-24T10:00:00"
+        assert sorted_workouts[4].datetime == "2024-02-24T10:00:00"
+
+        assert sorted_workouts2[0].category == "Cardio"
+        assert sorted_workouts2[1].category == "Strength"
+        assert sorted_workouts2[2].category == "Strength"
+        assert sorted_workouts2[3].category == "Strength"
+        assert sorted_workouts2[4].category == "Strength"
 
     def test_sort_workouts_exercise_set_key(self, sample_workouts):
         assert sort_workouts(sample_workouts, "exerciseName") is None
