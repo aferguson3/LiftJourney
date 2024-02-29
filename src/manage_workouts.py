@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import logging
 import re
@@ -11,12 +12,12 @@ from src.utils import Endpoints
 logger = logging.getLogger(__name__)
 
 
-def workouts_to_dict(data: list[Workout]) -> dict:
-    if isinstance(data, list) is not True:
-        raise TypeError(f"{data} is not type list.")
+def workouts_to_dict(workouts_list: list[Workout]) -> dict:
+    if isinstance(workouts_list, list) is not True:
+        raise TypeError(f"{workouts_list} is not type list.")
 
     workouts = list()
-    for workout in data:
+    for workout in workouts_list:
         workout.set_data_validation_check()
         workouts.append(workout.asdict())
     return {"workouts": workouts}
@@ -50,16 +51,18 @@ def dump_to_json(workout_data: dict, filepath: str, option, _metadata: dict = No
         case _:
             raise ValueError(f"Invalid option:{option} used in json.dump().")
 
-    if _metadata is not None:
-        logger.info("Metadata enabled.")
-        try:
-            metadata = set_metadata(workout_data, _metadata)
-            filepath = metadata.pop("filepath")
-            with open(filepath, 'w') as file:
-                json.dump(metadata, file)
-        except FileNotFoundError:
-            logger.error(f"{filepath} not found.")
-            raise FileNotFoundError(f"{filepath} not found")
+    if _metadata is None:
+        return
+
+    logger.info("Metadata enabled.")
+    try:
+        metadata = set_metadata(workout_data, _metadata)
+        filepath = metadata.pop("filepath")
+        with open(filepath, 'w') as file:
+            json.dump(metadata, file)
+    except FileNotFoundError:
+        logger.error(f"{filepath} not found.")
+        raise FileNotFoundError(f"{filepath} not found")
 
 
 def load_workouts(filepath: str) -> list[Workout]:
@@ -102,18 +105,15 @@ def sort_workouts(workout_data: Workout | list[Workout], key: str, reverse=False
     return None
 
 
-def view_sets_from_workouts(workout_data: list[Workout]) -> dict:  # TODO: dynamic key allocation
+def view_sets_from_workouts(workout_data: list[Workout]) -> dict:
     # Returns dict of all workouts sets
     if isinstance(workout_data, list) is not True:
         raise TypeError(f"{workout_data} is not type list.")
 
-    _dict = {"duration_secs": [_set.duration_secs for wo in workout_data for _set in wo.sets],
-             "exerciseName": [_set.exerciseName for wo in workout_data for _set in wo.sets],
-             "numReps": [_set.numReps for wo in workout_data for _set in wo.sets],
-             "targetReps": [_set.targetReps for wo in workout_data for _set in wo.sets],
-             "startTime": [_set.startTime for wo in workout_data for _set in wo.sets],
-             "stepIndex": [_set.stepIndex for wo in workout_data for _set in wo.sets],
-             "weight": [_set.weight for wo in workout_data for _set in wo.sets]}
+    _dict = dict()
+    for field in dataclasses.fields(ExerciseSet):
+        field_data = [getattr(_set, field.name) for wo in workout_data for _set in wo.sets]
+        _dict[str(field.name)] = field_data
 
     return _dict
 
@@ -137,6 +137,16 @@ def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
                 continue  # Ignores unscheduled exercises w/o stepIndex
             currSet.targetReps = garmin_data['steps'][currStepIndex]['durationValue']
             if currSet.exerciseName is None:
-                currSet.exerciseName = garmin_data['steps'][currStepIndex]['exerciseName']
+                newName = garmin_data['steps'][currStepIndex]['exerciseName']
+                newCategory = garmin_data['steps'][currStepIndex]['exerciseCategory']
+                currSet.exerciseName = newName if newName is not None else newCategory
 
     return workouts
+
+
+def list_incomplete_workouts(workouts: list[Workout]):
+    incomplete_workouts = []
+    for wo in workouts:
+        if wo.isIncomplete:
+            incomplete_workouts.append(wo.datetime.split('T')[0])
+    logger.info(f"Incomplete workouts: {incomplete_workouts}")
