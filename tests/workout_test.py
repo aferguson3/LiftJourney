@@ -37,6 +37,7 @@ class TestWorkout:
     @pytest.fixture
     def sample_workout(self):
         _dict = {'activityId': 10297505921, 'category': "UPPER", 'datetime': '2024-02-15T13:31:41.0', 'name': "John",
+                 'version': '1.0.2',
                  'sets': [{'duration_secs': 310.434, 'exerciseName': 'BARBELL_DEADLIFT', 'numReps': 9,
                            'startTime': '2024-02-15T13:43:23.0', 'stepIndex': 2, 'weight': 135.0},
                           {'duration_secs': 422.378, 'exerciseName': 'BARBELL_DEADLIFT', 'numReps': 4,
@@ -59,6 +60,7 @@ class TestWorkout:
         assert new_workout.sets is not None
         assert new_workout.isIncomplete is not None
         assert new_workout.sets[0] != new_workout.sets[1] != new_workout.sets[2]
+        assert new_workout.version is not None
 
     def test_workout_view_sets(self, sample_workout):
         # Check if the view_sets method returns a non-empty list
@@ -134,10 +136,9 @@ class TestWorkout:
                 ]
         data = {'activityId': 123, 'category': "LEGS", 'datetime': '2024-02-22T10:00:00', 'name': "Morning",
                 'sets': sets,
-                'isIncomplete': False}
+                'isIncomplete': False, 'version': '2.0'}
         return data, sets
 
-    @pytest.fixture
     def test_workout_key_search_workout_keys(self, key_search_data):
         data, sets = key_search_data
         # Test key_search for each key in the Workout dictionary
@@ -147,6 +148,7 @@ class TestWorkout:
         assert Workout.key_search(data, "name") == "Morning"
         assert Workout.key_search(data, "isIncomplete") is False
         assert Workout.key_search(data, "sets") == sets
+        assert Workout.key_search(data, "version") == "2.0"
 
     def test_workout_key_search_set_keys(self, key_search_data):
         data, sets = key_search_data
@@ -167,13 +169,13 @@ class TestWorkout:
                       ExerciseSet(exerciseName=None)]
 
         self.workout3.sets = sets_not_None
-        self.workout3.validation_check()
+        self.workout3.set_data_validation_check()
         assert self.workout3.isIncomplete is False
 
         self.workout3.sets = sets_None
-        self.workout3.validation_check()
+        self.workout3.set_data_validation_check()
         assert self.workout3.isIncomplete is True
 
         self.workout3.sets = sets_None2
-        self.workout3.validation_check()
+        self.workout3.set_data_validation_check()
         assert self.workout3.isIncomplete is True

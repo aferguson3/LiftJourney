@@ -5,8 +5,7 @@ import garth
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from src.auth import client_auth
-from src.manage_workouts import sort_workouts, view_sets_from_workouts
+from src import *
 from src.models.ExerciseSet import ExerciseSet
 from src.models.Workout import Workout
 from src.utils.Endpoints import Endpoints
@@ -21,18 +20,15 @@ logging.basicConfig(level=logging.INFO)
 
 # TODO: investigate getting workouts from startDate onwards
 # TODO: plotting data:
-#           * show x tick for every day
-#           * graph targetReps
-# TODO: get target reps from /workouts
 # TODO: make startTime for ES objs not a datetime value
-
+# TODO: improve/review performance of adding targetReps funct
 
 def main():
     client_auth()
-    startDate = '2023-01-01'
+    startDate = '2022-12-01'
     endDate = date.today().isoformat()
     start = 0  # modified by number of stored Workouts
-    limit = 42  # max number of activities returned
+    limit = 40  # max number of activities returned
 
     params = {
         "startDate": str(startDate),
@@ -46,23 +42,47 @@ def main():
                 "dates": {"firstWorkout": "", "lastWorkout": ""},
                 "start": start, "limit": limit
                 }
-
-    activityIds = get_activities(params)
-    workouts = get_workouts(activityIds)
-    logger.info(f"Num of workouts: {len(workouts)}, Workout 0 set 3: {workouts[0].view_sets()[3]}")
-
-    sorted_workouts = sort_workouts(workouts, "datetime")
-    # dump_to_json(workouts_to_dict(sorted_workouts), DATA_FILEPATH, "w", metadata)
+    option = 3
+    match option:
+        case 1:
+            activityIds = get_activities(params)
+            workouts = get_workouts(activityIds)
+            workouts_with_reps = fill_out_workouts(workouts)
+            sorted_workouts = sort_workouts(workouts_with_reps, "datetime")
+            dump_to_json(workouts_to_dict(sorted_workouts), DATA_FILEPATH, "w", metadata)
+        case 2:
+            activityIds = get_activities(params)
+            workouts = get_workouts(activityIds)
+            workouts_with_reps = fill_out_workouts(workouts)
+            sorted_workouts = sort_workouts(workouts_with_reps, "datetime")
+        case _:
+            workouts = load_workouts(DATA_FILEPATH)
+            sorted_workouts = sort_workouts(workouts, "datetime")
+    logger.info(f"Num of workouts: {len(sorted_workouts)}, Workout 0 set 3: {sorted_workouts[0].view_sets()[3]}")
 
     df = load_dataframe(sorted_workouts)
+    plot_dataframe(df, "PULL_UP", 10)
 
+
+def plot_dataframe(df, plotting_exercise: str, targetReps: int = None) -> None:
     # plot the reps and weight of like exercisesNames
-    plotting_exercise = "BARBELL_BENCH_PRESS"
-    plot_df = df.loc[df["exerciseName"] == plotting_exercise]
+    if plotting_exercise not in df['exerciseName'].values:
+        raise ValueError(f"Exercise {plotting_exercise} is not in df")
+    if targetReps is None:
+        plot_df = df[(df["exerciseName"] == plotting_exercise)]
+    else:
+        plot_df = df[(df["exerciseName"] == plotting_exercise) & (df["targetReps"] == targetReps)]
+
+    fig, axes = plt.subplots(2, 1, sharex=True)
+    axes[0].set_title(f"{plotting_exercise.replace('_', ' ').title()} Progress")
+    datapoints = len(plot_df)
+    figsize = (datapoints, 6)
+
     plot_df.drop_duplicates(subset=["date"], inplace=True)  # Gets 1st rep of chosen exercise
-    plot_df[["weight", "numReps"]].plot(subplots=True, kind='line', ylabel='Weight (lbs)', grid=True)
+    plot_df["weight"].plot(kind='line', ax=axes[0], ylabel='Weight (lbs)', grid=True)
+    plot_df[["targetReps", "numReps"]].plot(kind='line', ax=axes[1], grid=True, xticks=range(datapoints),
+                                            rot=30.0, figsize=figsize)
     plt.show()
-    pass
 
 
 def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
@@ -76,12 +96,11 @@ def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
     index_df = pd.MultiIndex.from_tuples(index_2d, names=["Dates", "Sets"])
 
     df = pd.DataFrame(setsData, index=index_df)
-
     df["date"] = [d for (d, s) in index_2d]
     return df
 
 
-def get_activities(params: dict):
+def get_activities(params: dict) -> list:
     # Gathers all fitness activities by date
     activity_data = garth.connectapi(f"{Endpoints.garmin_connect_activities}", params=params)
     activityIds, removedIds = list(), list()
@@ -100,7 +119,7 @@ def get_activities(params: dict):
     return activityIds
 
 
-def get_workouts(activityIds):
+def get_workouts(activityIds: list) -> list[Workout]:
     totalWorkouts = list()  # most recent workouts stored first
     for Id in activityIds:
         data = garth.connectapi(f"{Endpoints.garmin_connect_activity}/{Id}/exerciseSets")
@@ -116,10 +135,9 @@ def get_workouts(activityIds):
                 continue
             if currSet["exercises"][0]["category"] == "INDOOR_BIKE":
                 continue
-            if ((currSet["exercises"][0]["name"] == "BARBELL_BENCH_PRESS" and currSet["weight"] <= 61251) or
-                    (currSet["exercises"][0]["name"] == "BARBELL_BACK_SQUAT" and currSet["weight"] <= 61251)):
+            if _isWarmupSet(currSet):
                 # skip warmup sets
-                logger.debug(f"Skipped {currSet['exercises'][0]['name']}, weight: {currSet['weight']}")
+                logger.info(f"Skipped {currSet['exercises'][0]['name']}, weight: {currSet['weight']}")
                 continue
             currWeight = currSet["weight"]
             currWeight = currWeight if currWeight is not None else 0
@@ -137,6 +155,13 @@ def get_workouts(activityIds):
         a_workout.sets = all_workout_sets
         totalWorkouts.append(a_workout)
     return totalWorkouts
+
+
+def _isWarmupSet(currSet) -> bool:
+    result = currSet["exercises"][0]["name"] == "BARBELL_BENCH_PRESS" and currSet["weight"] <= 61251
+    result = result or currSet["exercises"][0]["name"] == "BARBELL_BACK_SQUAT" and currSet["weight"] <= 61251
+    result = result or currSet["exercises"][0]["name"] == "BARBELL_BACK_SQUAT" and currSet["weight"] <= 61251
+    return result
 
 
 if __name__ == "__main__":

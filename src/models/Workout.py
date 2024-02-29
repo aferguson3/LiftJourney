@@ -1,6 +1,5 @@
 import dataclasses
 from dataclasses import dataclass
-from typing import List
 
 from src.models.ExerciseSet import ExerciseSet
 
@@ -12,6 +11,7 @@ class Workout:
     datetime: str
     name: str
     sets: list[ExerciseSet]  # most recent --> oldest
+    version: str
     isIncomplete: bool = False
 
     def __init__(self,
@@ -19,12 +19,14 @@ class Workout:
                  category=None,
                  datetime=None,
                  name=None,
-                 sets=None):
+                 sets=None,
+                 version=None):
         self.activityId = activityId
         self.category = category
         self.datetime = datetime
         self.name = name
         self.sets = sets
+        self.version = version
 
     def asdict(self) -> dict:
         return dataclasses.asdict(self)
@@ -64,6 +66,7 @@ class Workout:
         self.datetime = self.key_search(data, "datetime")
         self.name = self.key_search(data, "name")
         self.isIncomplete = self.key_search(data, "isIncomplete")
+        self.version = self.key_search(data, "version")
 
         _sets = self.key_search(data, "sets")
         self.sets = [ExerciseSet(loading_dict=s) for s in _sets]
@@ -80,7 +83,7 @@ class Workout:
                 Workout.key_search(value, key_match)
         return None
 
-    def validation_check(self):
+    def set_data_validation_check(self):
         # checks if set data is incomplete
         for currSet in self.sets:
             self.isIncomplete = False

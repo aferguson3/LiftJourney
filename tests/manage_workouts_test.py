@@ -145,3 +145,18 @@ class TestManageWorkouts:
         with pytest.raises(FileNotFoundError):
             # Call the function with a non-existent file path
             load_workouts("/path/to/nonexistent/file.json")
+
+    def test_view_sets_from_workout(self):
+        setsData = view_sets_from_workouts(self.allworkouts)
+
+        assert setsData is not None
+        assert len(setsData["duration_secs"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(
+            self.workout3.sets)
+        assert len(setsData["exerciseName"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(
+            self.workout3.sets)
+        assert len(setsData["numReps"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(self.workout3.sets)
+        assert len(setsData["targetReps"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(
+            self.workout3.sets)
+        assert len(setsData["startTime"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(self.workout3.sets)
+        assert len(setsData["stepIndex"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(self.workout3.sets)
+        assert len(setsData["weight"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(self.workout3.sets)

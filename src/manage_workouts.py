@@ -1,8 +1,12 @@
 import json
 import logging
+import re
+
+import garth
 
 from src.models.ExerciseSet import ExerciseSet
 from src.models.Workout import Workout
+from src.utils import Endpoints
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +17,7 @@ def workouts_to_dict(data: list[Workout]) -> dict:
 
     workouts = list()
     for workout in data:
-        workout.validation_check()
+        workout.set_data_validation_check()
         workouts.append(workout.asdict())
     return {"workouts": workouts}
 
@@ -98,7 +102,7 @@ def sort_workouts(workout_data: Workout | list[Workout], key: str, reverse=False
     return None
 
 
-def view_sets_from_workouts(workout_data: list[Workout]) -> dict:
+def view_sets_from_workouts(workout_data: list[Workout]) -> dict:  # TODO: dynamic key allocation
     # Returns dict of all workouts sets
     if isinstance(workout_data, list) is not True:
         raise TypeError(f"{workout_data} is not type list.")
@@ -106,8 +110,33 @@ def view_sets_from_workouts(workout_data: list[Workout]) -> dict:
     _dict = {"duration_secs": [_set.duration_secs for wo in workout_data for _set in wo.sets],
              "exerciseName": [_set.exerciseName for wo in workout_data for _set in wo.sets],
              "numReps": [_set.numReps for wo in workout_data for _set in wo.sets],
+             "targetReps": [_set.targetReps for wo in workout_data for _set in wo.sets],
              "startTime": [_set.startTime for wo in workout_data for _set in wo.sets],
              "stepIndex": [_set.stepIndex for wo in workout_data for _set in wo.sets],
              "weight": [_set.weight for wo in workout_data for _set in wo.sets]}
 
     return _dict
+
+
+def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
+    # Fills out targetReps and missing exerciseNames using scheduled workout info
+    pattern = r"\b\d+(?:\.\d+)+\b"
+    for wo in workouts:
+        garmin_data = garth.connectapi(f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts")[0]
+        workout_name_str = garmin_data["workoutName"]
+
+        version_str = re.search(pattern, workout_name_str)
+        version_str = version_str.group() if version_str is not None else None
+        workout_name = re.sub(pattern, '', workout_name_str).strip()
+        wo.version = version_str
+        wo.name = workout_name
+
+        for currSet in wo.sets:
+            currStepIndex = currSet.stepIndex
+            if currStepIndex is None:
+                continue  # Ignores unscheduled exercises w/o stepIndex
+            currSet.targetReps = garmin_data['steps'][currStepIndex]['durationValue']
+            if currSet.exerciseName is None:
+                currSet.exerciseName = garmin_data['steps'][currStepIndex]['exerciseName']
+
+    return workouts
