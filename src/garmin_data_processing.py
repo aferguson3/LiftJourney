@@ -23,7 +23,7 @@ def get_activities(params: dict) -> (list, list):
 
         activityIds.append(activity["activityId"])
         activityDatetimes.append(activity["startTimeLocal"])
-    logger.info(
+    logger.debug(
         f"Max limit for Ids: {params['limit']}, Number of Removed Ids: {len(removedIds)}, Number of Ids: {len(activityIds)}"
         f"\n{activityIds[:5]} ...")
     return activityIds, activityDatetimes
@@ -44,7 +44,7 @@ def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
                 continue
             if _isWarmupSet(currSet):
                 # skip warmup sets
-                logger.info(f"Skipped {currSet['exercises'][0]['name']}, weight: {currSet['weight']}")
+                logger.debug(f"Skipped {currSet['exercises'][0]['name']}, weight: {currSet['weight']}")
                 continue
             currWeight = currSet["weight"] if currSet["weight"] is not None else 0
             curr_time_UTC_dt = datetime.fromisoformat(currSet["startTime"])

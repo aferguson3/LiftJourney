@@ -1,11 +1,10 @@
 import logging
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from src import *
-from src.manage_workouts import list_incomplete_workouts
 from src.models.Workout import Workout
 
 DATA_FILEPATH = "./data/workout_data.json"
@@ -21,49 +20,27 @@ logging.basicConfig(level=logging.INFO)
 # TODO: changing exercise names is inconsistently saved
 
 
-def main():
-    client_auth()
-    startDate = '2022-12-01'
-    endDate = date.today().isoformat()
-    start = 0  # modified by number of stored Workouts
-    limit = 20  # max number of activities returned
+def list_available_exercises(dataframe: pd.DataFrame) -> list:
+    values = dataframe['exerciseName'].drop_duplicates().values.tolist()
+    if None in values:
+        values.remove(None)
+    values = sorted(values)
+    return values
 
-    params = {
-        "startDate": str(startDate),
-        "endDate": str(endDate),
-        "start": start,
-        "limit": str(limit),
-        "activityType": "fitness_equipment"
-    }
 
-    metadata = {"numWorkouts": "", "filepath": METADATA_FILEPATH,
-                "dates": {"firstWorkout": "", "lastWorkout": ""},
-                "start": start, "limit": limit
-                }
-    option = 1
-    match option:
-        case 1:
-            IDs, dates = get_activities(params)
-            workouts = get_workouts(IDs, dates)
-            workouts_with_reps = fill_out_workouts(workouts)
-            sorted_workouts = sort_workouts(workouts_with_reps, "datetime")
-            dump_to_json(workouts_to_dict(sorted_workouts), DATA_FILEPATH, "w", metadata)
-        case 2:
-            IDs, dates = get_activities(params)
-            workouts = get_workouts(IDs, dates)
-            workouts_with_reps = fill_out_workouts(workouts)
-            sorted_workouts = sort_workouts(workouts_with_reps, "datetime")
-        case _:
-            workouts = load_workouts(DATA_FILEPATH)
-            sorted_workouts = sort_workouts(workouts, "datetime")
-            list_incomplete_workouts(sorted_workouts)
+def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
+    index_2d = []
+    for workout in workouts:
+        numSets = list(range(1, len(workout.sets) + 1))
+        workoutDate = datetime.fromisoformat(workout.datetime).date().strftime("%m/%d/%y")
+        for _set in numSets:
+            index_2d.append((workoutDate, _set))
+    setsData = view_sets_from_workouts(workouts)
+    index_df = pd.MultiIndex.from_tuples(index_2d, names=["Dates", "Sets"])
 
-    logger.info(
-        f"Num of workouts: {len(sorted_workouts)}, Workout 0: {sorted_workouts[0].name} {sorted_workouts[0].version}"
-        f"\nset 3: {sorted_workouts[0].view_sets()[3]}")
-
-    df = load_dataframe(sorted_workouts)
-    plot_dataframe(df, "PULL_UP", 10)
+    df = pd.DataFrame(setsData, index=index_df)
+    df["date"] = [_date for (_date, s) in index_2d]
+    return df
 
 
 def plot_dataframe(df, plotting_exercise: str, targetReps: int = None) -> None:
@@ -87,19 +64,83 @@ def plot_dataframe(df, plotting_exercise: str, targetReps: int = None) -> None:
     plt.show()
 
 
-def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
-    index_2d = []
-    for wo in workouts:
-        numSets = list(range(1, len(wo.sets) + 1))
-        workoutDate = datetime.fromisoformat(wo.datetime).date().strftime("%m/%d/%y")
-        for _set in numSets:
-            index_2d.append((workoutDate, _set))
-    setsData = view_sets_from_workouts(workouts)
-    index_df = pd.MultiIndex.from_tuples(index_2d, names=["Dates", "Sets"])
+def set_params(weeks_of_workouts: int, limit: int, start: int, startDate: str | date):
+    params = {
+        "startDate": str(startDate),
+        "endDate": date.fromisoformat(startDate) + timedelta(days=7 * weeks_of_workouts),
+        "start": start,
+        "limit": str(limit),
+        "activityType": "fitness_equipment"
+    }
+    return params
 
-    df = pd.DataFrame(setsData, index=index_df)
-    df["date"] = [_date for (_date, s) in index_2d]
-    return df
+
+def user_exercise_selection(available_exercises: list) -> str:
+    for index, exercise in enumerate(available_exercises):
+        print(f"{index}: {exercise}")
+    chosen_exercise = None
+    while chosen_exercise is None:
+        selection = input("Choose an exercise.")  # TODO: Secure input validation
+        try:
+            selection = int(selection)
+            isInt = True
+        except ValueError:
+            selection = selection.upper()
+            isInt = False
+
+        if isInt and selection >= 0:
+            try:
+                chosen_exercise = available_exercises[selection]
+            except IndexError:
+                pass
+        elif not isInt:
+            chosen_exercise = selection if selection in available_exercises else None
+        if chosen_exercise is None: print(f"Error: Invalid exercise: {selection}")
+
+    return chosen_exercise
+
+
+def main():
+    client_auth()
+    startDate = '2024-01-01'  # '2023-03-08'
+    weeks_of_workouts = 5
+    start = 0  #
+    limit = 999  # max number of activities returned
+
+    params = set_params(weeks_of_workouts, limit, start, startDate)
+
+    metadata = {"numWorkouts": "", "filepath": METADATA_FILEPATH,
+                "dates": {"firstWorkout": "", "lastWorkout": ""},
+                }
+    option = 2
+    match option:
+        case 1:  # Fresh data & backup
+            IDs, dates = get_activities(params)
+            workouts = get_workouts(IDs, dates)
+            workouts_with_reps = fill_out_workouts(workouts)
+            sorted_workouts = sort_workouts(workouts_with_reps, "datetime")
+            dump_to_json(workouts_to_dict(sorted_workouts), DATA_FILEPATH, "w", metadata)
+            list_incomplete_workouts(sorted_workouts)
+        case 2:  # Fresh data & no backup
+            IDs, dates = get_activities(params)
+            workouts = get_workouts(IDs, dates)
+            workouts_with_reps = fill_out_workouts(workouts)
+            sorted_workouts = sort_workouts(workouts_with_reps, "datetime")
+            list_incomplete_workouts(sorted_workouts)
+        case _:  # Loaded data & no backup
+            workouts = load_workouts(DATA_FILEPATH)
+            sorted_workouts = sort_workouts(workouts, "datetime")
+            list_incomplete_workouts(sorted_workouts)
+
+    logger.info(
+        f"Num of workouts: {len(sorted_workouts)}, Workout 0: {sorted_workouts[0].name} {sorted_workouts[0].version}"
+        f"\nset 3: {sorted_workouts[0].view_sets()[3]}")
+
+    df = load_dataframe(sorted_workouts)
+    available_exercises = list_available_exercises(df)
+    plotting_exercise = user_exercise_selection(available_exercises)
+
+    plot_dataframe(df, plotting_exercise, 10)
 
 
 if __name__ == "__main__":
