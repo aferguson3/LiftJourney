@@ -161,14 +161,17 @@ class TestWorkout:
         assert Workout.key_search(data, "weight") is None
 
     def test_workout_validation_check(self):
-        sets_not_None = [ExerciseSet(exerciseName="BENCH"), ExerciseSet(exerciseName="CURLS"),
-                         ExerciseSet(exerciseName="SQUAT")]
+        sets_not_None_no_targetReps = [ExerciseSet(exerciseName="BENCH"), ExerciseSet(exerciseName="CURLS"),
+                                       ExerciseSet(exerciseName="SQUAT")]
+        sets_not_None_with_targetReps = [ExerciseSet(exerciseName="BENCH", targetReps=10),
+                                         ExerciseSet(exerciseName="CURLS", targetReps=8),
+                                         ExerciseSet(exerciseName="SQUAT", targetReps=7)]
         sets_None = [ExerciseSet(exerciseName=None), ExerciseSet(exerciseName=None),
                      ExerciseSet(exerciseName=None)]
         sets_None2 = [ExerciseSet(exerciseName="BENCH"), ExerciseSet(exerciseName="CURLS"),
                       ExerciseSet(exerciseName=None)]
 
-        self.workout3.sets = sets_not_None
+        self.workout3.sets = sets_not_None_with_targetReps
         self.workout3.set_data_validation_check()
         assert self.workout3.isIncomplete is False
 
@@ -177,5 +180,9 @@ class TestWorkout:
         assert self.workout3.isIncomplete is True
 
         self.workout3.sets = sets_None2
+        self.workout3.set_data_validation_check()
+        assert self.workout3.isIncomplete is True
+
+        self.workout3.sets = sets_not_None_no_targetReps
         self.workout3.set_data_validation_check()
         assert self.workout3.isIncomplete is True

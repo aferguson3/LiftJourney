@@ -48,13 +48,13 @@ def plot_dataframe(df, plotting_exercise: str, targetReps: int = None) -> None:
     if plotting_exercise not in df['exerciseName'].values:
         raise ValueError(f"Exercise {plotting_exercise} is not in df")
     if targetReps is None:
-        plot_df = df[(df["exerciseName"] == plotting_exercise)]
+        plot_df = df.loc[df["exerciseName"] == plotting_exercise]
     else:
-        plot_df = df[(df["exerciseName"] == plotting_exercise) & (df["targetReps"] == targetReps)]
+        plot_df = df.loc[(df["exerciseName"] == plotting_exercise) & (df["targetReps"] == targetReps)]
 
     fig, axes = plt.subplots(2, 1, sharex=True)
     axes[0].set_title(f"{plotting_exercise.replace('_', ' ').title()} Progress")
-    plot_df.drop_duplicates(subset=["date"], inplace=True)  # Gets 1st rep of chosen exercise
+    plot_df = plot_df.drop_duplicates(subset=["date"], inplace=False)  # Gets 1st rep of chosen exercise
     datapoints = len(plot_df)
     figsize = (datapoints, 6)
 
@@ -64,10 +64,21 @@ def plot_dataframe(df, plotting_exercise: str, targetReps: int = None) -> None:
     plt.show()
 
 
-def set_params(weeks_of_workouts: int, limit: int, start: int, startDate: str | date):
+def set_params_by_weeks(weeks_of_workouts: int, limit: int, start: int, startDate: str | date):
     params = {
         "startDate": str(startDate),
         "endDate": date.fromisoformat(startDate) + timedelta(days=7 * weeks_of_workouts),
+        "start": start,
+        "limit": str(limit),
+        "activityType": "fitness_equipment"
+    }
+    return params
+
+
+def set_params_by_limit(limit: int, start: int, startDate: str | date = '2023-03-08'):
+    params = {
+        "startDate": str(startDate),
+        "endDate": date.today(),
         "start": start,
         "limit": str(limit),
         "activityType": "fitness_equipment"
@@ -102,13 +113,12 @@ def user_exercise_selection(available_exercises: list) -> str:
 
 def main():
     client_auth()
-    startDate = '2024-01-01'  # '2023-03-08'
-    weeks_of_workouts = 5
-    start = 0  #
+    startDate = '2023-03-08'
+    weeks_of_workouts = 15
+    start = 0
     limit = 999  # max number of activities returned
 
-    params = set_params(weeks_of_workouts, limit, start, startDate)
-
+    params = set_params_by_weeks(weeks_of_workouts, limit, start, startDate)
     metadata = {"numWorkouts": "", "filepath": METADATA_FILEPATH,
                 "dates": {"firstWorkout": "", "lastWorkout": ""},
                 }
@@ -122,6 +132,8 @@ def main():
             dump_to_json(workouts_to_dict(sorted_workouts), DATA_FILEPATH, "w", metadata)
             list_incomplete_workouts(sorted_workouts)
         case 2:  # Fresh data & no backup
+            params = set_params_by_weeks(10, limit, 0, '2023-12-01')
+
             IDs, dates = get_activities(params)
             workouts = get_workouts(IDs, dates)
             workouts_with_reps = fill_out_workouts(workouts)
@@ -134,13 +146,14 @@ def main():
 
     logger.info(
         f"Num of workouts: {len(sorted_workouts)}, Workout 0: {sorted_workouts[0].name} {sorted_workouts[0].version}"
-        f"\nset 3: {sorted_workouts[0].view_sets()[3]}")
+        f"\n\tset 3: {sorted_workouts[0].view_sets()[3]}")
 
     df = load_dataframe(sorted_workouts)
     available_exercises = list_available_exercises(df)
-    plotting_exercise = user_exercise_selection(available_exercises)
+    exercise_to_plot = user_exercise_selection(available_exercises)
+    target_reps = None
 
-    plot_dataframe(df, plotting_exercise, 10)
+    plot_dataframe(df, exercise_to_plot, target_reps)
 
 
 if __name__ == "__main__":

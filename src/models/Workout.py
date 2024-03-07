@@ -87,6 +87,6 @@ class Workout:
         # checks if set data is incomplete
         for currSet in self.sets:
             self.isIncomplete = False
-            if currSet.exerciseName is None:
+            if currSet.exerciseName is None or currSet.targetReps is None:
                 self.isIncomplete = True  # TODO: cross-reference scheduled workouts and fix errors
                 return
