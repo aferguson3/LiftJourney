@@ -86,7 +86,7 @@ def set_params_by_limit(limit: int, start: int, startDate: str | date = '2023-03
     return params
 
 
-def user_exercise_selection(available_exercises: list) -> str:
+def exercise_name_selection(available_exercises: list) -> str:
     for index, exercise in enumerate(available_exercises):
         print(f"{index}: {exercise}")
     chosen_exercise = None
@@ -150,10 +150,36 @@ def main():
 
     df = load_dataframe(sorted_workouts)
     available_exercises = list_available_exercises(df)
-    exercise_to_plot = user_exercise_selection(available_exercises)
-    target_reps = None
+    exercise_to_plot = exercise_name_selection(available_exercises)
+    available_target_reps = df.loc[(df["exerciseName"] == exercise_to_plot, "targetReps")].values
+    available_target_reps = list(set(available_target_reps))
+    target_reps = target_reps_selection(available_target_reps)
 
     plot_dataframe(df, exercise_to_plot, target_reps)
+
+
+def target_reps_selection(available_target_reps: list) -> None | int:  # TODO: input validiation
+    target_reps = None
+    if len(available_target_reps) == 1:
+        return None
+
+    while target_reps is None:
+        for rep_range in available_target_reps:
+            print(f"{rep_range:.0f}, ", end="")
+        print("or ENTER for no filter.")
+        selection = input("Filter by target reps.")
+        if selection == "":
+            return None
+
+        try:
+            selection = int(selection)
+        except ValueError:
+            print(f"Invalid selection: {selection}")
+            continue
+        if selection in available_target_reps:
+            target_reps = selection
+            break
+    return target_reps
 
 
 if __name__ == "__main__":

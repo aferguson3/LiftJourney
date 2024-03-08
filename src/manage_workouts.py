@@ -1,19 +1,11 @@
 import dataclasses
 import json
 import logging
-import queue
-import re
-import time
-from threading import Thread
-
-import garth
 
 from src.models.ExerciseSet import ExerciseSet
 from src.models.Workout import Workout
-from src.utils import Endpoints
 
 logger = logging.getLogger(__name__)
-q = queue.Queue()
 
 
 def workouts_to_dict(workouts_list: list[Workout]) -> dict:
@@ -120,63 +112,6 @@ def view_sets_from_workouts(workout_data: list[Workout]) -> dict:
         _dict[str(field.name)] = field_data
 
     return _dict
-
-
-def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
-    # Fills out targetReps and missing exerciseNames using scheduled workout info
-    start = time.perf_counter()
-    threads, num_threads = [], 10  # Max 10 threads
-    splice = int(len(workouts) / num_threads)
-    workouts_rv = []
-
-    if len(workouts) < num_threads:
-        for wo in workouts:
-            t = Thread(target=_fill_out_workouts, args=[wo])
-            threads.append(t)
-    else:
-        for i in range(0, num_threads):
-            cur_index = i * splice
-            t = Thread(target=_fill_out_workouts, args=[workouts[cur_index: cur_index + splice]])
-            threads.append(t)
-
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    while not q.empty():
-        workouts_rv = workouts_rv + q.get()
-
-    end = time.perf_counter()
-    logger.info(f"{(end - start):.2f} seconds to fill out workouts")
-    return workouts_rv
-
-
-def _fill_out_workouts(workouts: list[Workout] | Workout):
-    pattern = r"\b\d+(?:\.\d+)+\b"
-    if isinstance(workouts, Workout):
-        workouts = [workouts]
-
-    for wo in workouts:
-        garmin_data = garth.connectapi(f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts")[0]
-        workout_name_str = garmin_data["workoutName"]
-
-        version_str = re.search(pattern, workout_name_str)
-        version_str = version_str.group() if version_str is not None else None
-        workout_name = re.sub(pattern, '', workout_name_str).strip()
-        wo.version = version_str
-        wo.name = workout_name
-
-        for currSet in wo.sets:
-            currStepIndex = currSet.stepIndex
-            if currStepIndex is None:
-                continue  # Ignores unscheduled exercises w/o stepIndex
-            currSet.targetReps = garmin_data['steps'][currStepIndex]['durationValue']
-            if currSet.exerciseName is None:
-                newName = garmin_data['steps'][currStepIndex]['exerciseName']
-                newCategory = garmin_data['steps'][currStepIndex]['exerciseCategory']
-                currSet.exerciseName = newName if newName is not None else newCategory
-    q.put(workouts)
-    q.task_done()
 
 
 def list_incomplete_workouts(workouts: list[Workout]):
