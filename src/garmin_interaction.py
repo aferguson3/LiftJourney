@@ -1,4 +1,5 @@
 import logging
+import os
 import queue
 import re
 import time
@@ -6,12 +7,26 @@ from datetime import datetime, timedelta
 from threading import Thread
 
 import garth
+from dotenv import dotenv_values
 
 from src.models import Workout, ExerciseSet
 from src.utils import Endpoints
 
 logger = logging.getLogger(__name__)
 q = queue.Queue()
+
+
+# Assumes Garmin connect user/pass are saved in .env file
+def client_auth():
+    try:
+        garth.resume("../creds")
+        logger.info("0Auth tokens found. Login successful.")
+    except FileNotFoundError:
+        if not os.path.exists("../creds"):
+            os.mkdir("../creds")
+        config = dotenv_values("../.env")
+        garth.login(config["EMAIL"], config["PASSWORD"])
+        garth.save("../creds")
 
 
 def get_activities(params: dict) -> (list[int], list[str]):
@@ -40,8 +55,8 @@ def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
     workouts_rv = []
 
     if len(activityIds) < num_threads:
-        for index, ID in enumerate(activityIds):
-            t = Thread(target=_get_workouts_threaded, args=(activityDatetimes[index], ID))
+        for ID, _datetime in zip(activityIds, activityDatetimes):
+            t = Thread(target=_get_workouts_threaded, args=(activityDatetimes, ID))
             t.start()
             threads.append(t)
     else:
@@ -63,6 +78,8 @@ def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
 
 def _get_workouts_threaded(activityDatetimes: list, activityIds: list | int) -> None:
     totalWorkouts = list()  # most recent workouts stored first
+    if isinstance(activityDatetimes, str):
+        activityDatetimes = [activityDatetimes]
     if isinstance(activityIds, int):
         activityIds = [activityIds]
 
@@ -122,15 +139,15 @@ def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
     if len(workouts) < num_threads:
         for wo in workouts:
             t = Thread(target=_fill_out_workouts, args=[wo])
+            t.start()
             threads.append(t)
     else:
         for i in range(0, num_threads):
             cur_index = i * splice
             t = Thread(target=_fill_out_workouts, args=[workouts[cur_index: cur_index + splice]])
+            t.start()
             threads.append(t)
 
-    for t in threads:
-        t.start()
     for t in threads:
         t.join()
     while not q.empty():
@@ -147,7 +164,11 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
         workouts = [workouts]
 
     for wo in workouts:
-        garmin_data = garth.connectapi(f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts")[0]
+        garmin_data = garth.connectapi(f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts")
+        if garmin_data is None:
+            print(f"{wo.datetime}")
+            continue
+        garmin_data = garmin_data[0]
         workout_name_str = garmin_data["workoutName"]
 
         version_str = re.search(pattern, workout_name_str)

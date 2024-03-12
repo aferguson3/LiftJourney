@@ -124,5 +124,5 @@ def list_incomplete_workouts(workouts: list[Workout]):
             incomplete_workouts.append(wo.datetime.split('T')[0])
         if wo.version is None:
             versionless_workouts.append(wo.datetime.split('T')[0])
-    logger.info(f"Incomplete workouts: {incomplete_workouts}")
-    logger.info(f"Version-less workouts: {versionless_workouts}")
+    logger.info(f"{len(incomplete_workouts)} Incomplete workouts: {incomplete_workouts}")
+    logger.info(f"{len(versionless_workouts)} Version-less workouts: {versionless_workouts}")
