@@ -1,7 +1,7 @@
 import pytest
 
-from src.manage_workouts import sort_workouts
-from src.models import Workout, ExerciseSet
+from backend.src.WorkoutManagement import WorkoutManagement as WorkoutManage
+from backend.src.models import Workout, ExerciseSet
 
 
 class TestSortingWorkouts:
@@ -27,8 +27,8 @@ class TestSortingWorkouts:
     # Test function for sorting Workout objects by a specified key
     def test_sort_workouts_workout_key(self, sample_workouts):
         # Call the function to sort Workout objects by the 'datetime' key
-        sorted_workouts = sort_workouts(sample_workouts, key="datetime")
-        sorted_workouts2 = sort_workouts(sample_workouts, key="category")
+        sorted_workouts = WorkoutManage.sort_workouts(sample_workouts, key="datetime")
+        sorted_workouts2 = WorkoutManage.sort_workouts(sample_workouts, key="category")
 
         # Verify that the result is a list
         assert isinstance(sorted_workouts, list)
@@ -47,15 +47,15 @@ class TestSortingWorkouts:
         assert sorted_workouts2[4].category == "Strength"
 
     def test_sort_workouts_exercise_set_key(self, sample_workouts):
-        assert sort_workouts(sample_workouts, "exerciseName") is None
-        assert sort_workouts(sample_workouts, "numRep") is None
+        assert WorkoutManage.sort_workouts(sample_workouts, "exerciseName") is None
+        assert WorkoutManage.sort_workouts(sample_workouts, "numRep") is None
 
     # Test function for sorting ExerciseSet objects by a specified key
     def test_sort_sets_exercise_set_key(self, sample_workouts):
         # Call the function to sort ExerciseSet objects by the 'numReps' key
-        sorted_exercise_sets = sort_workouts(sample_workouts[0], key="numReps")
-        sorted_exercise_sets2 = sort_workouts(sample_workouts[4], key="numReps")
-        sorted_exercise_sets2_r = sort_workouts(sample_workouts[4], key="numReps", reverse=True)
+        sorted_exercise_sets = WorkoutManage.sort_workouts(sample_workouts[0], key="numReps")
+        sorted_exercise_sets2 = WorkoutManage.sort_workouts(sample_workouts[4], key="numReps")
+        sorted_exercise_sets2_r = WorkoutManage.sort_workouts(sample_workouts[4], key="numReps", reverse=True)
 
         # Verify that the result is a list
         assert isinstance(sorted_exercise_sets, list)
@@ -65,14 +65,14 @@ class TestSortingWorkouts:
         assert (sorted_exercise_sets2_r[0].numReps, sorted_exercise_sets2_r[1].numReps) == (20, 2)
 
     def test_sort_set_workout_key(self, sample_workouts):
-        assert sort_workouts(sample_workouts[1], "datetime") is None
-        assert sort_workouts(sample_workouts[2], "category") is None
+        assert WorkoutManage.sort_workouts(sample_workouts[1], "datetime") is None
+        assert WorkoutManage.sort_workouts(sample_workouts[2], "category") is None
 
     # Test function for handling invalid sorting key
     def test_sort_workouts_invalid_key(self, sample_workouts):
         # Call the function with an invalid key
-        result = sort_workouts(sample_workouts[0], key="invalid_key")
-        result1 = sort_workouts(sample_workouts, key="invalid_key")
+        result = WorkoutManage.sort_workouts(sample_workouts[0], key="invalid_key")
+        result1 = WorkoutManage.sort_workouts(sample_workouts, key="invalid_key")
 
         # Verify that the result is None
         assert result is None
@@ -96,20 +96,20 @@ class TestSortingWorkouts:
 
     # Test functions for handling TypeError when comparing sets with None values in the key
     def test_sort_single_set_exercise_set_key(self, sample_workouts_with_none_key):
-        assert sort_workouts(sample_workouts_with_none_key[0], 'numReps') == \
+        assert WorkoutManage.sort_workouts(sample_workouts_with_none_key[0], 'numReps') == \
                sample_workouts_with_none_key[0].sets
 
     def test_sort_sets_with_one_None_set(self, sample_workouts_with_none_key):
         with pytest.raises(TypeError):
-            result = sort_workouts(sample_workouts_with_none_key[1], key="numReps")
+            result = WorkoutManage.sort_workouts(sample_workouts_with_none_key[1], key="numReps")
             assert result is None
 
     def test_sort_sets_with_all_None_sets(self, sample_workouts_with_none_key):
         with pytest.raises(TypeError):
-            result = sort_workouts(sample_workouts_with_none_key[2], key="numReps")
+            result = WorkoutManage.sort_workouts(sample_workouts_with_none_key[2], key="numReps")
             assert result is None
 
     def test_sort_workouts_with_one_None_workout(self, sample_workouts_with_none_key):
         with pytest.raises(TypeError):
-            result = sort_workouts(sample_workouts_with_none_key, key="category")
+            result = WorkoutManage.sort_workouts(sample_workouts_with_none_key, key="category")
             assert result is None

@@ -1,4 +1,4 @@
-from src.models.ExerciseSet import ExerciseSet
+from backend.src.models.ExerciseSet import ExerciseSet
 
 sets1 = [
     ExerciseSet(exerciseName="BARBELL_BACK_SQUAT", numReps=5, weight=135.0, duration_secs=114.723, stepIndex=2,

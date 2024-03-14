@@ -1,24 +1,10 @@
-import logging
-from datetime import datetime, date, timedelta
+from datetime import datetime
 
-import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib import pyplot as plt
 
-from src import *
-from src.models.Workout import Workout
-
-DATA_FILEPATH = "./data/workout_data.json"
-METADATA_FILEPATH = './data/workout_metadata.json'
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logging.basicConfig(level=logging.INFO)
-
-
-# TODO: setup server
-# TODO: make all options chosen at runtime
-# TODO: plot progress for all exercises given a workout type
-# TODO: when editing exercises, exercise names are inconsistently saved
+from backend.src.WorkoutManagement import WorkoutManagement as Manager
+from backend.src.models import Workout
 
 
 def list_available_exercises(dataframe: pd.DataFrame) -> list:
@@ -36,7 +22,7 @@ def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
         workoutDate = datetime.fromisoformat(workout.datetime).date().strftime("%m/%d/%y")
         for _set in numSets:
             index_2d.append((workoutDate, _set))
-    setsData = view_sets_from_workouts(workouts)
+    setsData = Manager.view_sets_from_workouts(workouts)
     index_df = pd.MultiIndex.from_tuples(index_2d, names=["Dates", "Sets"])
 
     df = pd.DataFrame(setsData, index=index_df)
@@ -63,28 +49,6 @@ def plot_dataframe(df, plotting_exercise: str, targetReps: int = None) -> None:
     plot_df[["targetReps", "numReps"]].plot(kind='line', ax=axes[1], grid=True, xticks=range(datapoints),
                                             rot=30.0, figsize=figsize)
     plt.show()
-
-
-def set_params_by_weeks(weeks_of_workouts: int, limit: int, start: int, startDate: str | date):
-    params = {
-        "startDate": str(startDate),
-        "endDate": date.fromisoformat(startDate) + timedelta(days=7 * weeks_of_workouts),
-        "start": start,
-        "limit": str(limit),
-        "activityType": "fitness_equipment"
-    }
-    return params
-
-
-def set_params_by_limit(limit: int, start: int, startDate: str | date = '2023-03-08'):
-    params = {
-        "startDate": str(startDate),
-        "endDate": date.today(),
-        "start": start,
-        "limit": str(limit),
-        "activityType": "fitness_equipment"
-    }
-    return params
 
 
 def exercise_name_selection(available_exercises: list) -> str:
@@ -143,47 +107,3 @@ def show_graph(sorted_workouts: list[Workout]):
     available_target_reps = df.loc[(df["exerciseName"] == exercise_to_plot, "targetReps")].values
     target_reps = target_reps_selection(list(set(available_target_reps)))
     plot_dataframe(df, exercise_to_plot, target_reps)
-
-
-def main():
-    client_auth()
-    startDate = '2024-01-01'
-    weeks_of_workouts = 10
-    start = 0
-    limit = 999  # max number of activities returned
-
-    # params = set_params_by_weeks(weeks_of_workouts, limit, start, startDate)
-    params = set_params_by_weeks(20, limit, 0, '2024-01-01')
-
-    metadata = {"numWorkouts": "", "filepath": METADATA_FILEPATH,
-                "dates": {"firstWorkout": "", "lastWorkout": ""},
-                }
-    option = 2
-    match option:
-        case 1:  # Fresh data & backup
-            IDs, dates = get_activities(params)
-            workouts = get_workouts(IDs, dates)
-            workouts_with_reps = fill_out_workouts(workouts)
-            sorted_workouts = sort_workouts(workouts_with_reps, "datetime")
-            dump_to_json(workouts_to_dict(sorted_workouts), DATA_FILEPATH, "w", metadata)
-            list_incomplete_workouts(sorted_workouts)
-        case 2:  # Fresh data & no backup
-            IDs, dates = get_activities(params)
-            workouts = get_workouts(IDs, dates)
-            workouts_with_reps = fill_out_workouts(workouts)
-            sorted_workouts = sort_workouts(workouts_with_reps, "datetime")
-            list_incomplete_workouts(sorted_workouts)
-        case _:  # Loaded data & no backup
-            workouts = load_workouts(DATA_FILEPATH)
-            sorted_workouts = sort_workouts(workouts, "datetime")
-            list_incomplete_workouts(sorted_workouts)
-
-    logger.info(
-        f"Num of workouts: {len(sorted_workouts)}, Workout 0: {sorted_workouts[0].name} {sorted_workouts[0].version}"
-        f"\n\tset 3: {sorted_workouts[0].view_sets()[3]}")
-
-    show_graph(sorted_workouts)
-
-
-if __name__ == "__main__":
-    main()

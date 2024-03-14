@@ -1,7 +1,7 @@
 import pytest
 
-from src.models import ExerciseSet, Workout
-from tests.sample_data import sets1, sets2, sets3
+from backend.src.models import ExerciseSet, Workout
+from backend.tests.sample_data import sets1, sets2, sets3
 
 
 class TestWorkout:

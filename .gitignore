@@ -1,7 +1,10 @@
 # created by virtualenv automatically
-/creds/*
+**/creds/*
 /.env
+**/data/*
+
 /.venv/*
 .idea/*
+.vscode/*
 *.pyc
-/src/data/*
+**/node_modules/

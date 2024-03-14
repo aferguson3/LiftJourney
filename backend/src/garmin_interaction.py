@@ -9,8 +9,8 @@ from threading import Thread
 import garth
 from dotenv import dotenv_values
 
-from src.models import Workout, ExerciseSet
-from src.utils import Endpoints
+from backend.src.models import Workout, ExerciseSet
+from backend.src.utils import Endpoints
 
 logger = logging.getLogger(__name__)
 q = queue.Queue()
