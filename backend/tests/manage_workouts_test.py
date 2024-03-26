@@ -105,7 +105,7 @@ class TestManageWorkouts:
                                  metadata)
 
     @pytest.fixture
-    def sample_json_data(self, tmp_path):
+    def sample_json_data_file(self, tmp_path):
         data = {
             "workouts": [
                 {"activityId": "123", "category": "Strength", "datetime": "2024-02-22T10:00:00", "name": "Workout 1",
@@ -120,9 +120,9 @@ class TestManageWorkouts:
         return file_path
 
     # Test function for loading workouts from a JSON file
-    def test_load_workouts(self, sample_json_data):
+    def test_load_workouts(self, sample_json_data_file):
         # Call the function with the sample JSON file
-        result = Manager.load_workouts(sample_json_data)
+        result = Manager.load_workouts(sample_json_data_file)
 
         # Verify that the result is a list of Workout objects
         assert isinstance(result, list)

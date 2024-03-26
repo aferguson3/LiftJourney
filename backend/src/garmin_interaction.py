@@ -181,7 +181,7 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
             currStepIndex = currSet.stepIndex
             if currStepIndex is None:
                 continue  # Ignores unscheduled exercises w/o stepIndex
-            currSet.targetReps = garmin_data['steps'][currStepIndex]['durationValue']
+            currSet.targetReps = int(garmin_data['steps'][currStepIndex]['durationValue'])
             if currSet.exerciseName is None:
                 newName = garmin_data['steps'][currStepIndex]['exerciseName']
                 newCategory = garmin_data['steps'][currStepIndex]['exerciseCategory']

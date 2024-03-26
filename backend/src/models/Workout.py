@@ -6,7 +6,7 @@ from backend.src.models.ExerciseSet import ExerciseSet
 
 @dataclass
 class Workout:
-    activityId: str
+    activityId: int
     category: str
     datetime: str
     name: str
