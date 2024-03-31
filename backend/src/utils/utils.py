@@ -6,7 +6,7 @@ from datetime import date, timedelta
 logger = logging.getLogger(__name__)
 
 
-def set_params_by_weeks(weeks_of_workouts: int, limit: int, start: int, startDate: str | date):
+def set_params_by_weeks(weeks_of_workouts: int, start: int, startDate: str | date, limit: int = 9999):
     params = {
         "startDate": str(startDate),
         "endDate": date.fromisoformat(startDate) + timedelta(days=7 * weeks_of_workouts),

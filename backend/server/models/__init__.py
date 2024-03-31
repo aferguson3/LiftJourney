@@ -1,5 +1,5 @@
-from backend.server.models.ExerciseSetsDB import ExerciseSetsDB
-from backend.server.models.WorkoutsDB import WorkoutsDB
+from backend.server.models.ExerciseSetDB import ExerciseSetDB
+from backend.server.models.WorkoutDB import WorkoutDB
 
-__all__ = ['ExerciseSetsDB',
-           'WorkoutsDB']
+__all__ = ['ExerciseSetDB',
+           'WorkoutDB']

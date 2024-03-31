@@ -23,9 +23,8 @@ def main():
     startDate = '2024-01-01'
     weeks_of_workouts = 20
     start = 0
-    limit = 999  # max number of activities returned
 
-    params = set_params_by_weeks(weeks_of_workouts, limit, start, startDate)
+    params = set_params_by_weeks(weeks_of_workouts, start, startDate)
     metadata = {"numWorkouts": "", "filepath": METADATA_FILEPATH,
                 "dates": {"firstWorkout": "", "lastWorkout": ""},
                 }

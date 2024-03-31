@@ -7,5 +7,5 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///workouts.db'
 db = SQLAlchemy(app)
 
 app.debug = True
-app.config['SECRET_KEY'] = "Dice_gaming"
+app.config['SECRET_KEY'] = "725b1f0ac795dd4c74d57760de445903327455cebb6468e4b8a5a7ab78ba4b67"
 toolbar = DebugToolbarExtension(app)
