@@ -16,7 +16,6 @@ class WorkoutManagement:
 
         workouts = list()
         for workout in workouts_list:
-            workout.set_data_validation_check()
             workouts.append(workout.asdict())
         return {"workouts": workouts}
 

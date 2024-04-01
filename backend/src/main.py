@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 def main():
     client_auth()
     startDate = '2024-01-01'
-    weeks_of_workouts = 20
+    weeks_of_workouts = 10
 
     params = set_params_by_weeks(weeks_of_workouts, startDate)
     metadata = {"numWorkouts": "", "filepath": METADATA_FILEPATH,
