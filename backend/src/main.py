@@ -22,9 +22,8 @@ def main():
     client_auth()
     startDate = '2024-01-01'
     weeks_of_workouts = 20
-    start = 0
 
-    params = set_params_by_weeks(weeks_of_workouts, start, startDate)
+    params = set_params_by_weeks(weeks_of_workouts, startDate)
     metadata = {"numWorkouts": "", "filepath": METADATA_FILEPATH,
                 "dates": {"firstWorkout": "", "lastWorkout": ""},
                 }

@@ -1,5 +1,6 @@
 import logging
-import os
+import multiprocessing
+import pathlib
 import queue
 import re
 import time
@@ -14,19 +15,23 @@ from backend.src.utils import Endpoints
 
 logger = logging.getLogger(__name__)
 q = queue.Queue()
+NUM_THREADS = 10 if multiprocessing.cpu_count() >= 10 else multiprocessing.cpu_count()
 
 
 # Assumes Garmin connect user/pass are saved in .env file
 def client_auth():
+    working_dir = pathlib.Path.cwd().parent.parent
+    creds_path = working_dir / "backend" / "creds"
+    env_path = working_dir / ".env"
     try:
-        garth.resume("../creds")
+        garth.resume(str(creds_path))
         logger.info("0Auth tokens found. Login successful.")
     except FileNotFoundError:
-        if not os.path.exists("../creds"):
-            os.mkdir("../creds")
-        config = dotenv_values("../.env")
+        if not pathlib.Path.exists(creds_path):
+            pathlib.Path.mkdir(creds_path)
+        config = dotenv_values(str(env_path))
         garth.login(config["EMAIL"], config["PASSWORD"])
-        garth.save("../creds")
+        garth.save(str(creds_path))
 
 
 def get_activities(params: dict) -> (list[int], list[str]):
@@ -50,17 +55,17 @@ def get_activities(params: dict) -> (list[int], list[str]):
 
 
 def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
-    threads, num_threads = [], 10
-    splice = int(len(activityIds) / num_threads)
+    threads = []
+    splice = int(len(activityIds) / NUM_THREADS)
     workouts_rv = []
 
-    if len(activityIds) < num_threads:
+    if len(activityIds) < NUM_THREADS:
         for ID, _datetime in zip(activityIds, activityDatetimes):
             t = Thread(target=_get_workouts_threaded, args=(activityDatetimes, ID))
             t.start()
             threads.append(t)
     else:
-        for i in range(0, num_threads):
+        for i in range(0, NUM_THREADS):
             cur_index = i * splice
             t = Thread(target=_get_workouts_threaded,
                        args=(
@@ -132,19 +137,19 @@ def _isWarmupSet(garmin_exercise_set: dict) -> bool:
 def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
     # Fills out targetReps and missing exerciseNames using scheduled workout info
     start = time.perf_counter()
-    threads, num_threads = [], 10  # Max 10 threads
-    splice = int(len(workouts) / num_threads)
+    threads = []
+    splice = int(len(workouts) / NUM_THREADS)
     workouts_rv = []
 
-    if len(workouts) < num_threads:
+    if len(workouts) < NUM_THREADS:
         for wo in workouts:
-            t = Thread(target=_fill_out_workouts, args=[wo])
+            t = Thread(target=_fill_out_workouts_threaded, args=[wo])
             t.start()
             threads.append(t)
     else:
-        for i in range(0, num_threads):
+        for i in range(0, NUM_THREADS):
             cur_index = i * splice
-            t = Thread(target=_fill_out_workouts, args=[workouts[cur_index: cur_index + splice]])
+            t = Thread(target=_fill_out_workouts_threaded, args=[workouts[cur_index: cur_index + splice]])
             t.start()
             threads.append(t)
 
@@ -158,7 +163,7 @@ def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
     return workouts_rv
 
 
-def _fill_out_workouts(workouts: list[Workout] | Workout):
+def _fill_out_workouts_threaded(workouts: list[Workout] | Workout):
     pattern = r"\b\d+(?:\.\d+)+\b"
     if isinstance(workouts, Workout):
         workouts = [workouts]
