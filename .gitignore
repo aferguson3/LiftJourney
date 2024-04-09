@@ -9,3 +9,4 @@
 *.pyc
 **/node_modules/
 /instance/*
+/backend/server/flask_session/

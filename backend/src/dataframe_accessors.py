@@ -1,10 +1,16 @@
+import base64
+import logging
 from datetime import datetime
+from io import BytesIO
 
 import pandas as pd
 from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout
+
+logger = logging.getLogger(__name__)
 
 
 def list_available_exercises(dataframe: pd.DataFrame) -> list:
@@ -18,10 +24,10 @@ def list_available_exercises(dataframe: pd.DataFrame) -> list:
 def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
     index_2d = []
     for workout in workouts:
-        numSets = list(range(1, len(workout.sets) + 1))
+        set_numbers = list(range(1, len(workout.sets) + 1))
         workoutDate = datetime.fromisoformat(workout.datetime).date().strftime("%m/%d/%y")
-        for _set in numSets:
-            index_2d.append((workoutDate, _set))
+        for cur_set_number in set_numbers:
+            index_2d.append((workoutDate, cur_set_number))
     setsData = Manager.view_sets_from_workouts(workouts)
     index_df = pd.MultiIndex.from_tuples(index_2d, names=["Dates", "Sets"])
 
@@ -30,25 +36,57 @@ def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
     return df
 
 
-def plot_dataframe(df, plotting_exercise: str, targetReps: int = None) -> None:
+def plot_dataframe(df: pd.DataFrame, plotting_exercise: str, targetReps: int = None,
+                   buffer_mode: bool = False) -> None | str:
     # plot the reps and weight of like exercisesNames
     if plotting_exercise not in df['exerciseName'].values:
         raise ValueError(f"Exercise {plotting_exercise} is not in df")
     if targetReps is None:
+        df = df.ffill()
         plot_df = df.loc[df["exerciseName"] == plotting_exercise]
     else:
+        df = df.ffill()
         plot_df = df.loc[(df["exerciseName"] == plotting_exercise) & (df["targetReps"] == targetReps)]
 
-    fig, axes = plt.subplots(2, 1, sharex=True)
+    if buffer_mode is False:
+        fig, axes = plt.subplots(2, 1, sharex=True)
+        _setup_plot_formatting(axes, plot_df, plotting_exercise, buffer_mode)
+        plt.show()
+    else:
+        fig = Figure()
+        axes = fig.subplots(2, 1, sharex=True)
+        _setup_plot_formatting(axes, plot_df, plotting_exercise, buffer_mode)
+        buf = BytesIO()
+        fig.savefig(buf, format="png")
+        plt.close(fig)
+        data = base64.b64encode(buf.getbuffer()).decode("ascii")
+        return f"data:image/png;base64,{data}"
+
+
+def _setup_plot_formatting(axes, plot_df: pd.DataFrame, plotting_exercise: str, buffer_mode: bool) -> None:
     axes[0].set_title(f"{plotting_exercise.replace('_', ' ').title()} Progress")
-    plot_df = plot_df.drop_duplicates(subset=["date"], inplace=False)  # Gets 1st rep of chosen exercise
+    plot_df.drop_duplicates(subset=["date"], inplace=True)  # Gets 1st rep of chosen exercise
     datapoints = len(plot_df)
     figsize = (datapoints, 6)
 
-    plot_df["weight"].plot(kind='line', ax=axes[0], ylabel='Weight (lbs)', grid=True)
-    plot_df[["targetReps", "numReps"]].plot(kind='line', ax=axes[1], grid=True, xticks=range(datapoints),
-                                            rot=30.0, figsize=figsize)
-    plt.show()
+    if buffer_mode is False:
+        plot_df["weight"].plot(kind='line', ax=axes[0], ylabel='Weight (lbs)', grid=True)
+        plot_df[["targetReps", "numReps"]].plot(kind='line', ax=axes[1], grid=True, xticks=range(datapoints),
+                                                rot=30.0, figsize=figsize)
+    elif buffer_mode is True:
+        plot_df.reset_index(inplace=True)
+        plot_df.set_index("date")
+        logger.info(plot_df.head(3))
+
+        axes[0].plot(plot_df.index, plot_df["weight"], label='Weight (lbs)', color='blue')
+        axes[0].set_ylabel('Weight (lbs)')
+        axes[0].grid(True)
+
+        axes[1].plot(plot_df.index, plot_df["targetReps"], label='Target Reps', color='red')
+        axes[1].plot(plot_df.index, plot_df["numReps"], label='Num Reps', color='green')
+        axes[1].set_ylabel('Reps')
+        axes[1].grid(True)
+        axes[1].legend()
 
 
 def exercise_name_selection(available_exercises: list) -> str:
@@ -100,10 +138,18 @@ def target_reps_selection(available_target_reps: list) -> None | int:  # TODO: i
     return target_reps
 
 
-def show_graph(sorted_workouts: list[Workout]):
+def get_rep_ranges(df: pd.DataFrame, exercise_to_plot: str) -> list[float]:
+    target_reps = df.loc[(df["exerciseName"] == exercise_to_plot, "targetReps")].to_numpy(na_value=-1)
+    target_reps = list(set(target_reps))
+    if -1 in target_reps:
+        target_reps.remove(-1)
+    return target_reps
+
+
+def show_graph(sorted_workouts: list[Workout]):  # TODO: make Nan values=10 in graphs
     df = load_dataframe(sorted_workouts)
     available_exercises = list_available_exercises(df)
     exercise_to_plot = exercise_name_selection(available_exercises)
-    available_target_reps = df.loc[(df["exerciseName"] == exercise_to_plot, "targetReps")].values
-    target_reps = target_reps_selection(list(set(available_target_reps)))
-    plot_dataframe(df, exercise_to_plot, target_reps)
+    rep_ranges = get_rep_ranges(df, exercise_to_plot)
+    rep_range_selected = target_reps_selection(rep_ranges)
+    plot_dataframe(df, exercise_to_plot, rep_range_selected)

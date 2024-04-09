@@ -32,7 +32,7 @@ class WorkoutManagement:
         return metadata
 
     @staticmethod
-    def dump_to_json(workout_data: dict, filepath: str, option, _metadata: dict = None):
+    def dump_to_json(workout_data: dict, filepath: str, option, _metadata: dict | None = None):
         if isinstance(workout_data, dict) is not True:
             raise TypeError(f"{workout_data} is not type dict.")
 
@@ -79,7 +79,8 @@ class WorkoutManagement:
 
     @staticmethod
     def sort_workouts(workout_data: Workout | list[Workout], key: str, reverse=False) \
-            -> list[ExerciseSet | Workout] | None:
+            -> list[Workout] | list[ExerciseSet] | None:
+        # Can sort list[Workout] w/ workout keys or Workout w/ ExerciseSet keys
         searchedData, isValidKey = None, None
         if isinstance(workout_data, list):
             isValidKey = hasattr(workout_data[0], key)
@@ -98,8 +99,6 @@ class WorkoutManagement:
 
         else:
             logger.error(f"Sorting {type(workout_data)} by key: {key} FAILED.")
-
-        return None
 
     @staticmethod
     def view_sets_from_workouts(workout_data: list[Workout]) -> dict:
@@ -122,8 +121,19 @@ class WorkoutManagement:
         for wo in workouts:
             wo.set_data_validation_check()
             if wo.isIncomplete or wo.name is None:
-                incomplete_workouts.append(wo.datetime.split('T')[0])
+                if 'T' in wo.datetime:
+                    cur_date = (wo.datetime.split('T')[0])
+                    incomplete_workouts.append(cur_date)
+                elif ' ' in wo.datetime:
+                    cur_date = wo.datetime.split(' ')[0]
+                    incomplete_workouts.append(cur_date)
             if wo.version is None:
-                versionless_workouts.append(wo.datetime.split('T')[0])
+                if 'T' in wo.datetime:
+                    cur_date = (wo.datetime.split('T')[0])
+                    versionless_workouts.append(cur_date)
+                elif ' ' in wo.datetime:
+                    cur_date = wo.datetime.split(' ')[0]
+                    versionless_workouts.append(cur_date)
+
         logger.info(f"{len(incomplete_workouts)} Incomplete workouts: {incomplete_workouts}")
         logger.info(f"{len(versionless_workouts)} Version-less workouts: {versionless_workouts}")

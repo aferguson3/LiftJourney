@@ -1,6 +1,7 @@
 import logging
 
-from flask import render_template
+from flask import render_template, session
+from flask_session import Session
 
 from backend.server import app, db
 from backend.server.routes.database import database_bp
@@ -30,10 +31,12 @@ def not_found(*args, **kwargs):
 def main():
     with app.app_context():
         db.create_all()
-    register_blueprints()
     client_auth()
+    register_blueprints()
+    Session(app)
     app.run()
-    
+    session.clear()
+
 
 if __name__ == '__main__':
     main()
