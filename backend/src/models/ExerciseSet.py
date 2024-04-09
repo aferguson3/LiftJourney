@@ -20,7 +20,7 @@ class ExerciseSet:
                  stepIndex=None,
                  weight=None,
                  targetReps=None,
-                 loading_dict: dict = None):
+                 loading_dict: dict | None = None):
         if isinstance(loading_dict, dict):
             self.duration_secs = loading_dict["duration_secs"] if "duration_secs" in loading_dict else None
             self.exerciseName = loading_dict["exerciseName"] if "exerciseName" in loading_dict else None

@@ -6,16 +6,19 @@ import re
 import time
 from datetime import datetime, timedelta
 from threading import Thread
+from typing import Tuple
 
 import garth
 from dotenv import dotenv_values
 
+from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout, ExerciseSet
 from backend.src.utils import Endpoints
 
 logger = logging.getLogger(__name__)
 q = queue.Queue()
-NUM_THREADS = 10 if multiprocessing.cpu_count() >= 10 else multiprocessing.cpu_count()
+MAX_THREADS = multiprocessing.cpu_count()
+NUM_THREADS = 10 if MAX_THREADS >= 10 else multiprocessing.cpu_count()
 
 
 # Assumes Garmin connect user/pass are saved in .env file
@@ -34,8 +37,8 @@ def client_auth():
         garth.save(str(creds_path))
 
 
-def get_activities(params: dict) -> (list[int], list[str]):
-    # Gathers all fitness activities by date
+# Gathers all fitness activities by date
+def get_activities(params: dict) -> Tuple[list[int], list[str]]:
     activity_data = garth.connectapi(f"{Endpoints.garmin_connect_activities}", params=params)
     activityIds, removedIds = list(), list()
     activityDatetimes = list()
@@ -61,13 +64,13 @@ def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
 
     if len(activityIds) < NUM_THREADS:
         for ID, _datetime in zip(activityIds, activityDatetimes):
-            t = Thread(target=_get_workouts_threaded, args=(activityDatetimes, ID))
+            t = Thread(target=_get_workouts, args=(activityDatetimes, ID))
             t.start()
             threads.append(t)
     else:
         for i in range(0, NUM_THREADS):
             cur_index = i * splice
-            t = Thread(target=_get_workouts_threaded,
+            t = Thread(target=_get_workouts,
                        args=(
                            activityDatetimes[cur_index: cur_index + splice],
                            activityIds[cur_index: cur_index + splice]))
@@ -81,7 +84,7 @@ def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
     return workouts_rv
 
 
-def _get_workouts_threaded(activityDatetimes: list, activityIds: list | int) -> None:
+def _get_workouts(activityDatetimes: list, activityIds: list | int) -> None:
     totalWorkouts = list()  # most recent workouts stored first
     if isinstance(activityDatetimes, str):
         activityDatetimes = [activityDatetimes]
@@ -143,13 +146,13 @@ def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
 
     if len(workouts) < NUM_THREADS:
         for wo in workouts:
-            t = Thread(target=_fill_out_workouts_threaded, args=[wo])
+            t = Thread(target=_fill_out_workouts, args=[wo])
             t.start()
             threads.append(t)
     else:
         for i in range(0, NUM_THREADS):
             cur_index = i * splice
-            t = Thread(target=_fill_out_workouts_threaded, args=[workouts[cur_index: cur_index + splice]])
+            t = Thread(target=_fill_out_workouts, args=[workouts[cur_index: cur_index + splice]])
             t.start()
             threads.append(t)
 
@@ -163,7 +166,7 @@ def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
     return workouts_rv
 
 
-def _fill_out_workouts_threaded(workouts: list[Workout] | Workout):
+def _fill_out_workouts(workouts: list[Workout] | Workout):
     pattern = r"\b\d+(?:\.\d+)+\b"
     if isinstance(workouts, Workout):
         workouts = [workouts]
@@ -193,3 +196,31 @@ def _fill_out_workouts_threaded(workouts: list[Workout] | Workout):
                 currSet.exerciseName = newName if newName is not None else newCategory
     q.put(workouts)
     q.task_done()
+
+
+def run_service(params: dict, backup: bool = False, load: bool = False, filepath: str = None) -> list[Workout]:
+    if load is True:
+        _filepath_validation(filepath)
+        workouts = Manager.load_workouts(filepath)
+        workouts_ = Manager.sort_workouts(workouts, "datetime")
+    else:
+        IDs, dates = get_activities(params)
+        workouts = get_workouts(IDs, dates)
+        workouts_filled = fill_out_workouts(workouts)
+        workouts_ = Manager.sort_workouts(workouts_filled, "datetime")
+        if backup is True:
+            _filepath_validation(filepath)
+            Manager.dump_to_json(Manager.workouts_to_dict(workouts_), filepath, "w")
+
+    Manager.list_incomplete_workouts(workouts_)
+    logger.info(
+        f"Num of workouts: {len(workouts_)}, Workout 0: {workouts_[0].name} {workouts_[0].version}"
+        f"\n\tset 3: {workouts_[0].view_sets()[3]}")
+    return workouts_
+
+
+def _filepath_validation(filepath):
+    if type(filepath) is not str:
+        raise TypeError(f"{filepath} is invalid filepath.")
+    if not pathlib.Path(filepath).exists():
+        raise FileNotFoundError(f"{filepath} was not found.")

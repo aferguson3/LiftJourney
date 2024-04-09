@@ -20,7 +20,7 @@ def isNewWorkoutEntry(entry: WorkoutDB) -> bool:
     return result is None
 
 
-def new_entries(workouts: list[Workout]):
+def new_DB_entries(workouts: list[Workout]):
     if not isinstance(workouts[0], Workout):
         raise ValueError(f"{type(workouts[0])} is not type Workout")
 
@@ -38,7 +38,7 @@ def initialize_db():
     DATAFILE_REL = r"..\src\data\workout_data.json"
     DATAFILE_ABS = os.path.normpath(os.path.join(os.getcwd(), DATAFILE_REL))
     workouts = Manager.load_workouts(DATAFILE_ABS)
-    new_entries(workouts)
+    new_DB_entries(workouts)
 
     return render_template("base.html", body="Done"), 200
 
@@ -55,7 +55,8 @@ def full_db():
     workouts_dict = workoutsDB_to_dict(workouts)
     return render_template('base.html', body=f"# of workouts: {len(workouts_dict["workouts"])}")
 
-# @database_bp.route("/clear_db")
-# def clear_db():
-#     db.drop_all()
-#     return render_template('base.html', body="Empty")
+
+@database_bp.route("/clear_db")
+def clear_db():
+    db.drop_all()
+    return render_template('base.html', body="Empty")

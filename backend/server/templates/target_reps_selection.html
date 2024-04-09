@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select Target Reps</title>
+</head>
+<body>
+<h2>Select a Target Reps Filter</h2>
+<form action="{{ url_for('.setup_graph') }}" method="post">
+    <select name="target-reps-select">
+        <option value="None">No Filter</option>
+        {% for option in target_reps %}
+        <option value="{{ option }}">{{ option }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Submit</button>
+</form>
+</body>
+</html>
