@@ -55,5 +55,4 @@ def get_dataframe() -> pandas.DataFrame:
         session['df'] = sets_df.to_json()
     else:
         sets_df = pd.read_json(StringIO(sets_df), convert_dates=True)
-        sets_df["date_str"] = sets_df["date"].dt.strftime("%m/%d/%y")
     return sets_df

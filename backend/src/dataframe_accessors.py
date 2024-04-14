@@ -33,19 +33,24 @@ def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
 
     df = pd.DataFrame(setsData, index=index_df)
     df["date"] = [_date for (_date, s) in index_2d]
+    df['date'] = pd.to_datetime(df['date'], format='%m/%d/%y')
     return df
 
 
-def plot_dataframe(df: pd.DataFrame, plotting_exercise: str, targetReps: int = None,
+def plot_dataframe(df: pd.DataFrame, plotting_exercise: str, targetReps: float = None,
                    buffer_mode: bool = False) -> None | str:
     # plot the reps and weight of like exercisesNames
     if plotting_exercise not in df['exerciseName'].values:
         raise ValueError(f"Exercise {plotting_exercise} is not in df")
+
+    df["date_str"] = df["date"].dt.strftime("%m/%d/%y")
+    df.sort_values(by=['date', 'startTime'], inplace=True)
+    df.drop_duplicates(subset=["date", 'exerciseName'], inplace=True)  # Gets 1st rep of chosen exercise
+    df = df.ffill()
+
     if targetReps is None:
-        df = df.ffill()
         plot_df = df.loc[df["exerciseName"] == plotting_exercise]
     else:
-        df = df.ffill()
         plot_df = df.loc[(df["exerciseName"] == plotting_exercise) & (df["targetReps"] == targetReps)]
 
     if buffer_mode is False:
@@ -65,15 +70,17 @@ def plot_dataframe(df: pd.DataFrame, plotting_exercise: str, targetReps: int = N
 
 def _setup_plot_formatting(axes, plot_df: pd.DataFrame, plotting_exercise: str, buffer_mode: bool) -> None:
     axes[0].set_title(f"{plotting_exercise.replace('_', ' ').title()} Progress")
-    plot_df.drop_duplicates(subset=["date"], inplace=True)  # Gets 1st rep of chosen exercise
     datapoints = len(plot_df)
     figsize = (datapoints, 6)
 
     if buffer_mode is False:
-        plot_df["weight"].plot(kind='line', ax=axes[0], ylabel='Weight (lbs)', grid=True)
-        plot_df[["targetReps", "numReps"]].plot(kind='line', ax=axes[1], grid=True, xticks=range(datapoints),
-                                                rot=30.0, figsize=figsize)
-    elif buffer_mode is True:
+        plot_df.plot(x='date_str', y=["weight"], kind='line', ax=axes[0], ylabel='Weight (lbs)', grid=True)
+        plot_df.plot(x='date_str', y=["targetReps", "numReps"], kind='line', ax=axes[1], xlabel='Dates',
+                     ylabel='Reps',
+                     grid=True,
+                     xticks=range(datapoints),
+                     rot=30.0, figsize=figsize)
+    else:
         axes[0].plot(plot_df["date_str"], plot_df["weight"], label='Weight (lbs)', color='blue')
         axes[0].set_ylabel('Weight (lbs)')
         axes[0].grid(True)
@@ -81,6 +88,7 @@ def _setup_plot_formatting(axes, plot_df: pd.DataFrame, plotting_exercise: str, 
         axes[1].plot(plot_df["date_str"], plot_df["targetReps"], label='Target Reps', color='red')
         axes[1].plot(plot_df["date_str"], plot_df["numReps"], label='Num Reps', color='green')
         axes[1].tick_params(axis='x', rotation=30)
+        axes[1].set_xlabel('Dates')
         axes[1].set_ylabel('Reps')
         axes[1].grid(True)
         axes[1].legend()
@@ -91,7 +99,7 @@ def exercise_name_selection(available_exercises: list) -> str:
         print(f"{index}: {exercise}")
     chosen_exercise = None
     while chosen_exercise is None:
-        selection = input("Choose an exercise.")  # TODO: Secure input validation
+        selection = input("Choose an exercise.")
         try:
             selection = int(selection)
             isInt = True
@@ -111,7 +119,7 @@ def exercise_name_selection(available_exercises: list) -> str:
     return chosen_exercise
 
 
-def target_reps_selection(available_target_reps: list) -> None | int:  # TODO: input validiation
+def target_reps_selection(available_target_reps: list) -> None | int:
     target_reps = None
     if len(available_target_reps) == 1:
         return None
@@ -143,7 +151,7 @@ def get_rep_ranges(df: pd.DataFrame, exercise_to_plot: str) -> list[float]:
     return target_reps
 
 
-def show_graph(sorted_workouts: list[Workout]):  # TODO: make Nan values=10 in graphs
+def show_graph(sorted_workouts: list[Workout]):
     df = load_dataframe(sorted_workouts)
     available_exercises = list_available_exercises(df)
     exercise_to_plot = exercise_name_selection(available_exercises)

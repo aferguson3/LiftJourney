@@ -68,6 +68,6 @@ def setup_graph():
 @service_bp.route("/graph/show", methods=['GET'])
 def show_graph():
     exercise = session['exercise']
-    reps = session['reps'] if session['reps'] != "None" else None
+    reps = float(session['reps']) if session['reps'] != "None" else None
     plot_src = plot_dataframe(get_dataframe(), exercise, reps, buffer_mode=True)
     return render_template("graph.html", plot_src=plot_src)

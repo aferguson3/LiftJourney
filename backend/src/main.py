@@ -12,10 +12,6 @@ logger.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO)
 
 
-# TODO: plot progress for all exercises given a workout type
-# TODO: when editing exercises, exercise names are inconsistently saved
-
-
 def main():
     client_auth()
     startDate = '2024-01-01'
