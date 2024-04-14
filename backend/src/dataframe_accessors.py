@@ -74,16 +74,13 @@ def _setup_plot_formatting(axes, plot_df: pd.DataFrame, plotting_exercise: str, 
         plot_df[["targetReps", "numReps"]].plot(kind='line', ax=axes[1], grid=True, xticks=range(datapoints),
                                                 rot=30.0, figsize=figsize)
     elif buffer_mode is True:
-        plot_df.reset_index(inplace=True)
-        plot_df.set_index("date")
-        logger.info(plot_df.head(3))
-
-        axes[0].plot(plot_df.index, plot_df["weight"], label='Weight (lbs)', color='blue')
+        axes[0].plot(plot_df["date_str"], plot_df["weight"], label='Weight (lbs)', color='blue')
         axes[0].set_ylabel('Weight (lbs)')
         axes[0].grid(True)
 
-        axes[1].plot(plot_df.index, plot_df["targetReps"], label='Target Reps', color='red')
-        axes[1].plot(plot_df.index, plot_df["numReps"], label='Num Reps', color='green')
+        axes[1].plot(plot_df["date_str"], plot_df["targetReps"], label='Target Reps', color='red')
+        axes[1].plot(plot_df["date_str"], plot_df["numReps"], label='Num Reps', color='green')
+        axes[1].tick_params(axis='x', rotation=30)
         axes[1].set_ylabel('Reps')
         axes[1].grid(True)
         axes[1].legend()
