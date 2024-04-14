@@ -1,6 +1,6 @@
 import logging
 
-from flask import render_template, session
+from flask import render_template
 from flask_session import Session
 
 from backend.server import app, db
@@ -35,7 +35,6 @@ def main():
     register_blueprints()
     Session(app)
     app.run()
-    session.clear()
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ from flask import Flask
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
 
-IN_MEMORY = True
+IN_MEMORY = False
 SERVER_SESSION = True
 DEBUG = True
 # Flask-SQLite
@@ -20,9 +20,8 @@ db = SQLAlchemy(app)
 # Flask Session
 if SERVER_SESSION is True:
     app.config['SESSION_TYPE'] = 'cachelib'
-    app.config['SESSION_CACHELIB'] = FileSystemCache(threshold=50, cache_dir="flask_session")
+    app.config['SESSION_CACHELIB'] = FileSystemCache(threshold=10, cache_dir="flask_session")
     app.config['SESSION_PERMANENT'] = False
-    app.config['SESSION_CLEANUP_N_REQUESTS'] = 1
 # Flask Debugger
 if DEBUG is True:
     app.debug = True
