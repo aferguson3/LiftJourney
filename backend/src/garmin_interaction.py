@@ -18,7 +18,8 @@ from backend.src.utils import Endpoints
 logger = logging.getLogger(__name__)
 q = queue.Queue()
 MAX_THREADS = multiprocessing.cpu_count()
-NUM_THREADS = 10 if MAX_THREADS >= 10 else multiprocessing.cpu_count()
+NUM_THREADS = 6
+NUM_THREADS = NUM_THREADS if MAX_THREADS >= NUM_THREADS else multiprocessing.cpu_count()
 
 
 # Assumes Garmin connect user/pass are saved in .env file

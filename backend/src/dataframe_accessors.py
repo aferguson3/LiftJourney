@@ -17,8 +17,7 @@ def list_available_exercises(dataframe: pd.DataFrame) -> list:
     values = dataframe['exerciseName'].drop_duplicates().values.tolist()
     if None in values:
         values.remove(None)
-    values = sorted(values)
-    return values
+    return sorted(values)
 
 
 def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
@@ -143,12 +142,12 @@ def target_reps_selection(available_target_reps: list) -> None | int:
     return target_reps
 
 
-def get_rep_ranges(df: pd.DataFrame, exercise_to_plot: str) -> list[float]:
-    target_reps = df.loc[(df["exerciseName"] == exercise_to_plot, "targetReps")].to_numpy(na_value=-1)
+def get_rep_ranges(df: pd.DataFrame, chosen_exercise: str) -> list[float]:
+    target_reps = df.loc[(df["exerciseName"] == chosen_exercise, "targetReps")].to_numpy(na_value=-1)
     target_reps = list(set(target_reps))
     if -1 in target_reps:
         target_reps.remove(-1)
-    return target_reps
+    return sorted(target_reps)
 
 
 def show_graph(sorted_workouts: list[Workout]):

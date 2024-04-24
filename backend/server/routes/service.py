@@ -1,14 +1,15 @@
 import logging
 from datetime import datetime
 
-from flask import Blueprint, request, render_template, session, url_for, redirect
+from flask import Blueprint, request, render_template, session, redirect, url_for
 from sqlalchemy import select
 
 from backend.server import db
 from backend.server.models import WorkoutDB
+from backend.server.models.Forms import ExercisesForm, RepRangesForm
 from backend.server.routes.database import new_DB_entries
-from backend.server.utils import remove_from_session, get_dataframe
-from backend.src.dataframe_accessors import list_available_exercises, get_rep_ranges, plot_dataframe
+from backend.server.utils import get_dataframe
+from backend.src.dataframe_accessors import list_available_exercises, plot_dataframe, get_rep_ranges
 from backend.src.garmin_interaction import run_service
 from backend.src.utils import set_params_by_weeks
 
@@ -42,27 +43,27 @@ def service():
 
 @service_bp.route("/graph", methods=['GET', 'POST'])
 def setup_graph():
-    if request.method == 'GET':
-        remove_from_session('df')
-        df = get_dataframe()
-        logger.info(f"df memory usage: {df.info(memory_usage=True)}")
-        session['nextForm'] = 'exercise_selection'
-        return render_template("exercise_selection.html", exercises=list_available_exercises(df))
+    df = get_dataframe()
+    logger.info(f"df memory usage: {df.info(memory_usage=True)}")
+    exercise_form = ExercisesForm()
+    reps_form = RepRangesForm()
+    all_exercises = list_available_exercises(df)
+    exercises_rep_ranges: dict[str, list[float]] = {x: get_rep_ranges(df, x) for x in all_exercises}
+    exercise_form.set_choices(all_exercises)
 
-    elif request.method == 'POST':
-        req_form_name = session['nextForm']
-        if req_form_name == "exercise_selection":
-            exercise = request.form['exercise-select']
-            session['exercise'] = exercise
-            session['nextForm'] = "target_reps_selection"
-            rep_ranges = get_rep_ranges(get_dataframe(), exercise)
-            return render_template('target_reps_selection.html', target_reps=rep_ranges)
+    if request.method == "POST":
+        if 'exercises' in request.form:
+            selected_exercise = exercise_form.exercises.data
+            session['exercise'] = selected_exercise
+            rep_ranges = get_rep_ranges(get_dataframe(), selected_exercise)
+            reps_form.set_choices(rep_ranges)
+            return render_template('graph_params.html', exercise_form=exercise_form, reps_form=reps_form)
 
-        elif req_form_name == "target_reps_selection":
-            remove_from_session('nextForm')
-            reps = request.form['target-reps-select']
-            session['reps'] = reps
+        elif 'rep_ranges' in request.form:
+            session['reps'] = reps_form.rep_ranges.data
             return redirect(url_for('.show_graph'))
+
+    return render_template("graph_params.html", exercise_form=exercise_form, reps_form=reps_form)
 
 
 @service_bp.route("/graph/show", methods=['GET'])

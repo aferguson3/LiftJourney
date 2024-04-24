@@ -10,3 +10,4 @@
 **/node_modules/
 /instance/*
 /backend/server/flask_session/
+/backend/server/workouts.db
