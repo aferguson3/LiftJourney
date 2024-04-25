@@ -53,7 +53,8 @@ def user_by_id(ID):
 def full_db():
     workouts = db.session.execute(select(WorkoutDB)).scalars().all()
     workouts_dict = workoutsDB_to_dict(workouts)
-    return render_template('base.html', body=f"# of workouts: {len(workouts_dict["workouts"])}")
+    num_workouts = len(workouts_dict["workouts"])
+    return render_template('base.html', body=f"# of workouts: {num_workouts}")
 
 
 @database_bp.route("/clear_db")

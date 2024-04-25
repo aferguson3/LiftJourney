@@ -1,10 +1,11 @@
 import logging
+import pathlib
 
 from backend.src import show_graph
 from backend.src.garmin_interaction import client_auth, run_service
 from backend.src.utils import set_params_by_weeks
 
-DATA_FILEPATH = "./data/workout_data.json"
+DATA_FILEPATH = str(pathlib.Path("./data/workout_data.json").resolve())
 METADATA_FILEPATH = './data/workout_metadata.json'
 
 logger = logging.getLogger(__name__)
@@ -18,14 +19,10 @@ def main():
     weeks_of_workouts = 10
 
     params = set_params_by_weeks(weeks_of_workouts, startDate)
-    metadata = {"numWorkouts": "", "filepath": METADATA_FILEPATH,
-                "dates": {"firstWorkout": "", "lastWorkout": ""},
-                }
     menu = ("1: Fresh data & backup\n"
             "2: Fresh data & no backup\n"
             "3: Loaded data & no backup\n"
             "Choose an option: ")
-
     while True:
         match input(menu):
             case "1":  # Fresh data & backup

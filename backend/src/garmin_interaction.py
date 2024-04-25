@@ -3,7 +3,6 @@ import multiprocessing
 import pathlib
 import queue
 import re
-import time
 from datetime import datetime, timedelta
 from threading import Thread
 from typing import Tuple
@@ -14,6 +13,7 @@ from dotenv import dotenv_values
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout, ExerciseSet
 from backend.src.utils import Endpoints
+from backend.src.utils.utils import timer
 
 logger = logging.getLogger(__name__)
 q = queue.Queue()
@@ -108,15 +108,13 @@ def _get_workouts(activityDatetimes: list, activityIds: list | int) -> None:
                 logger.debug(f"Skipped {currSet['exercises'][0]['name']}, weight: {currSet['weight']}")
                 continue
             currWeight = currSet["weight"] if currSet["weight"] is not None else 0
-            currTime = currSet["startTime"]
-            curr_time_UTC_dt = datetime.fromisoformat(currTime) if currTime is not None else None
-            EST = timedelta(hours=5)
+            curr_time = _format_set_time(currSet["startTime"], timedelta(hours=5))
 
             a_set.exerciseName = currSet["exercises"][0]["name"]
             a_set.duration_secs = currSet["duration"]
             a_set.numReps = currSet["repetitionCount"]
             a_set.weight = round(currWeight * 0.002204623)
-            a_set.startTime = (curr_time_UTC_dt - EST).time().isoformat() if curr_time_UTC_dt is not None else None
+            a_set.startTime = curr_time
             a_set.stepIndex = currSet["wktStepIndex"]
             all_workout_sets.append(a_set)
 
@@ -126,6 +124,15 @@ def _get_workouts(activityDatetimes: list, activityIds: list | int) -> None:
         totalWorkouts.append(a_workout)
     q.put(totalWorkouts)
     q.task_done()
+
+
+def _format_set_time(set_time: str | None, timedelta_from_Garmin: timedelta) -> str | None:
+    if set_time is None:
+        return
+    set_time = set_time.replace(".0", "")
+    set_time_dt = datetime.fromisoformat(set_time)
+    formatted_time = (set_time_dt - timedelta_from_Garmin).time().isoformat()
+    return formatted_time
 
 
 def _isWarmupSet(garmin_exercise_set: dict) -> bool:
@@ -138,9 +145,9 @@ def _isWarmupSet(garmin_exercise_set: dict) -> bool:
     return result
 
 
+@timer
 def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
     # Fills out targetReps and missing exerciseNames using scheduled workout info
-    start = time.perf_counter()
     threads = []
     splice = int(len(workouts) / NUM_THREADS)
     workouts_rv = []
@@ -162,8 +169,6 @@ def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
     while not q.empty():
         workouts_rv = workouts_rv + q.get()
 
-    end = time.perf_counter()
-    logger.info(f"{(end - start):.2f} seconds to fill out workouts")
     return workouts_rv
 
 
@@ -223,5 +228,5 @@ def run_service(params: dict, backup: bool = False, load: bool = False, filepath
 def _filepath_validation(filepath):
     if type(filepath) is not str:
         raise TypeError(f"{filepath} is invalid filepath.")
-    if not pathlib.Path(filepath).exists():
-        raise FileNotFoundError(f"{filepath} was not found.")
+    # if not pathlib.Path(filepath).exists():
+    #     raise FileNotFoundError(f"{filepath} was not found.")
