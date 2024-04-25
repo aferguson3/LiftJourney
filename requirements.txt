@@ -1,10 +1,15 @@
+# Core / Testing
 garth>=0.4.44
 python-dotenv>=1.0.1
 pandas>=2.2.0
-pytest>=8.0.1
 matplotlib>=3.8.3
-Flask>=3.0.2
+pytest>=8.0.1
 
-SQLAlchemy>=2.0.29
-WTForms>=3.1.2
-cachelib>=0.13.0
+# Flask extensions
+Flask>=3.0.3
+Flask-SQLAlchemy>=3.1.1
+Flask-WTF>=1.2.1
+Flask-Session>=0.8.0
+
+# Debug
+Flask-DebugToolbar>=0.14.1
