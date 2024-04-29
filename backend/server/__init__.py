@@ -9,15 +9,18 @@ from flask_sqlalchemy import SQLAlchemy
 IN_MEMORY = False
 SERVER_SESSION = True
 DEBUG = True
-basedir = pathlib.Path.cwd()
+BASEDIR = pathlib.Path.cwd()
+DB_URI = 'sqlite:///' + str(BASEDIR.joinpath('workouts.db'))
 
 # Flask-SQLite
 app = Flask(__name__)
+env_path = pathlib.Path.cwd().parent.parent / ".env"
+app.config['SECRET_KEY'] = dotenv.get_key(str(env_path), "SECRET_KEY")
+
 if IN_MEMORY is True:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
 else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + str(basedir.joinpath('workouts.db'))
-db = SQLAlchemy(app)
+    app.config['SQLALCHEMY_DATABASE_URI'] = DB_URI
 
 # Flask Session
 if SERVER_SESSION is True:
@@ -27,6 +30,6 @@ if SERVER_SESSION is True:
 # Flask-Toolbar Debugger
 if DEBUG is True:
     app.debug = True
-    env_path = pathlib.Path.cwd().parent.parent / ".env"
-    app.config['SECRET_KEY'] = dotenv.get_key(str(env_path), "SECRET_KEY")
     toolbar = DebugToolbarExtension(app)
+
+db = SQLAlchemy(app)

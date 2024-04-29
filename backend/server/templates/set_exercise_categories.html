@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Set Exercise Categories</title>
+
+</head>
+<body>
+<div>
+    <form method="post">
+        {{ categories_field.csrf_token }}
+        {% for cur_exercise in all_exercises %}
+        <ul>
+            <label>{{cur_exercise}}</label>
+            {{ categories_field.categories }}
+        </ul>
+        {% endfor %}
+        <button type="submit">Submit</button>
+    </form>
+</div>
+</body>
+</html>

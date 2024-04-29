@@ -1,13 +1,11 @@
 # created by virtualenv automatically
-**/creds/*
-/.env
-**/data/*
-
 /.venv/*
 .idea/*
 .vscode/*
 *.pyc
-**/node_modules/
-/instance/*
-/backend/server/flask_session/
-/backend/server/workouts.db
+
+**/creds/*
+/.env
+**/data/*
+**/flask_session/*
+**/workouts.db

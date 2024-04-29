@@ -55,9 +55,3 @@ def full_db():
     workouts_dict = workoutsDB_to_dict(workouts)
     num_workouts = len(workouts_dict["workouts"])
     return render_template('base.html', body=f"# of workouts: {num_workouts}")
-
-
-@database_bp.route("/clear_db")
-def clear_db():
-    db.drop_all()
-    return render_template('base.html', body="Empty")

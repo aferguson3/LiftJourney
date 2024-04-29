@@ -5,17 +5,19 @@
     <title>Title</title>
 </head>
 <body>
-<form method="post">
-    <h3>Select Exercise</h3>
-    {{ exercise_form.csrf_token }}
-    {{ exercise_form.exercises }}
-    <button type="submit" id="exercises-btn">Submit</button>
-</form>
-<form method="post">
-    <h3>Select a Target Reps Filter</h3>
-    {{ reps_form.csrf_token }}
-    {{ reps_form.rep_ranges }}
-    <button type="submit" id="reps-btn">Submit</button>
-</form>
+<div>
+    <form method="post">
+        <h3>Select Exercise</h3>
+        {{ exercise_form.csrf_token }}
+        {{ exercise_form.exercises }}
+        <button type="submit" id="exercises-btn">Submit</button>
+    </form>
+    <form method="post">
+        <h3>Select a Target Reps Filter</h3>
+        {{ reps_form.csrf_token }}
+        {{ reps_form.rep_ranges }}
+        <button type="submit" id="reps-btn">Submit</button>
+    </form>
+</div>
 </body>
 </html>

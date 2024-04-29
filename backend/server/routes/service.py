@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from backend.server import db
 from backend.server.models import WorkoutDB
-from backend.server.models.Forms import ExercisesForm, RepRangesForm
+from backend.server.models.FormFields import ExerciseField, RepRangeField
 from backend.server.routes.database import new_DB_entries
 from backend.server.utils import get_dataframe
 from backend.src.dataframe_accessors import list_available_exercises, plot_dataframe, get_rep_ranges
@@ -45,10 +45,10 @@ def service():
 def setup_graph():
     df = get_dataframe()
     logger.info(f"df memory usage: {df.info(memory_usage=True)}")
-    exercise_form = ExercisesForm()
-    reps_form = RepRangesForm()
+    exercise_form = ExerciseField()
+    reps_form = RepRangeField()
     all_exercises = list_available_exercises(df)
-    exercises_rep_ranges: dict[str, list[float]] = {x: get_rep_ranges(df, x) for x in all_exercises}
+    # exercises_rep_ranges: dict[str, list[float]] = {x: get_rep_ranges(df, x) for x in all_exercises}
     exercise_form.set_choices(all_exercises)
 
     if request.method == "POST":
