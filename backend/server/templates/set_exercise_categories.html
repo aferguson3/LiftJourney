@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress XmlInvalidId -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,8 +12,12 @@
         {{ categories_field.csrf_token }}
         {% for cur_exercise in all_exercises %}
         <ul>
-            <label>{{cur_exercise}}</label>
-            {{ categories_field.categories }}
+            <label for="select-{{cur_exercise}}">{{cur_exercise}}</label>
+            <select name="select-{{cur_exercise}}">
+                {% for name,value in categories_field.categories.choices %}
+                <option name="{{name}}">{{value}}</option>
+                {% endfor %}
+            </select>
         </ul>
         {% endfor %}
         <button type="submit">Submit</button>

@@ -1,6 +1,6 @@
 import logging
 
-from flask import render_template, Blueprint
+from flask import render_template, Blueprint, request
 from sqlalchemy import select
 
 from backend.server import db
@@ -38,6 +38,14 @@ def set_categories():
     categories_field.set_choices(categories)
     # On submit, check for invalid category selections
     if categories_field.is_submitted():
+        selected_options = dict()
+        for exercise in all_exercises:
+            cur_selected_option = request.form.get(f'select-{exercise}')
+            if cur_selected_option == '-- Select a Category --':
+                cur_selected_option = None
+            selected_options[f'{exercise.upper().replace(" ", "_")}'] = cur_selected_option
+        # handle selects w/ no selections
+        # handle selects w/ selected option
         raise ValueError
     return render_template('set_exercise_categories.html', all_exercises=all_exercises,
                            categories_field=categories_field)

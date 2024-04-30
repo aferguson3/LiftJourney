@@ -6,14 +6,8 @@ def _pretty_str(name: str):
     return name.replace("_", " ")
 
 
-def coerce_none(string):
-    if string == "None":
-        return None
-    return string
-
-
 class CategoryField(FlaskForm):
-    categories = SelectField('Categories', coerce=coerce_none, name='exercise')
+    categories = SelectField('Categories')
 
     def set_choices(self, options: list[str]):
         self.categories.choices = ([("None", "-- Select a Category --")] +
