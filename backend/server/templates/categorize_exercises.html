@@ -4,23 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Set Exercise Categories</title>
-
 </head>
 <body>
-<div>
-    <form method="post">
+<div id="header">
+    <h2>Set Exercise Categories</h2>
+</div>
+<div id="outer">
+    <form method="post" onsubmit="">
         {{ categories_field.csrf_token }}
-        {% for cur_exercise in all_exercises %}
-        <ul>
+        <!-- When empty disable button-->
+        <button type="submit" id="submit-exercises">Submit</button>
+        {% for cur_exercise in exercises %}
+        <div id="exercise">
             <label for="select-{{cur_exercise}}">{{cur_exercise}}</label>
-            <select name="select-{{cur_exercise}}">
+            <select name="select-{{cur_exercise}}" id="select-{{cur_exercise}}">
                 {% for name,value in categories_field.categories.choices %}
                 <option name="{{name}}">{{value}}</option>
                 {% endfor %}
             </select>
-        </ul>
+        </div>
         {% endfor %}
-        <button type="submit">Submit</button>
     </form>
 </div>
 </body>

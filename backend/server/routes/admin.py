@@ -5,15 +5,30 @@ from sqlalchemy import select
 
 from backend.server import db
 from backend.server.models import ExerciseSetDB
+from backend.server.models.ExerciseDB import ExerciseDB, CATEGORY_LIST
 from backend.server.models.FormFields import CategoryField
+from backend.server.routes.database import new_exercise_entries
 
 logger = logging.getLogger(__name__)
 admin_bp = Blueprint('admin_bp', __name__, url_prefix="/admin")
 
 
+def _format_display_exercise_names(values: list) -> list[str]:
+    values = [str(x).replace("_", " ").title() for x in values]
+    if "None" in values:
+        values.remove("None")
+    return sorted(values)
+
+
+def _format_DB_exercise_names(values: list) -> list[str]:
+    values = [str(x).replace(" ", "_").upper() for x in values]
+    return sorted(values)
+
+
 # obfuscate admin routes w/ pokemon
 # clear: clefairy
 # set categories: caterpie
+
 @admin_bp.route("/clefairy")
 def clear_db():
     db.drop_all()
@@ -21,31 +36,37 @@ def clear_db():
 
 
 @admin_bp.route("/caterpie", methods=['GET', 'POST'])
-def set_categories():
-    def _format_exercises(values: list) -> list[str]:
-        values = [str(x).replace("_", " ").title() for x in values]
-        if "None" in values:
-            values.remove("None")
-        return sorted(values)
+def record_exercises():
+    categories = CATEGORY_LIST
+    categorized_exercises = (
+        db.session.execute(select(ExerciseDB.exerciseName))
+    ).scalars().all()
+    displayed_exercises = _format_display_exercise_names(
+        (
+            db.session.execute(select(ExerciseSetDB.exerciseName))
+        ).scalars().unique().all()
+    )
 
-    categories = ["Arms", "Chest", "Core", "Back", "Legs", "Shoulders"]
-    all_exercises = (
-        db.session.execute(select(ExerciseSetDB.exerciseName))
-    ).scalars().unique().all()
-    all_exercises = _format_exercises(all_exercises)
-    # check with saved exercise categories; removed saved exercise names for this list
+    compared_exercises = _format_display_exercise_names(categorized_exercises)
+    for exercise in compared_exercises:
+        if exercise in displayed_exercises:
+            displayed_exercises.remove(exercise)
     categories_field = CategoryField()
     categories_field.set_choices(categories)
-    # On submit, check for invalid category selections
+
     if categories_field.is_submitted():
-        selected_options = dict()
-        for exercise in all_exercises:
-            cur_selected_option = request.form.get(f'select-{exercise}')
-            if cur_selected_option == '-- Select a Category --':
-                cur_selected_option = None
-            selected_options[f'{exercise.upper().replace(" ", "_")}'] = cur_selected_option
-        # handle selects w/ no selections
-        # handle selects w/ selected option
-        raise ValueError
-    return render_template('set_exercise_categories.html', all_exercises=all_exercises,
+        exercise_entries = list()
+        for cur_exercise_name in displayed_exercises:
+            cur_selected_category = request.form.get(f'select-{cur_exercise_name}')
+            cur_selected_category = None if cur_selected_category == '-- Select a Category --' \
+                else cur_selected_category
+            cur_exercise = ExerciseDB(exerciseName=cur_exercise_name.upper().replace(" ", "_"),
+                                      category=cur_selected_category)
+            if cur_exercise.category is None:
+                # handle selects w/ no selections
+                continue
+            exercise_entries.append(cur_exercise)
+
+        new_exercise_entries(exercise_entries)
+    return render_template('categorize_exercises.html', exercises=displayed_exercises,
                            categories_field=categories_field)

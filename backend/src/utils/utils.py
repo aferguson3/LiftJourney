@@ -8,7 +8,8 @@ logger = logging.getLogger(__name__)
 
 def set_params_by_weeks(weeks_of_workouts: int, start_date: str | date, start: int = 0, limit: int = 999):
     start_date = str(start_date)
-    endDate = str(date.fromisoformat(start_date) + timedelta(days=7 * weeks_of_workouts))
+    _endDate = date.fromisoformat(start_date) + timedelta(days=7 * weeks_of_workouts)
+    endDate = str(_endDate) if _endDate <= date.today() else str(date.today().isoformat())
     params = {
         "startDate": start_date,
         "endDate": endDate,

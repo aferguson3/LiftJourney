@@ -10,7 +10,7 @@ class CategoryField(FlaskForm):
     categories = SelectField('Categories')
 
     def set_choices(self, options: list[str]):
-        self.categories.choices = ([("None", "-- Select a Category --")] +
+        self.categories.choices = ([("", "-- Select a Category --")] +
                                    [(name, _pretty_str(name)) for name in options])
 
 

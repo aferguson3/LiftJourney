@@ -46,7 +46,7 @@ class WorkoutDB(db.Model):
         return _dict
 
     @staticmethod
-    def convert_to_workoutsDB(workouts: list[Workout]):
+    def list_to_workoutsDB(workouts: list[Workout]):
         workoutsDB = []
         for workout in workouts:
             cur_workoutDB = WorkoutDB(workout.asdict())

@@ -7,7 +7,7 @@ from sqlalchemy import select
 from backend.server import db
 from backend.server.models import WorkoutDB
 from backend.server.models.FormFields import ExerciseField, RepRangeField
-from backend.server.routes.database import new_DB_entries
+from backend.server.routes.database import new_workout_entries
 from backend.server.utils import get_dataframe
 from backend.src.dataframe_accessors import list_available_exercises, plot_dataframe, get_rep_ranges
 from backend.src.garmin_interaction import run_service
@@ -18,14 +18,14 @@ service_bp = Blueprint('service_bp', __name__, url_prefix='/main')
 
 
 # Uploads new workout entries
-# URL Args: startDate, weeks
+# URL Args: startDate (YYYY-MM-DD), weeks
 @service_bp.route("/run", methods=['GET'])
 def service():
     args = request.args
-    start_date = args.get("startDate", default="", type=str)  # provide start date or use the first date in DB
+    start_date = args.get("startDate", default=None, type=str)  # provide start date or use the first date in DB
     weeks_of_workouts = args.get("weeks", default=10, type=int)
 
-    if start_date == "":
+    if start_date is None:
         result = db.session.execute(
             select(WorkoutDB.datetime).order_by(WorkoutDB.datetime.desc())
         ).scalars().first()
@@ -36,8 +36,9 @@ def service():
         logger.info(f"startDate: {start_date}, weeks: {weeks_of_workouts}")
 
     params = set_params_by_weeks(weeks_of_workouts=weeks_of_workouts, start_date=start_date)
+    logger.info(params.items())
     workouts = run_service(params)
-    new_DB_entries(workouts)
+    new_workout_entries(workouts)
     return render_template("base.html", body=f"startDate: {start_date}, weeks: {weeks_of_workouts}")
 
 

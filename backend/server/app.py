@@ -31,11 +31,13 @@ def not_found(*args, **kwargs):
 
 
 def main():
+    logger.info(f"DB URI: {app.config.get('SQLALCHEMY_DATABASE_URI')}")
     with app.app_context():
         db.create_all()
     client_auth()
     register_blueprints()
     Session(app)
+
     app.run()
 
 
