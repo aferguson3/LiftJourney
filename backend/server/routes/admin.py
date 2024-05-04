@@ -10,7 +10,7 @@ from backend.server.models.FormFields import CategoryField
 from backend.server.routes.database import new_exercise_entries
 
 logger = logging.getLogger(__name__)
-admin_bp = Blueprint('admin_bp', __name__, url_prefix="/admin")
+admin_bp = Blueprint("admin_bp", __name__, url_prefix="/admin")
 
 
 def _format_display_exercise_names(values: list) -> list[str]:
@@ -27,24 +27,26 @@ def _format_DB_exercise_names(values: list) -> list[str]:
 
 # obfuscate admin routes w/ pokemon
 # clear: clefairy
-# set categories: caterpie
+# recored exercises: caterpie
+
 
 @admin_bp.route("/clefairy")
 def clear_db():
     db.drop_all()
-    return render_template('base.html', body="Empty")
+    return render_template("base.html", body="Empty")
 
 
-@admin_bp.route("/caterpie", methods=['GET', 'POST'])
+@admin_bp.route("/caterpie", methods=["GET", "POST"])
 def record_exercises():
     categories = CATEGORY_LIST
     categorized_exercises = (
-        db.session.execute(select(ExerciseDB.exerciseName))
-    ).scalars().all()
+        (db.session.execute(select(ExerciseDB.exerciseName))).scalars().all()
+    )
     displayed_exercises = _format_display_exercise_names(
-        (
-            db.session.execute(select(ExerciseSetDB.exerciseName))
-        ).scalars().unique().all()
+        (db.session.execute(select(ExerciseSetDB.exerciseName)))
+        .scalars()
+        .unique()
+        .all()
     )
 
     compared_exercises = _format_display_exercise_names(categorized_exercises)
@@ -57,16 +59,24 @@ def record_exercises():
     if categories_field.is_submitted():
         exercise_entries = list()
         for cur_exercise_name in displayed_exercises:
-            cur_selected_category = request.form.get(f'select-{cur_exercise_name}')
-            cur_selected_category = None if cur_selected_category == '-- Select a Category --' \
+            cur_selected_category = request.form.get(f"select-{cur_exercise_name}")
+            cur_selected_category = (
+                None
+                if cur_selected_category == "-- Select a Category --"
                 else cur_selected_category
-            cur_exercise = ExerciseDB(exerciseName=cur_exercise_name.upper().replace(" ", "_"),
-                                      category=cur_selected_category)
+            )
+            cur_exercise = ExerciseDB(
+                exerciseName=cur_exercise_name.upper().replace(" ", "_"),
+                category=cur_selected_category,
+            )
             if cur_exercise.category is None:
                 # handle selects w/ no selections
                 continue
             exercise_entries.append(cur_exercise)
 
         new_exercise_entries(exercise_entries)
-    return render_template('categorize_exercises.html', exercises=displayed_exercises,
-                           categories_field=categories_field)
+    return render_template(
+        "categorize_exercises.html",
+        exercises=displayed_exercises,
+        categories_field=categories_field,
+    )

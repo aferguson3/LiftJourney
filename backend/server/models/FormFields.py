@@ -7,22 +7,25 @@ def _pretty_str(name: str):
 
 
 class CategoryField(FlaskForm):
-    categories = SelectField('Categories')
+    categories = SelectField("Categories")
 
     def set_choices(self, options: list[str]):
-        self.categories.choices = ([("", "-- Select a Category --")] +
-                                   [(name, _pretty_str(name)) for name in options])
+        self.categories.choices = [("", "-- Select a Category --")] + [
+            (name, _pretty_str(name)) for name in options
+        ]
 
 
 class ExerciseField(FlaskForm):
-    exercises = SelectField('Exercises')
+    exercises = SelectField("Exercises")
 
     def set_choices(self, options: list[str]):
         self.exercises.choices = [(name, _pretty_str(name)) for name in options]
 
 
 class RepRangeField(FlaskForm):
-    rep_ranges = SelectField('Rep_ranges')
+    rep_ranges = SelectField("Rep_ranges")
 
     def set_choices(self, options: list[float]):
-        self.rep_ranges.choices = [("None", "No Filter")] + [(option, int(option)) for option in options]
+        self.rep_ranges.choices = [("None", "No Filter")] + [
+            (option, int(option)) for option in options
+        ]

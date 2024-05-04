@@ -40,12 +40,17 @@ def client_auth():
 
 # Gathers all fitness activities by date
 def get_activities(params: dict) -> Tuple[list[int], list[str]]:
-    activity_data = garth.connectapi(f"{Endpoints.garmin_connect_activities}", params=params)
+    activity_data = garth.connectapi(
+        f"{Endpoints.garmin_connect_activities}", params=params
+    )
     activityIds, removedIds = list(), list()
     activityDatetimes = list()
 
     for activity in activity_data:
-        if str(activity["activityName"]).find("Pickup") > -1 or str(activity["activityName"]).find("Basketball") > -1:
+        if (
+            str(activity["activityName"]).find("Pickup") > -1
+            or str(activity["activityName"]).find("Basketball") > -1
+        ):
             # Excludes the basketball activities
             removedIds.append(activity["activityId"])
             continue
@@ -54,7 +59,8 @@ def get_activities(params: dict) -> Tuple[list[int], list[str]]:
         activityDatetimes.append(activity["startTimeLocal"])
     logger.debug(
         f"Max limit for Ids: {params['limit']}, Number of Removed Ids: {len(removedIds)}, Number of Ids: {len(activityIds)}"
-        f"\n{activityIds[:5]} ...")
+        f"\n{activityIds[:5]} ..."
+    )
     return activityIds, activityDatetimes
 
 
@@ -71,10 +77,13 @@ def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
     else:
         for i in range(0, NUM_THREADS):
             cur_index = i * splice
-            t = Thread(target=_get_workouts,
-                       args=(
-                           activityDatetimes[cur_index: cur_index + splice],
-                           activityIds[cur_index: cur_index + splice]))
+            t = Thread(
+                target=_get_workouts,
+                args=(
+                    activityDatetimes[cur_index : cur_index + splice],
+                    activityIds[cur_index : cur_index + splice],
+                ),
+            )
             t.start()
             threads.append(t)
 
@@ -93,7 +102,9 @@ def _get_workouts(activityDatetimes: list, activityIds: list | int) -> None:
         activityIds = [activityIds]
 
     for Id, _datetime in zip(activityIds, activityDatetimes):
-        data = garth.connectapi(f"{Endpoints.garmin_connect_activity}/{Id}/exerciseSets")
+        data = garth.connectapi(
+            f"{Endpoints.garmin_connect_activity}/{Id}/exerciseSets"
+        )
         a_workout = Workout()
         all_workout_sets = list()
 
@@ -105,7 +116,9 @@ def _get_workouts(activityDatetimes: list, activityIds: list | int) -> None:
                 continue
             if _isWarmupSet(currSet):
                 # skip warmup sets
-                logger.debug(f"Skipped {currSet['exercises'][0]['name']}, weight: {currSet['weight']}")
+                logger.debug(
+                    f"Skipped {currSet['exercises'][0]['name']}, weight: {currSet['weight']}"
+                )
                 continue
             currWeight = currSet["weight"] if currSet["weight"] is not None else 0
             curr_time = _format_set_time(currSet["startTime"], timedelta(hours=5))
@@ -126,7 +139,9 @@ def _get_workouts(activityDatetimes: list, activityIds: list | int) -> None:
     q.task_done()
 
 
-def _format_set_time(set_time: str | None, timedelta_from_Garmin: timedelta) -> str | None:
+def _format_set_time(
+    set_time: str | None, timedelta_from_Garmin: timedelta
+) -> str | None:
     if set_time is None:
         return
     set_time = set_time.replace(".0", "")
@@ -136,12 +151,20 @@ def _format_set_time(set_time: str | None, timedelta_from_Garmin: timedelta) -> 
 
 
 def _isWarmupSet(garmin_exercise_set: dict) -> bool:
-    result = garmin_exercise_set["exercises"][0]["name"] == "BARBELL_BENCH_PRESS" and garmin_exercise_set[
-        "weight"] <= 61251
-    result = result or garmin_exercise_set["exercises"][0]["name"] == "BARBELL_BACK_SQUAT" and garmin_exercise_set[
-        "weight"] <= 61251
-    result = result or garmin_exercise_set["exercises"][0]["name"] == "BARBELL_DEADLIFT" and garmin_exercise_set[
-        "weight"] <= 61251
+    result = (
+        garmin_exercise_set["exercises"][0]["name"] == "BARBELL_BENCH_PRESS"
+        and garmin_exercise_set["weight"] <= 61251
+    )
+    result = (
+        result
+        or garmin_exercise_set["exercises"][0]["name"] == "BARBELL_BACK_SQUAT"
+        and garmin_exercise_set["weight"] <= 61251
+    )
+    result = (
+        result
+        or garmin_exercise_set["exercises"][0]["name"] == "BARBELL_DEADLIFT"
+        and garmin_exercise_set["weight"] <= 61251
+    )
     return result
 
 
@@ -160,7 +183,10 @@ def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
     else:
         for i in range(0, NUM_THREADS):
             cur_index = i * splice
-            t = Thread(target=_fill_out_workouts, args=[workouts[cur_index: cur_index + splice]])
+            t = Thread(
+                target=_fill_out_workouts,
+                args=[workouts[cur_index : cur_index + splice]],
+            )
             t.start()
             threads.append(t)
 
@@ -178,7 +204,9 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
         workouts = [workouts]
 
     for wo in workouts:
-        garmin_data = garth.connectapi(f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts")
+        garmin_data = garth.connectapi(
+            f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts"
+        )
         if garmin_data is None:
             print(f"{wo.datetime}")
             continue
@@ -187,7 +215,7 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
 
         version_str = re.search(pattern, workout_name_str)
         version_str = version_str.group() if version_str is not None else None
-        workout_name = re.sub(pattern, '', workout_name_str).strip()
+        workout_name = re.sub(pattern, "", workout_name_str).strip()
         wo.version = version_str
         wo.name = workout_name
 
@@ -195,16 +223,20 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
             currStepIndex = currSet.stepIndex
             if currStepIndex is None:
                 continue  # Ignores unscheduled exercises w/o stepIndex
-            currSet.targetReps = int(garmin_data['steps'][currStepIndex]['durationValue'])
+            currSet.targetReps = int(
+                garmin_data["steps"][currStepIndex]["durationValue"]
+            )
             if currSet.exerciseName is None:
-                newName = garmin_data['steps'][currStepIndex]['exerciseName']
-                newCategory = garmin_data['steps'][currStepIndex]['exerciseCategory']
+                newName = garmin_data["steps"][currStepIndex]["exerciseName"]
+                newCategory = garmin_data["steps"][currStepIndex]["exerciseCategory"]
                 currSet.exerciseName = newName if newName is not None else newCategory
     q.put(workouts)
     q.task_done()
 
 
-def run_service(params: dict, backup: bool = False, load: bool = False, filepath: str = None) -> list[Workout]:
+def run_service(
+    params: dict, backup: bool = False, load: bool = False, filepath: str = None
+) -> list[Workout]:
     if load is True:
         _filepath_validation(filepath)
         workouts = Manager.load_workouts(filepath)
@@ -221,7 +253,8 @@ def run_service(params: dict, backup: bool = False, load: bool = False, filepath
     Manager.list_incomplete_workouts(workouts_)
     logger.info(
         f"Num of workouts: {len(workouts_)}, Workout 0: {workouts_[0].name} {workouts_[0].version}"
-        f"\n\tset 3: {workouts_[0].view_sets()[3]}")
+        f"\n\tset 3: {workouts_[0].view_sets()[3]}"
+    )
     return workouts_
 
 

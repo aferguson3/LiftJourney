@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def list_available_exercises(dataframe: pd.DataFrame) -> list:
-    values = dataframe['exerciseName'].drop_duplicates().values.tolist()
+    values = dataframe["exerciseName"].drop_duplicates().values.tolist()
     if None in values:
         values.remove(None)
     return sorted(values)
@@ -24,7 +24,9 @@ def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
     index_2d = []
     for workout in workouts:
         set_numbers = list(range(1, len(workout.sets) + 1))
-        workoutDate = datetime.fromisoformat(workout.datetime).date().strftime("%m/%d/%y")
+        workoutDate = (
+            datetime.fromisoformat(workout.datetime).date().strftime("%m/%d/%y")
+        )
         for cur_set_number in set_numbers:
             index_2d.append((workoutDate, cur_set_number))
     setsData = Manager.view_sets_from_workouts(workouts)
@@ -32,25 +34,33 @@ def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
 
     df = pd.DataFrame(setsData, index=index_df)
     df["date"] = [_date for (_date, s) in index_2d]
-    df['date'] = pd.to_datetime(df['date'], format='%m/%d/%y')
+    df["date"] = pd.to_datetime(df["date"], format="%m/%d/%y")
     return df
 
 
-def plot_dataframe(df: pd.DataFrame, plotting_exercise: str, targetReps: float = None,
-                   buffer_mode: bool = False) -> None | str:
+def plot_dataframe(
+    df: pd.DataFrame,
+    plotting_exercise: str,
+    targetReps: float = None,
+    buffer_mode: bool = False,
+) -> None | str:
     # plot the reps and weight of like exercisesNames
-    if plotting_exercise not in df['exerciseName'].values:
+    if plotting_exercise not in df["exerciseName"].values:
         raise ValueError(f"Exercise {plotting_exercise} is not in df")
 
     df["date_str"] = df["date"].dt.strftime("%m/%d/%y")
-    df.sort_values(by=['date', 'startTime'], inplace=True)
-    df.drop_duplicates(subset=["date", 'exerciseName'], inplace=True)  # Gets 1st rep of chosen exercise
+    df.sort_values(by=["date", "startTime"], inplace=True)
+    df.drop_duplicates(
+        subset=["date", "exerciseName"], inplace=True
+    )  # Gets 1st rep of chosen exercise
     df = df.ffill()
 
     if targetReps is None:
         plot_df = df.loc[df["exerciseName"] == plotting_exercise]
     else:
-        plot_df = df.loc[(df["exerciseName"] == plotting_exercise) & (df["targetReps"] == targetReps)]
+        plot_df = df.loc[
+            (df["exerciseName"] == plotting_exercise) & (df["targetReps"] == targetReps)
+        ]
 
     if buffer_mode is False:
         fig, axes = plt.subplots(2, 1, sharex=True)
@@ -67,28 +77,50 @@ def plot_dataframe(df: pd.DataFrame, plotting_exercise: str, targetReps: float =
         return f"data:image/png;base64,{data}"
 
 
-def _setup_plot_formatting(axes, plot_df: pd.DataFrame, plotting_exercise: str, buffer_mode: bool) -> None:
+def _setup_plot_formatting(
+    axes, plot_df: pd.DataFrame, plotting_exercise: str, buffer_mode: bool
+) -> None:
     axes[0].set_title(f"{plotting_exercise.replace('_', ' ').title()} Progress")
     datapoints = len(plot_df)
     figsize = (datapoints, 6)
 
     if buffer_mode is False:
-        plot_df.plot(x='date_str', y=["weight"], kind='line', ax=axes[0], ylabel='Weight (lbs)', grid=True)
-        plot_df.plot(x='date_str', y=["targetReps", "numReps"], kind='line', ax=axes[1], xlabel='Dates',
-                     ylabel='Reps',
-                     grid=True,
-                     xticks=range(datapoints),
-                     rot=30.0, figsize=figsize)
+        plot_df.plot(
+            x="date_str",
+            y=["weight"],
+            kind="line",
+            ax=axes[0],
+            ylabel="Weight (lbs)",
+            grid=True,
+        )
+        plot_df.plot(
+            x="date_str",
+            y=["targetReps", "numReps"],
+            kind="line",
+            ax=axes[1],
+            xlabel="Dates",
+            ylabel="Reps",
+            grid=True,
+            xticks=range(datapoints),
+            rot=30.0,
+            figsize=figsize,
+        )
     else:
-        axes[0].plot(plot_df["date_str"], plot_df["weight"], label='Weight (lbs)', color='blue')
-        axes[0].set_ylabel('Weight (lbs)')
+        axes[0].plot(
+            plot_df["date_str"], plot_df["weight"], label="Weight (lbs)", color="blue"
+        )
+        axes[0].set_ylabel("Weight (lbs)")
         axes[0].grid(True)
 
-        axes[1].plot(plot_df["date_str"], plot_df["targetReps"], label='Target Reps', color='red')
-        axes[1].plot(plot_df["date_str"], plot_df["numReps"], label='Num Reps', color='green')
-        axes[1].tick_params(axis='x', rotation=30)
-        axes[1].set_xlabel('Dates')
-        axes[1].set_ylabel('Reps')
+        axes[1].plot(
+            plot_df["date_str"], plot_df["targetReps"], label="Target Reps", color="red"
+        )
+        axes[1].plot(
+            plot_df["date_str"], plot_df["numReps"], label="Num Reps", color="green"
+        )
+        axes[1].tick_params(axis="x", rotation=30)
+        axes[1].set_xlabel("Dates")
+        axes[1].set_ylabel("Reps")
         axes[1].grid(True)
         axes[1].legend()
 
@@ -113,7 +145,8 @@ def exercise_name_selection(available_exercises: list) -> str:
                 pass
         elif not isInt:
             chosen_exercise = selection if selection in available_exercises else None
-        if chosen_exercise is None: print(f"Error: Invalid exercise: {selection}")
+        if chosen_exercise is None:
+            print(f"Error: Invalid exercise: {selection}")
 
     return chosen_exercise
 
@@ -143,7 +176,9 @@ def target_reps_selection(available_target_reps: list) -> None | int:
 
 
 def get_rep_ranges(df: pd.DataFrame, chosen_exercise: str) -> list[float]:
-    target_reps = df.loc[(df["exerciseName"] == chosen_exercise, "targetReps")].to_numpy(na_value=-1)
+    target_reps = df.loc[
+        (df["exerciseName"] == chosen_exercise, "targetReps")
+    ].to_numpy(na_value=-1)
     target_reps = list(set(target_reps))
     if -1 in target_reps:
         target_reps.remove(-1)

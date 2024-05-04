@@ -4,7 +4,7 @@ CATEGORY_LIST = sorted(["Arms", "Chest", "Core", "Back", "Legs", "Shoulders"])
 
 
 class ExerciseDB(db.Model):
-    __tablename__ = 'exercises'
+    __tablename__ = "exercises"
     id = db.Column(db.Integer, primary_key=True)
     exerciseName = db.Column(db.String(100))
     category = db.Column(db.String(50))
@@ -15,11 +15,13 @@ class ExerciseDB(db.Model):
 
     def __repr__(self):
         class_name = type(self).__name__
-        return f'{class_name}(exerciseName={self.exerciseName}, category={self.category})'
+        return (
+            f"{class_name}(exerciseName={self.exerciseName}, category={self.category})"
+        )
 
 
 def dict_to_exercisesDB(values: dict) -> list[ExerciseDB]:
     exercises = list()
-    for (key, value) in values.items():
+    for key, value in values.items():
         exercises.append(ExerciseDB(exerciseName=key, category=value))
     return exercises

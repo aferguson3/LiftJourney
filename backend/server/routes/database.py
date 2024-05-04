@@ -11,20 +11,32 @@ from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout
 
 logger = logging.getLogger(__name__)
-database_bp = Blueprint('database_bp', __name__, url_prefix="/db")
+database_bp = Blueprint("database_bp", __name__, url_prefix="/db")
 
 
 def _isNewWorkoutEntry(entry: WorkoutDB) -> bool:
-    result = db.session.execute(
-        select(WorkoutDB.activityId).where(WorkoutDB.activityId == int(entry.activityId))
-    ).scalars().first()
+    result = (
+        db.session.execute(
+            select(WorkoutDB.activityId).where(
+                WorkoutDB.activityId == int(entry.activityId)
+            )
+        )
+        .scalars()
+        .first()
+    )
     return result is None
 
 
 def _isNewExerciseEntry(entry: ExerciseDB) -> bool:
-    result = db.session.execute(
-        select(ExerciseDB.exerciseName).where(ExerciseDB.exerciseName == str(entry.exerciseName))
-    ).scalars().first()
+    result = (
+        db.session.execute(
+            select(ExerciseDB.exerciseName).where(
+                ExerciseDB.exerciseName == str(entry.exerciseName)
+            )
+        )
+        .scalars()
+        .first()
+    )
     return result is None
 
 
@@ -65,7 +77,7 @@ def initialize_db():
 @database_bp.route("/workouts/<int:ID>")
 def user_by_id(ID):
     result = db.get_or_404(WorkoutDB, ID)
-    return render_template('base.html', body=f"{result}")
+    return render_template("base.html", body=f"{result}")
 
 
 @database_bp.route("/all_workouts")
@@ -73,4 +85,4 @@ def full_db():
     workouts = db.session.execute(select(WorkoutDB)).scalars().all()
     workouts_dict = workoutsDB_to_dict(workouts)
     num_workouts = len(workouts_dict["workouts"])
-    return render_template('base.html', body=f"# of workouts: {num_workouts}")
+    return render_template("base.html", body=f"# of workouts: {num_workouts}")

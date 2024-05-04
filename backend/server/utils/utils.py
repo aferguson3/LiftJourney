@@ -21,9 +21,9 @@ def remove_from_session(key: str):
 
 def _get_dataframe_index() -> list[Tuple]:
     index_2d: list[Tuple] = []
-    workout_ids = db.session.execute(
-        select(ExerciseSetDB.workout_id)
-    ).scalars().unique().all()
+    workout_ids = (
+        db.session.execute(select(ExerciseSetDB.workout_id)).scalars().unique().all()
+    )
 
     for cur_workout_id in workout_ids:
         cur_workout_date = db.session.execute(
@@ -32,7 +32,9 @@ def _get_dataframe_index() -> list[Tuple]:
         cur_sets = db.session.execute(
             select(ExerciseSetDB).where(ExerciseSetDB.workout_id == int(cur_workout_id))
         ).all()
-        cur_workout_date = datetime.fromisoformat(cur_workout_date).date().strftime("%m/%d/%y")
+        cur_workout_date = (
+            datetime.fromisoformat(cur_workout_date).date().strftime("%m/%d/%y")
+        )
         for cur_set_number in list(range(1, len(cur_sets) + 1)):
             index_2d.append((cur_workout_date, cur_set_number))
 
@@ -46,13 +48,18 @@ def _get_dataframe_index() -> list[Tuple]:
 
 
 def get_dataframe() -> pandas.DataFrame:
-    sets_df = session.get('df')
+    sets_df = session.get("df")
     if sets_df is None:
-        sets_df = pd.read_sql("exercise_sets", db.session.connection(),
-                              parse_dates={"startTime": "%H:%M:%S", "date": "%m/%d/%y"})
-        index_df = pd.MultiIndex.from_tuples(_get_dataframe_index(), names=["Dates", "Sets"])
+        sets_df = pd.read_sql(
+            "exercise_sets",
+            db.session.connection(),
+            parse_dates={"startTime": "%H:%M:%S", "date": "%m/%d/%y"},
+        )
+        index_df = pd.MultiIndex.from_tuples(
+            _get_dataframe_index(), names=["Dates", "Sets"]
+        )
         sets_df.set_index(index_df, inplace=True)
-        session['df'] = sets_df.to_json()
+        session["df"] = sets_df.to_json()
     else:
         sets_df = pd.read_json(StringIO(sets_df), convert_dates=True)
     return sets_df

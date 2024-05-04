@@ -27,7 +27,7 @@ def hello():
 
 @app.errorhandler(404)
 def not_found(*args, **kwargs):
-    return render_template('not_found.html', msg="Not Found"), 404
+    return render_template("not_found.html", msg="Not Found"), 404
 
 
 def main():
@@ -38,8 +38,8 @@ def main():
     register_blueprints()
     Session(app)
 
-    app.run()
+    app.run(debug=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class WorkoutDB(db.Model):
-    __tablename__ = 'workouts'
+    __tablename__ = "workouts"
     id = db.Column(db.Integer, primary_key=True)
     activityId = db.Column(db.BigInteger)
     category = db.Column(db.String(50))
@@ -16,7 +16,7 @@ class WorkoutDB(db.Model):
     isIncomplete = db.Column(db.Boolean)
     name = db.Column(db.String(100))
     version = db.Column(db.String(10))
-    sets = db.relationship('ExerciseSetDB', backref='workouts', lazy=True)
+    sets = db.relationship("ExerciseSetDB", backref="workouts", lazy=True)
 
     def __init__(self, workout: dict):
         if isinstance(workout, dict):
@@ -31,7 +31,8 @@ class WorkoutDB(db.Model):
     def __repr__(self):
         return (
             f"{self.name} {self.version} {self.datetime} actID:{self.activityId}, isIncomplete:{self.isIncomplete} "
-            f"\nsets:{self.sets}")
+            f"\nsets:{self.sets}"
+        )
 
     def get_dict(self):
         _dict = {
@@ -41,7 +42,7 @@ class WorkoutDB(db.Model):
             "isIncomplete": self.isIncomplete,
             "name": self.name,
             "sets": [_set.get_dict() for _set in self.sets],
-            "version": self.version
+            "version": self.version,
         }
         return _dict
 

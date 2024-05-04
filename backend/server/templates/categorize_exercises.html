@@ -6,16 +6,14 @@
     <title>Set Exercise Categories</title>
 </head>
 <body>
-<div id="header">
+<div id="exercise-list scroll">
     <h2>Set Exercise Categories</h2>
-</div>
-<div id="outer">
-    <form method="post" onsubmit="">
+    <form method="post">
         {{ categories_field.csrf_token }}
         <!-- When empty disable button-->
         <button type="submit" id="submit-exercises">Submit</button>
         {% for cur_exercise in exercises %}
-        <div id="exercise">
+        <div id="exercise-select">
             <label for="select-{{cur_exercise}}">{{cur_exercise}}</label>
             <select name="select-{{cur_exercise}}" id="select-{{cur_exercise}}">
                 {% for name,value in categories_field.categories.choices %}
