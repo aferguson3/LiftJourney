@@ -1,42 +1,56 @@
 import logging
-import os
+import multiprocessing
+import pathlib
 import queue
 import re
-import time
 from datetime import datetime, timedelta
 from threading import Thread
+from typing import Tuple
 
 import garth
 from dotenv import dotenv_values
 
+from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout, ExerciseSet
 from backend.src.utils import Endpoints
+from backend.src.utils.utils import timer
 
 logger = logging.getLogger(__name__)
 q = queue.Queue()
+MAX_THREADS = multiprocessing.cpu_count()
+NUM_THREADS = 6
+NUM_THREADS = NUM_THREADS if MAX_THREADS >= NUM_THREADS else multiprocessing.cpu_count()
 
 
 # Assumes Garmin connect user/pass are saved in .env file
 def client_auth():
+    working_dir = pathlib.Path.cwd().parent.parent
+    creds_path = working_dir / "backend" / "creds"
+    env_path = working_dir / ".env"
     try:
-        garth.resume("../creds")
+        garth.resume(str(creds_path))
         logger.info("0Auth tokens found. Login successful.")
     except FileNotFoundError:
-        if not os.path.exists("../creds"):
-            os.mkdir("../creds")
-        config = dotenv_values("../.env")
+        if not pathlib.Path.exists(creds_path):
+            pathlib.Path.mkdir(creds_path)
+        config = dotenv_values(str(env_path))
         garth.login(config["EMAIL"], config["PASSWORD"])
-        garth.save("../creds")
+        garth.save(str(creds_path))
 
 
-def get_activities(params: dict) -> (list[int], list[str]):
-    # Gathers all fitness activities by date
-    activity_data = garth.connectapi(f"{Endpoints.garmin_connect_activities}", params=params)
+# Gathers all fitness activities by date
+def get_activities(params: dict) -> Tuple[list[int], list[str]]:
+    activity_data = garth.connectapi(
+        f"{Endpoints.garmin_connect_activities}", params=params
+    )
     activityIds, removedIds = list(), list()
     activityDatetimes = list()
 
     for activity in activity_data:
-        if str(activity["activityName"]).find("Pickup") > -1 or str(activity["activityName"]).find("Basketball") > -1:
+        if (
+            str(activity["activityName"]).find("Pickup") > -1
+            or str(activity["activityName"]).find("Basketball") > -1
+        ):
             # Excludes the basketball activities
             removedIds.append(activity["activityId"])
             continue
@@ -45,27 +59,31 @@ def get_activities(params: dict) -> (list[int], list[str]):
         activityDatetimes.append(activity["startTimeLocal"])
     logger.debug(
         f"Max limit for Ids: {params['limit']}, Number of Removed Ids: {len(removedIds)}, Number of Ids: {len(activityIds)}"
-        f"\n{activityIds[:5]} ...")
+        f"\n{activityIds[:5]} ..."
+    )
     return activityIds, activityDatetimes
 
 
 def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
-    threads, num_threads = [], 10
-    splice = int(len(activityIds) / num_threads)
+    threads = []
+    splice = int(len(activityIds) / NUM_THREADS)
     workouts_rv = []
 
-    if len(activityIds) < num_threads:
+    if len(activityIds) < NUM_THREADS:
         for ID, _datetime in zip(activityIds, activityDatetimes):
-            t = Thread(target=_get_workouts_threaded, args=(activityDatetimes, ID))
+            t = Thread(target=_get_workouts, args=(activityDatetimes, ID))
             t.start()
             threads.append(t)
     else:
-        for i in range(0, num_threads):
+        for i in range(0, NUM_THREADS):
             cur_index = i * splice
-            t = Thread(target=_get_workouts_threaded,
-                       args=(
-                           activityDatetimes[cur_index: cur_index + splice],
-                           activityIds[cur_index: cur_index + splice]))
+            t = Thread(
+                target=_get_workouts,
+                args=(
+                    activityDatetimes[cur_index : cur_index + splice],
+                    activityIds[cur_index : cur_index + splice],
+                ),
+            )
             t.start()
             threads.append(t)
 
@@ -76,7 +94,7 @@ def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
     return workouts_rv
 
 
-def _get_workouts_threaded(activityDatetimes: list, activityIds: list | int) -> None:
+def _get_workouts(activityDatetimes: list, activityIds: list | int) -> None:
     totalWorkouts = list()  # most recent workouts stored first
     if isinstance(activityDatetimes, str):
         activityDatetimes = [activityDatetimes]
@@ -84,7 +102,9 @@ def _get_workouts_threaded(activityDatetimes: list, activityIds: list | int) -> 
         activityIds = [activityIds]
 
     for Id, _datetime in zip(activityIds, activityDatetimes):
-        data = garth.connectapi(f"{Endpoints.garmin_connect_activity}/{Id}/exerciseSets")
+        data = garth.connectapi(
+            f"{Endpoints.garmin_connect_activity}/{Id}/exerciseSets"
+        )
         a_workout = Workout()
         all_workout_sets = list()
 
@@ -96,18 +116,18 @@ def _get_workouts_threaded(activityDatetimes: list, activityIds: list | int) -> 
                 continue
             if _isWarmupSet(currSet):
                 # skip warmup sets
-                logger.debug(f"Skipped {currSet['exercises'][0]['name']}, weight: {currSet['weight']}")
+                logger.debug(
+                    f"Skipped {currSet['exercises'][0]['name']}, weight: {currSet['weight']}"
+                )
                 continue
             currWeight = currSet["weight"] if currSet["weight"] is not None else 0
-            currTime = currSet["startTime"]
-            curr_time_UTC_dt = datetime.fromisoformat(currTime) if currTime is not None else None
-            EST = timedelta(hours=5)
+            curr_time = _format_set_time(currSet["startTime"], timedelta(hours=5))
 
             a_set.exerciseName = currSet["exercises"][0]["name"]
             a_set.duration_secs = currSet["duration"]
             a_set.numReps = currSet["repetitionCount"]
             a_set.weight = round(currWeight * 0.002204623)
-            a_set.startTime = (curr_time_UTC_dt - EST).time().isoformat() if curr_time_UTC_dt is not None else None
+            a_set.startTime = curr_time
             a_set.stepIndex = currSet["wktStepIndex"]
             all_workout_sets.append(a_set)
 
@@ -119,32 +139,54 @@ def _get_workouts_threaded(activityDatetimes: list, activityIds: list | int) -> 
     q.task_done()
 
 
+def _format_set_time(
+    set_time: str | None, timedelta_from_Garmin: timedelta
+) -> str | None:
+    if set_time is None:
+        return
+    set_time = set_time.replace(".0", "")
+    set_time_dt = datetime.fromisoformat(set_time)
+    formatted_time = (set_time_dt - timedelta_from_Garmin).time().isoformat()
+    return formatted_time
+
+
 def _isWarmupSet(garmin_exercise_set: dict) -> bool:
-    result = garmin_exercise_set["exercises"][0]["name"] == "BARBELL_BENCH_PRESS" and garmin_exercise_set[
-        "weight"] <= 61251
-    result = result or garmin_exercise_set["exercises"][0]["name"] == "BARBELL_BACK_SQUAT" and garmin_exercise_set[
-        "weight"] <= 61251
-    result = result or garmin_exercise_set["exercises"][0]["name"] == "BARBELL_DEADLIFT" and garmin_exercise_set[
-        "weight"] <= 61251
+    result = (
+        garmin_exercise_set["exercises"][0]["name"] == "BARBELL_BENCH_PRESS"
+        and garmin_exercise_set["weight"] <= 61251
+    )
+    result = (
+        result
+        or garmin_exercise_set["exercises"][0]["name"] == "BARBELL_BACK_SQUAT"
+        and garmin_exercise_set["weight"] <= 61251
+    )
+    result = (
+        result
+        or garmin_exercise_set["exercises"][0]["name"] == "BARBELL_DEADLIFT"
+        and garmin_exercise_set["weight"] <= 61251
+    )
     return result
 
 
+@timer
 def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
     # Fills out targetReps and missing exerciseNames using scheduled workout info
-    start = time.perf_counter()
-    threads, num_threads = [], 10  # Max 10 threads
-    splice = int(len(workouts) / num_threads)
+    threads = []
+    splice = int(len(workouts) / NUM_THREADS)
     workouts_rv = []
 
-    if len(workouts) < num_threads:
+    if len(workouts) < NUM_THREADS:
         for wo in workouts:
             t = Thread(target=_fill_out_workouts, args=[wo])
             t.start()
             threads.append(t)
     else:
-        for i in range(0, num_threads):
+        for i in range(0, NUM_THREADS):
             cur_index = i * splice
-            t = Thread(target=_fill_out_workouts, args=[workouts[cur_index: cur_index + splice]])
+            t = Thread(
+                target=_fill_out_workouts,
+                args=[workouts[cur_index : cur_index + splice]],
+            )
             t.start()
             threads.append(t)
 
@@ -153,8 +195,6 @@ def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
     while not q.empty():
         workouts_rv = workouts_rv + q.get()
 
-    end = time.perf_counter()
-    logger.info(f"{(end - start):.2f} seconds to fill out workouts")
     return workouts_rv
 
 
@@ -164,7 +204,9 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
         workouts = [workouts]
 
     for wo in workouts:
-        garmin_data = garth.connectapi(f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts")
+        garmin_data = garth.connectapi(
+            f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts"
+        )
         if garmin_data is None:
             print(f"{wo.datetime}")
             continue
@@ -173,7 +215,7 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
 
         version_str = re.search(pattern, workout_name_str)
         version_str = version_str.group() if version_str is not None else None
-        workout_name = re.sub(pattern, '', workout_name_str).strip()
+        workout_name = re.sub(pattern, "", workout_name_str).strip()
         wo.version = version_str
         wo.name = workout_name
 
@@ -181,10 +223,43 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
             currStepIndex = currSet.stepIndex
             if currStepIndex is None:
                 continue  # Ignores unscheduled exercises w/o stepIndex
-            currSet.targetReps = int(garmin_data['steps'][currStepIndex]['durationValue'])
+            currSet.targetReps = int(
+                garmin_data["steps"][currStepIndex]["durationValue"]
+            )
             if currSet.exerciseName is None:
-                newName = garmin_data['steps'][currStepIndex]['exerciseName']
-                newCategory = garmin_data['steps'][currStepIndex]['exerciseCategory']
+                newName = garmin_data["steps"][currStepIndex]["exerciseName"]
+                newCategory = garmin_data["steps"][currStepIndex]["exerciseCategory"]
                 currSet.exerciseName = newName if newName is not None else newCategory
     q.put(workouts)
     q.task_done()
+
+
+def run_service(
+    params: dict, backup: bool = False, load: bool = False, filepath: str = None
+) -> list[Workout]:
+    if load is True:
+        _filepath_validation(filepath)
+        workouts = Manager.load_workouts(filepath)
+        workouts_ = Manager.sort_workouts(workouts, "datetime")
+    else:
+        IDs, dates = get_activities(params)
+        workouts = get_workouts(IDs, dates)
+        workouts_filled = fill_out_workouts(workouts)
+        workouts_ = Manager.sort_workouts(workouts_filled, "datetime")
+        if backup is True:
+            _filepath_validation(filepath)
+            Manager.dump_to_json(Manager.workouts_to_dict(workouts_), filepath, "w")
+
+    Manager.list_incomplete_workouts(workouts_)
+    logger.info(
+        f"Num of workouts: {len(workouts_)}, Workout 0: {workouts_[0].name} {workouts_[0].version}"
+        f"\n\tset 3: {workouts_[0].view_sets()[3]}"
+    )
+    return workouts_
+
+
+def _filepath_validation(filepath):
+    if type(filepath) is not str:
+        raise TypeError(f"{filepath} is invalid filepath.")
+    # if not pathlib.Path(filepath).exists():
+    #     raise FileNotFoundError(f"{filepath} was not found.")

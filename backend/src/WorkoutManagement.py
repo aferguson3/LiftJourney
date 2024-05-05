@@ -16,7 +16,6 @@ class WorkoutManagement:
 
         workouts = list()
         for workout in workouts_list:
-            workout.set_data_validation_check()
             workouts.append(workout.asdict())
         return {"workouts": workouts}
 
@@ -33,7 +32,9 @@ class WorkoutManagement:
         return metadata
 
     @staticmethod
-    def dump_to_json(workout_data: dict, filepath: str, option, _metadata: dict = None):
+    def dump_to_json(
+        workout_data: dict, filepath: str, option, _metadata: dict | None = None
+    ):
         if isinstance(workout_data, dict) is not True:
             raise TypeError(f"{workout_data} is not type dict.")
 
@@ -56,7 +57,7 @@ class WorkoutManagement:
         try:
             metadata = WorkoutManagement.set_metadata(workout_data, _metadata)
             filepath = metadata.pop("filepath")
-            with open(filepath, 'w') as file:
+            with open(filepath, "w") as file:
                 json.dump(metadata, file)
         except FileNotFoundError:
             logger.error(f"{filepath} not found.")
@@ -65,7 +66,7 @@ class WorkoutManagement:
     @staticmethod
     def load_workouts(filepath: str) -> list[Workout]:
         try:
-            with open(filepath, 'r') as file:
+            with open(filepath, "r") as file:
                 json_data = json.load(file)
                 all_workouts = list()
                 for workout in json_data["workouts"]:
@@ -79,8 +80,10 @@ class WorkoutManagement:
             raise FileNotFoundError(f"{e}")
 
     @staticmethod
-    def sort_workouts(workout_data: Workout | list[Workout], key: str, reverse=False) \
-            -> list[ExerciseSet | Workout] | None:
+    def sort_workouts(
+        workout_data: Workout | list[Workout], key: str, reverse=False
+    ) -> list[Workout] | list[ExerciseSet] | None:
+        # Can sort list[Workout] w/ workout keys or Workout w/ ExerciseSet keys
         searchedData, isValidKey = None, None
         if isinstance(workout_data, list):
             isValidKey = hasattr(workout_data[0], key)
@@ -91,7 +94,9 @@ class WorkoutManagement:
 
         if isValidKey:
             try:
-                sorted_list = sorted(searchedData, key=lambda w: getattr(w, key), reverse=reverse)
+                sorted_list = sorted(
+                    searchedData, key=lambda w: getattr(w, key), reverse=reverse
+                )
                 return sorted_list
             except TypeError as msg:
                 logger.error(f"{msg}")
@@ -99,8 +104,6 @@ class WorkoutManagement:
 
         else:
             logger.error(f"Sorting {type(workout_data)} by key: {key} FAILED.")
-
-        return None
 
     @staticmethod
     def view_sets_from_workouts(workout_data: list[Workout]) -> dict:
@@ -110,7 +113,9 @@ class WorkoutManagement:
 
         _dict = dict()
         for field in dataclasses.fields(ExerciseSet):
-            field_data = [getattr(_set, field.name) for wo in workout_data for _set in wo.sets]
+            field_data = [
+                getattr(_set, field.name) for wo in workout_data for _set in wo.sets
+            ]
             _dict[str(field.name)] = field_data
 
         return _dict
@@ -123,8 +128,23 @@ class WorkoutManagement:
         for wo in workouts:
             wo.set_data_validation_check()
             if wo.isIncomplete or wo.name is None:
-                incomplete_workouts.append(wo.datetime.split('T')[0])
+                if "T" in wo.datetime:
+                    cur_date = wo.datetime.split("T")[0]
+                    incomplete_workouts.append(cur_date)
+                elif " " in wo.datetime:
+                    cur_date = wo.datetime.split(" ")[0]
+                    incomplete_workouts.append(cur_date)
             if wo.version is None:
-                versionless_workouts.append(wo.datetime.split('T')[0])
-        logger.info(f"{len(incomplete_workouts)} Incomplete workouts: {incomplete_workouts}")
-        logger.info(f"{len(versionless_workouts)} Version-less workouts: {versionless_workouts}")
+                if "T" in wo.datetime:
+                    cur_date = wo.datetime.split("T")[0]
+                    versionless_workouts.append(cur_date)
+                elif " " in wo.datetime:
+                    cur_date = wo.datetime.split(" ")[0]
+                    versionless_workouts.append(cur_date)
+
+        logger.info(
+            f"{len(incomplete_workouts)} Incomplete workouts: {incomplete_workouts}"
+        )
+        logger.info(
+            f"{len(versionless_workouts)} Version-less workouts: {versionless_workouts}"
+        )

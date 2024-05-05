@@ -6,24 +6,33 @@ from datetime import date, timedelta
 logger = logging.getLogger(__name__)
 
 
-def set_params_by_weeks(weeks_of_workouts: int, limit: int, start: int, startDate: str | date):
+def set_params_by_weeks(
+    weeks_of_workouts: int, start_date: str | date, start: int = 0, limit: int = 999
+):
+    start_date = str(start_date)
+    _endDate = date.fromisoformat(start_date) + timedelta(days=7 * weeks_of_workouts)
+    endDate = (
+        str(_endDate) if _endDate <= date.today() else str(date.today().isoformat())
+    )
     params = {
-        "startDate": str(startDate),
-        "endDate": date.fromisoformat(startDate) + timedelta(days=7 * weeks_of_workouts),
+        "startDate": start_date,
+        "endDate": endDate,
         "start": start,
         "limit": str(limit),
-        "activityType": "fitness_equipment"
+        "activityType": "fitness_equipment",
     }
     return params
 
 
-def set_params_by_limit(limit: int, start: int, startDate: str | date = '2023-03-08'):
+def set_params_by_limit(
+    limit: int, start: int = 0, start_date: str | date = "2023-03-08"
+):
     params = {
-        "startDate": str(startDate),
+        "startDate": str(start_date),
         "endDate": date.today(),
         "start": start,
         "limit": str(limit),
-        "activityType": "fitness_equipment"
+        "activityType": "fitness_equipment",
     }
     return params
 

@@ -14,13 +14,15 @@ class Workout:
     version: str
     isIncomplete: bool = False
 
-    def __init__(self,
-                 activityId=None,
-                 category=None,
-                 datetime=None,
-                 name=None,
-                 sets=None,
-                 version=None):
+    def __init__(
+        self,
+        activityId=None,
+        category=None,
+        datetime=None,
+        name=None,
+        sets=None,
+        version=None,
+    ):
         self.activityId = activityId
         self.category = category
         self.datetime = datetime
@@ -42,7 +44,10 @@ class Workout:
         matchedExercise = self.sets[0].exerciseName
         matchedSets = list()
         for currSet in self.sets:
-            if matchedExercise != currSet.exerciseName or matchedStepIndex != currSet.stepIndex:
+            if (
+                matchedExercise != currSet.exerciseName
+                or matchedStepIndex != currSet.stepIndex
+            ):
                 setNumber = 1
                 matchedExercise = currSet.exerciseName
                 matchedStepIndex = currSet.stepIndex
@@ -74,7 +79,7 @@ class Workout:
     @staticmethod
     def key_search(data: dict, key_match: str) -> str | bool | list[ExerciseSet] | None:
         # Only finds value of Workout attributes
-        for (key, value) in data.items():
+        for key, value in data.items():
             if key == "sets":
                 pass
             if key == key_match:
@@ -88,5 +93,7 @@ class Workout:
         for currSet in self.sets:
             self.isIncomplete = False
             if currSet.exerciseName is None or currSet.targetReps is None:
-                self.isIncomplete = True  # TODO: cross-reference scheduled workouts and fix errors
+                self.isIncomplete = (
+                    True  # TODO: cross-reference scheduled workouts and fix errors
+                )
                 return

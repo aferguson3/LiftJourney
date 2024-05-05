@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Set Exercise Categories</title>
+</head>
+<body>
+<div id="exercise-list">
+    <form method="post">
+        {{ categories_field.csrf_token }}
+        <div id="form-header" style="display:flex; align-items:center;">
+            <h2 style="margin-right:10px;">Set Exercise Categories</h2>
+            <button type="submit" id="submit-exercises">Submit</button>
+        </div>
+
+        {% for cur_exercise in exercises %}
+        <div id="exercise-select">
+            <label for="{{cur_exercise}}">{{cur_exercise}}</label>
+            <select name="{{cur_exercise}}" id="{{cur_exercise}}">
+                {% for name,value in categories_field.categories.choices %}
+                <option name="{{name}}">{{value}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endfor %}
+    </form>
+</div>
+</body>
+</html>
