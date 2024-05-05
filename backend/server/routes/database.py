@@ -53,13 +53,10 @@ def new_workout_entries(workouts: list[Workout]):
 
 
 def new_exercise_entries(values: list[ExerciseDB]):
-    try:
-        for exercise in values:
-            if not _isNewExerciseEntry(exercise):
-                continue
-            db.session.add(exercise)
-    except Exception as e:
-        raise e
+    for exercise in values:
+        if not _isNewExerciseEntry(exercise):
+            continue
+        db.session.add(exercise)
     db.session.commit()
 
 

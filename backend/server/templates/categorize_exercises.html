@@ -1,21 +1,22 @@
 <!DOCTYPE html>
-<!--suppress XmlInvalidId -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Set Exercise Categories</title>
 </head>
 <body>
-<div id="exercise-list scroll">
-    <h2>Set Exercise Categories</h2>
+<div id="exercise-list">
     <form method="post">
         {{ categories_field.csrf_token }}
-        <!-- When empty disable button-->
-        <button type="submit" id="submit-exercises">Submit</button>
+        <div id="form-header" style="display:flex; align-items:center;">
+            <h2 style="margin-right:10px;">Set Exercise Categories</h2>
+            <button type="submit" id="submit-exercises">Submit</button>
+        </div>
+
         {% for cur_exercise in exercises %}
         <div id="exercise-select">
-            <label for="select-{{cur_exercise}}">{{cur_exercise}}</label>
-            <select name="select-{{cur_exercise}}" id="select-{{cur_exercise}}">
+            <label for="{{cur_exercise}}">{{cur_exercise}}</label>
+            <select name="{{cur_exercise}}" id="{{cur_exercise}}">
                 {% for name,value in categories_field.categories.choices %}
                 <option name="{{name}}">{{value}}</option>
                 {% endfor %}
