@@ -1,14 +1,13 @@
 import pathlib
 
 import dotenv
-from cachelib import FileSystemCache
 from flask import Flask
+from flask_caching import Cache
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
 
 IN_MEMORY = False
 TEST = True
-SERVER_SESSION = True
 DEBUG = True
 BASEDIR = pathlib.Path.cwd()
 DB_URI = "sqlite:///" + str(BASEDIR / "data" / "workouts.db")
@@ -26,17 +25,19 @@ elif TEST:
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
 
-# Flask Session
-if SERVER_SESSION is True:
-    app.config["SESSION_TYPE"] = "cachelib"
-    app.config["SESSION_CACHELIB"] = FileSystemCache(
-        threshold=10, cache_dir="flask_session"
-    )
-    app.config["SESSION_PERMANENT"] = False
+# Flask Cache
+cache_config = {
+    "CACHE_TYPE": "SimpleCache",
+    "CACHE_THRESHOLD": 20,
+    "CACHE_DEFAULT_TIMEOUT": 250,
+}
+app.config.from_mapping(cache_config)
+
 # Flask-Toolbar Debugger
 if DEBUG is True:
     app.debug = True
     app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
     toolbar = DebugToolbarExtension(app)
 
+cache = Cache(app)
 db = SQLAlchemy(app)

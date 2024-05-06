@@ -7,5 +7,4 @@
 **/creds/*
 /.env
 **/data/*
-**/flask_session/*
 **/workouts.db

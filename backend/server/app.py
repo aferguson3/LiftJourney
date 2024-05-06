@@ -1,9 +1,8 @@
 import logging
 
 from flask import render_template
-from flask_session import Session
 
-from backend.server import app, db
+from backend.server import app, db, cache
 from backend.server.routes.admin import admin_bp
 from backend.server.routes.database import database_bp
 from backend.server.routes.service import service_bp
@@ -31,13 +30,12 @@ def not_found(*args, **kwargs):
 
 
 def main():
-    logger.info(f"DB URI: {app.config.get('SQLALCHEMY_DATABASE_URI')}")
     with app.app_context():
         db.create_all()
+        logger.info(f"DB URI: {app.config.get('SQLALCHEMY_DATABASE_URI')}")
     client_auth()
     register_blueprints()
-    Session(app)
-
+    cache.clear()
     app.run()
 
 

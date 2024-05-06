@@ -236,7 +236,7 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
 
 def run_service(
     params: dict, backup: bool = False, load: bool = False, filepath: str = None
-) -> list[Workout]:
+) -> list[Workout] | None:
     if load is True:
         _filepath_validation(filepath)
         workouts = Manager.load_workouts(filepath)
@@ -244,6 +244,8 @@ def run_service(
     else:
         IDs, dates = get_activities(params)
         workouts = get_workouts(IDs, dates)
+        if len(workouts) == 0:
+            return
         workouts_filled = fill_out_workouts(workouts)
         workouts_ = Manager.sort_workouts(workouts_filled, "datetime")
         if backup is True:

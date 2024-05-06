@@ -8,35 +8,13 @@ from backend.server.models import ExerciseSetDB
 from backend.server.models.ExerciseDB import ExerciseDB, CATEGORY_LIST
 from backend.server.models.FormFields import CategoryField
 from backend.server.routes.database import new_exercise_entries
+from backend.server.utils.utils import (
+    format_display_exercise_names,
+    format_DB_exercise_names,
+)
 
 logger = logging.getLogger(__name__)
 admin_bp = Blueprint("admin_bp", __name__, url_prefix="/admin")
-
-
-def _format_display_exercise_names(values: list | str) -> list[str] | str:
-    # applies title formatting
-    if isinstance(values, list):
-        values = [str(x).replace("_", " ").title() for x in values]
-        if "None" in values:
-            values.remove("None")
-        values = sorted(values)
-    elif isinstance(values, str):
-        values = str(values).replace("_", " ").title()
-    else:
-        raise TypeError(f"Values must be a string or list but is {type(values)}")
-    return values
-
-
-def _format_DB_exercise_names(values: list | str) -> list[str] | str:
-    # applies the single word & all caps formatting
-    if isinstance(values, list):
-        values = [str(x).replace(" ", "_").upper() for x in values]
-        values = sorted(values)
-    elif isinstance(values, str):
-        values = str(values).replace(" ", "_").upper()
-    else:
-        raise TypeError(f"Values must be a string or list but is {type(values)}")
-    return values
 
 
 # obfuscate admin routes w/ pokemon
@@ -56,14 +34,14 @@ def record_exercises():
     categorized_exercises = (
         (db.session.execute(select(ExerciseDB.exerciseName))).scalars().all()
     )
-    displayed_exercises = _format_display_exercise_names(
+    displayed_exercises = format_display_exercise_names(
         (db.session.execute(select(ExerciseSetDB.exerciseName)))
         .scalars()
         .unique()
         .all()
     )
 
-    compared_exercises = _format_display_exercise_names(categorized_exercises)
+    compared_exercises = format_display_exercise_names(categorized_exercises)
     for exercise in compared_exercises:
         if exercise in displayed_exercises:
             displayed_exercises.remove(exercise)
@@ -80,11 +58,11 @@ def record_exercises():
                 else cur_selected_category
             )
             cur_exercise = ExerciseDB(
-                exerciseName=_format_DB_exercise_names(cur_exercise_name),
+                exerciseName=format_DB_exercise_names(cur_exercise_name),
                 category=cur_selected_category,
             )
             if cur_exercise.category is not None:
-                exercise_to_remove = _format_display_exercise_names(
+                exercise_to_remove = format_display_exercise_names(
                     cur_exercise.exerciseName
                 )
                 displayed_exercises.remove(exercise_to_remove)

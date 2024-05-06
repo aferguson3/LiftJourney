@@ -1,22 +1,15 @@
 import logging
 from datetime import datetime
-from io import StringIO
 from typing import Tuple
 
 import pandas
 import pandas as pd
-from flask import session
 from sqlalchemy import select, update
 
-from backend.server import db
+from backend.server import db, cache
 from backend.server.models import ExerciseSetDB, WorkoutDB
 
 logger = logging.getLogger(__name__)
-
-
-def remove_from_session(key: str):
-    if key in session:
-        session.__delitem__(key)
 
 
 def _get_dataframe_index() -> list[Tuple]:
@@ -47,19 +40,40 @@ def _get_dataframe_index() -> list[Tuple]:
     return index_2d
 
 
+@cache.cached(key_prefix="sets_df")
 def get_dataframe() -> pandas.DataFrame:
-    sets_df = session.get("df")
-    if sets_df is None:
-        sets_df = pd.read_sql(
-            "exercise_sets",
-            db.session.connection(),
-            parse_dates={"startTime": "%H:%M:%S", "date": "%m/%d/%y"},
-        )
-        index_df = pd.MultiIndex.from_tuples(
-            _get_dataframe_index(), names=["Dates", "Sets"]
-        )
-        sets_df.set_index(index_df, inplace=True)
-        session["df"] = sets_df.to_json()
-    else:
-        sets_df = pd.read_json(StringIO(sets_df), convert_dates=True)
+    sets_df = pd.read_sql(
+        "exercise_sets",
+        db.session.connection(),
+        parse_dates={"startTime": "%H:%M:%S", "date": "%m/%d/%y"},
+    )
+    index_df = pd.MultiIndex.from_tuples(
+        _get_dataframe_index(), names=["Dates", "Sets"]
+    )
+    sets_df.set_index(index_df, inplace=True)
+    # session["df"] = sets_df.to_json()
     return sets_df
+
+
+def format_display_exercise_names(values: list | str) -> list[str] | str:
+    if isinstance(values, list):
+        values = [str(x).replace("_", " ").title() for x in values]
+        if "None" in values:
+            values.remove("None")
+        values = sorted(values)
+    elif isinstance(values, str):
+        values = str(values).replace("_", " ").title()
+    else:
+        raise TypeError(f"Values must be a string or list but is {type(values)}")
+    return values
+
+
+def format_DB_exercise_names(values: list | str) -> list[str] | str:
+    if isinstance(values, list):
+        values = [str(x).replace(" ", "_").upper() for x in values]
+        values = sorted(values)
+    elif isinstance(values, str):
+        values = str(values).replace(" ", "_").upper()
+    else:
+        raise TypeError(f"Values must be a string or list but is {type(values)}")
+    return values

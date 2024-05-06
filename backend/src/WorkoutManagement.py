@@ -86,6 +86,8 @@ class WorkoutManagement:
         # Can sort list[Workout] w/ workout keys or Workout w/ ExerciseSet keys
         searchedData, isValidKey = None, None
         if isinstance(workout_data, list):
+            if len(workout_data) == 0:
+                return
             isValidKey = hasattr(workout_data[0], key)
             searchedData = workout_data
         elif isinstance(workout_data, Workout):

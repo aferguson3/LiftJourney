@@ -1,23 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
     <title>Title</title>
 </head>
 <body>
-<div>
-    <form method="post">
+<div id="submit-forms">
+    <form method="post" id="exercise-form">
         <h3>Select Exercise</h3>
-        {{ exercise_form.csrf_token }}
-        {{ exercise_form.exercises }}
+        {{ exercise_form.csrf_token }} {{ exercise_form.exercises }}
         <button type="submit" id="exercises-btn">Submit</button>
     </form>
-    <form method="post">
+    <form method="post" id="reps-form">
         <h3>Select a Target Reps Filter</h3>
-        {{ reps_form.csrf_token }}
-        {{ reps_form.rep_ranges }}
-        <button type="submit" id="reps-btn">Submit</button>
+        {{ reps_form.csrf_token }} {{ reps_form.rep_ranges }}
+        <button type="submit" id="submit-btn">Submit</button>
     </form>
+    <script>
+        let select_field = document.getElementById("exercises");
+        let reps_field = document.getElementById("rep_ranges");
+        select_field.addEventListener("change", function () {
+          changeOptions(select_field.selectedOptions[0].label);
+        });
+
+        function changeOptions(str) {
+          let selected = str.toUpperCase().replaceAll(" ", "_");
+          <!-- Get rep_ranges for 'selected' from the dict -->
+          console.log(select_field);
+        }
+    </script>
 </div>
 </body>
 </html>

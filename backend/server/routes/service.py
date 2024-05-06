@@ -1,3 +1,4 @@
+import io
 import logging
 from datetime import datetime
 
@@ -16,6 +17,7 @@ from backend.src.dataframe_accessors import (
 )
 from backend.src.garmin_interaction import run_service
 from backend.src.utils import set_params_by_weeks
+from backend.src.utils.utils import timer
 
 logger = logging.getLogger(__name__)
 service_bp = Blueprint("service_bp", __name__, url_prefix="/main")
@@ -23,7 +25,10 @@ service_bp = Blueprint("service_bp", __name__, url_prefix="/main")
 
 # Uploads new workout entries
 # URL Args: startDate (YYYY-MM-DD), weeks
+
+
 @service_bp.route("/run", methods=["GET"])
+@timer
 def service():
     args = request.args
     start_date = args.get(
@@ -52,7 +57,11 @@ def service():
     )
     logger.info(params.items())
     workouts = run_service(params)
-    new_workout_entries(workouts)
+    if workouts is not None:
+        new_workout_entries(workouts)
+    else:
+        logger.info(f"No new workout entries.")
+
     return render_template(
         "base.html", body=f"startDate: {start_date}, weeks: {weeks_of_workouts}"
     )
@@ -61,11 +70,17 @@ def service():
 @service_bp.route("/graph", methods=["GET", "POST"])
 def setup_graph():
     df = get_dataframe()
-    logger.info(f"df memory usage: {df.info(memory_usage=True)}")
+    buffer = io.StringIO()
+    df.info(memory_usage=True, buf=buffer)
+    logger.info(f"df memory usage: {buffer.getvalue()}")
+
     exercise_form = ExerciseField()
     reps_form = RepRangeField()
     all_exercises = list_available_exercises(df)
-    # exercises_rep_ranges: dict[str, list[float]] = {x: get_rep_ranges(df, x) for x in all_exercises}
+    if session.get("exercises_rep_ranges") is None:
+        exercises_rep_ranges: dict[str, list[float]] = {
+            x: get_rep_ranges(df, x) for x in all_exercises
+        }
     exercise_form.set_choices(all_exercises)
 
     if request.method == "POST":
