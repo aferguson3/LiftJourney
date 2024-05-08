@@ -175,11 +175,13 @@ def target_reps_selection(available_target_reps: list) -> None | int:
     return target_reps
 
 
-def get_rep_ranges(df: pd.DataFrame, chosen_exercise: str) -> list[float]:
+def get_rep_ranges(df: pd.DataFrame, chosen_exercise: str) -> list[int]:
     target_reps = df.loc[
         (df["exerciseName"] == chosen_exercise, "targetReps")
     ].to_numpy(na_value=-1)
-    target_reps = list(set(target_reps))
+    target_reps = [int(item) for item in target_reps]
+    target_reps = set(target_reps)
+
     if -1 in target_reps:
         target_reps.remove(-1)
     return sorted(target_reps)

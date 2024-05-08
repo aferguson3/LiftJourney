@@ -81,7 +81,7 @@ class WorkoutManagement:
 
     @staticmethod
     def sort_workouts(
-        workout_data: Workout | list[Workout], key: str, reverse=False
+        workout_data: list[Workout] | Workout, key: str, reverse=False
     ) -> list[Workout] | list[ExerciseSet] | None:
         # Can sort list[Workout] w/ workout keys or Workout w/ ExerciseSet keys
         searchedData, isValidKey = None, None

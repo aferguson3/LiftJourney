@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from backend.server import db
 from backend.server.models import ExerciseSetDB
-from backend.server.models.ExerciseDB import ExerciseDB, CATEGORY_LIST
+from backend.server.models.ExerciseDB import ExerciseDB
 from backend.server.models.FormFields import CategoryField
 from backend.server.routes.database import new_exercise_entries
 from backend.server.utils.utils import (
@@ -30,7 +30,6 @@ def clear_db():
 
 @admin_bp.route("/caterpie", methods=["GET", "POST"])
 def record_exercises():
-    categories = CATEGORY_LIST
     categorized_exercises = (
         (db.session.execute(select(ExerciseDB.exerciseName))).scalars().all()
     )
@@ -46,7 +45,6 @@ def record_exercises():
         if exercise in displayed_exercises:
             displayed_exercises.remove(exercise)
     categories_field = CategoryField()
-    categories_field.set_choices(categories)
 
     if categories_field.is_submitted():
         exercise_entries = list()

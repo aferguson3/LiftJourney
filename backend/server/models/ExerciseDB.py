@@ -19,6 +19,9 @@ class ExerciseDB(db.Model):
             f"{class_name}(exerciseName={self.exerciseName}, category={self.category})"
         )
 
+    def get_dict(self):
+        return {"exerciseName": self.exerciseName, "category": self.category}
+
 
 def dict_to_exercisesDB(values: dict) -> list[ExerciseDB]:
     exercises = list()

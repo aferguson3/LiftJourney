@@ -2,22 +2,30 @@ import io
 import logging
 from datetime import datetime
 
-from flask import Blueprint, request, render_template, session, redirect, url_for
+from flask import (
+    Blueprint,
+    request,
+    render_template,
+    session,
+    redirect,
+    url_for,
+)
 from sqlalchemy import select
 
 from backend.server import db
 from backend.server.models import WorkoutDB
-from backend.server.models.FormFields import ExerciseField, RepRangeField
+from backend.server.models.ExerciseDB import ExerciseDB
+from backend.server.models.FormFields import ExerciseField, CategoryField
 from backend.server.routes.database import new_workout_entries
 from backend.server.utils import get_dataframe
+from backend.server.utils.utils import get_exercise_info
 from backend.src.dataframe_accessors import (
     list_available_exercises,
     plot_dataframe,
-    get_rep_ranges,
 )
 from backend.src.garmin_interaction import run_service
 from backend.src.utils import set_params_by_weeks
-from backend.src.utils.utils import timer
+from backend.src.utils import timer
 
 logger = logging.getLogger(__name__)
 service_bp = Blueprint("service_bp", __name__, url_prefix="/main")
@@ -25,8 +33,6 @@ service_bp = Blueprint("service_bp", __name__, url_prefix="/main")
 
 # Uploads new workout entries
 # URL Args: startDate (YYYY-MM-DD), weeks
-
-
 @service_bp.route("/run", methods=["GET"])
 @timer
 def service():
@@ -74,31 +80,28 @@ def setup_graph():
     df.info(memory_usage=True, buf=buffer)
     logger.info(f"df memory usage: {buffer.getvalue()}")
 
-    exercise_form = ExerciseField()
-    reps_form = RepRangeField()
+    exercise_field = ExerciseField()
+    if exercise_field.is_submitted():
+        session["exercise"] = request.form.get("exercises")
+        session["reps"] = request.form.get("rep_ranges")
+        return redirect(url_for(".show_graph"))
+
+    categorized_exercises: list[ExerciseDB] = (
+        (db.session.execute(select(ExerciseDB))).scalars().all()
+    )
+    categories_field = CategoryField()
+    exercises_categories = {
+        _dict["exerciseName"]: _dict["category"]
+        for _dict in [_exerciseDB.get_dict() for _exerciseDB in categorized_exercises]
+    }
     all_exercises = list_available_exercises(df)
-    if session.get("exercises_rep_ranges") is None:
-        exercises_rep_ranges: dict[str, list[float]] = {
-            x: get_rep_ranges(df, x) for x in all_exercises
-        }
-    exercise_form.set_choices(all_exercises)
-
-    if request.method == "POST":
-        if "exercises" in request.form:
-            selected_exercise = exercise_form.exercises.data
-            session["exercise"] = selected_exercise
-            rep_ranges = get_rep_ranges(get_dataframe(), selected_exercise)
-            reps_form.set_choices(rep_ranges)
-            return render_template(
-                "graph_params.html", exercise_form=exercise_form, reps_form=reps_form
-            )
-
-        elif "rep_ranges" in request.form:
-            session["reps"] = reps_form.rep_ranges.data
-            return redirect(url_for(".show_graph"))
+    exercise_info = get_exercise_info(all_exercises, df, exercises_categories)
+    exercise_field.set_choices(all_exercises)
 
     return render_template(
-        "graph_params.html", exercise_form=exercise_form, reps_form=reps_form
+        "graph_params.html",
+        categories_field=categories_field,
+        exercise_info=exercise_info,
     )
 
 

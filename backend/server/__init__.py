@@ -7,7 +7,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
 
 IN_MEMORY = False
-TEST = True
+TEST_DB = True
 DEBUG = True
 BASEDIR = pathlib.Path.cwd()
 DB_URI = "sqlite:///" + str(BASEDIR / "data" / "workouts.db")
@@ -20,7 +20,7 @@ app.config["SECRET_KEY"] = dotenv.get_key(str(env_path), "SECRET_KEY")
 
 if IN_MEMORY:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-elif TEST:
+elif TEST_DB:
     app.config["SQLALCHEMY_DATABASE_URI"] = TEST_URI
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI

@@ -8,6 +8,7 @@ from sqlalchemy import select, update
 
 from backend.server import db, cache
 from backend.server.models import ExerciseSetDB, WorkoutDB
+from backend.src.dataframe_accessors import get_rep_ranges
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,6 @@ def get_dataframe() -> pandas.DataFrame:
         _get_dataframe_index(), names=["Dates", "Sets"]
     )
     sets_df.set_index(index_df, inplace=True)
-    # session["df"] = sets_df.to_json()
     return sets_df
 
 
@@ -77,3 +77,26 @@ def format_DB_exercise_names(values: list | str) -> list[str] | str:
     else:
         raise TypeError(f"Values must be a string or list but is {type(values)}")
     return values
+
+
+@cache.cached(key_prefix="exercise_info")
+def get_exercise_info(
+    exercise_names: list[str], df: pd.DataFrame, exercise_categories: dict
+):
+    # ranges_dict: dict[str, list[float]] = {
+    #     exercise_name: get_rep_ranges(df, exercise_name)
+    #     for exercise_name in exercise_names
+    # }
+    _dict = dict()
+    for exercise_name in exercise_names:
+        _dict = _dict | {
+            exercise_name: {
+                "rep_ranges": get_rep_ranges(df, exercise_name),
+                "category": (
+                    exercise_categories[exercise_name]
+                    if exercise_name in exercise_categories
+                    else None
+                ),
+            }
+        }
+    return _dict
