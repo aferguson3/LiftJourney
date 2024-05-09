@@ -53,7 +53,7 @@ def plot_dataframe(
     df.drop_duplicates(
         subset=["date", "exerciseName"], inplace=True
     )  # Gets 1st rep of chosen exercise
-    df = df.ffill()
+    df = df.bfill()
 
     if targetReps is None:
         plot_df = df.loc[df["exerciseName"] == plotting_exercise]

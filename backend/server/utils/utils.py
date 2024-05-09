@@ -83,10 +83,7 @@ def format_DB_exercise_names(values: list | str) -> list[str] | str:
 def get_exercise_info(
     exercise_names: list[str], df: pd.DataFrame, exercise_categories: dict
 ):
-    # ranges_dict: dict[str, list[float]] = {
-    #     exercise_name: get_rep_ranges(df, exercise_name)
-    #     for exercise_name in exercise_names
-    # }
+
     _dict = dict()
     for exercise_name in exercise_names:
         _dict = _dict | {

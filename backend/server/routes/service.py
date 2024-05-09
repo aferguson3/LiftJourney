@@ -90,13 +90,13 @@ def setup_graph():
         (db.session.execute(select(ExerciseDB))).scalars().all()
     )
     categories_field = CategoryField()
-    exercises_categories = {
+    exercise_categories = {
         _dict["exerciseName"]: _dict["category"]
         for _dict in [_exerciseDB.get_dict() for _exerciseDB in categorized_exercises]
     }
     all_exercises = list_available_exercises(df)
-    exercise_info = get_exercise_info(all_exercises, df, exercises_categories)
-    exercise_field.set_choices(all_exercises)
+    exercise_info = get_exercise_info(all_exercises, df, exercise_categories)
+    # exercise_field.set_choices(all_exercises)
 
     return render_template(
         "graph_params.html",

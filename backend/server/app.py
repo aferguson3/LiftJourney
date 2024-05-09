@@ -33,7 +33,7 @@ def not_found(*args, **kwargs):
 def main():
     with app.app_context():
         init_db(DB=db, APP=app)
-        cache.clear()
+        # cache.clear()
     client_auth()
     register_blueprints()
     app.run()
