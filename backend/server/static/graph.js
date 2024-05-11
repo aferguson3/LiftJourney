@@ -3,14 +3,16 @@ let exercise_name_select = document.getElementById("exercises");
 let reps_ranges_select = document.getElementById("rep_ranges");
 let exercise_info_dict = {{ exercise_info | tojson }};
 
-categories_select.addEventListener("change", function() {
+
+
+function onCategoriesChange(event) {
+  console.log(event)
   changeExerciseOptions(categories_select.selectedOptions[0].label)
-});
-exercise_name_select.addEventListener("change", function () {
-    changeRepsOptions(
-    exercise_name_select.selectedOptions[0].label
-    );
-});
+}
+
+function onExercisesChange(event) {
+  changeRepsOptions(exercise_name_select.selectedOptions[0].label)
+}
 
 function createOption(select_element, text, value) {
   let new_option = document.createElement('option');
@@ -35,6 +37,7 @@ function changeRepsOptions(exercise_name) {
   reps_ranges_select.replaceChildren();
   reps_ranges_select.setAttribute('style', "visibility: visible;")
   let new_rep_ranges = exercise_info_dict[selected]['rep_ranges'];
+  
   for (let i=0; i < new_rep_ranges.length; i++){
     if (i == 0) {
       createOption(reps_ranges_select,"No Filter", "None");

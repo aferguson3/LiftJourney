@@ -1,30 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8"/>
     <title>Title</title>
-  </head>
-  <body>
-    <form method="post" id="submit-form">
-      <div id="exercise-form">
+</head>
+<body>
+<form method="post" id="submit-form">
+    <div id="exercise-form">
         <h3>Select a Category</h3>
         {{ categories_field.csrf_token }} {{ categories_field.categories }}
         <h3>Select Exercise</h3>
         <select
-          id="exercises"
-          name="exercises"
-          style="visibility: hidden"
+                id="exercises"
+                name="exercises"
+                style="visibility: hidden"
         ></select>
         <h3>Select a Target Reps Filter</h3>
         <select
-          id="rep_ranges"
-          name="rep_ranges"
-          style="visibility: hidden"
+                id="rep_ranges"
+                name="rep_ranges"
+                style="visibility: hidden"
         ></select>
         <button type="submit" id="submit-btn">Submit</button>
-      </div>
-    </form>
-  </body>
-  <script type="text/javascript" src={{ url_for('static', filename='graph.js')
-  }} async></script>
+    </div>
+</form>
+</body>
+<script type="text/javascript" src={{url_for('static', filename='graph.js' )}} async>
+  document.getElementById("categories").addEventListener("change", onCategoriesChange);
+  document.getElementById("exercises").addEventListener("change", onExercisesChange)
+</script>
+
 </html>

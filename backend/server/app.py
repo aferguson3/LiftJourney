@@ -3,7 +3,7 @@ import logging
 from flask import render_template
 from sqlalchemy.exc import OperationalError
 
-from backend.server import app, db, cache
+from backend.server import app, db
 from backend.server.routes.admin import admin_bp
 from backend.server.routes.database import database_bp
 from backend.server.routes.service import service_bp
@@ -36,7 +36,6 @@ def main():
         # cache.clear()
     client_auth()
     register_blueprints()
-    app.run()
 
 
 def init_db(DB, APP):
@@ -51,3 +50,4 @@ def init_db(DB, APP):
 
 if __name__ == "__main__":
     main()
+    app.run()

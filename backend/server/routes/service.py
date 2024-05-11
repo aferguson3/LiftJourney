@@ -28,7 +28,9 @@ from backend.src.utils import set_params_by_weeks
 from backend.src.utils import timer
 
 logger = logging.getLogger(__name__)
-service_bp = Blueprint("service_bp", __name__, url_prefix="/main")
+service_bp = Blueprint(
+    "service_bp", __name__, url_prefix="/main", template_folder="templates"
+)
 
 
 # Uploads new workout entries
@@ -81,7 +83,8 @@ def setup_graph():
     logger.info(f"df memory usage: {buffer.getvalue()}")
 
     exercise_field = ExerciseField()
-    if exercise_field.is_submitted():
+    if exercise_field.validate_on_submit():
+        raise ValueError
         session["exercise"] = request.form.get("exercises")
         session["reps"] = request.form.get("rep_ranges")
         return redirect(url_for(".show_graph"))
