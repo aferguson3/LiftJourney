@@ -19,12 +19,3 @@ class CategoryField(FlaskForm):
         self.categories.choices = [("", "-- Select a Category --")] + [
             (name, _pretty_str(name)) for name in options
         ]
-
-
-class ExerciseField(FlaskForm):
-    exercises = SelectField("Exercises")
-
-    def set_choices(self, options: list[str]):
-        self.exercises.choices = [("", "-- Select an Exercise --")] + [
-            (name, _pretty_str(name)) for name in options
-        ]

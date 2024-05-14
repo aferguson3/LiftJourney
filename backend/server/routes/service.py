@@ -15,7 +15,7 @@ from sqlalchemy import select
 from backend.server import db
 from backend.server.models import WorkoutDB
 from backend.server.models.ExerciseDB import ExerciseDB
-from backend.server.models.FormFields import ExerciseField, CategoryField
+from backend.server.models.FormFields import CategoryField
 from backend.server.routes.database import new_workout_entries
 from backend.server.utils import get_dataframe
 from backend.server.utils.utils import get_exercise_info
@@ -82,24 +82,27 @@ def setup_graph():
     df.info(memory_usage=True, buf=buffer)
     logger.info(f"df memory usage: {buffer.getvalue()}")
 
-    exercise_field = ExerciseField()
-    if exercise_field.validate_on_submit():
-        raise ValueError
-        session["exercise"] = request.form.get("exercises")
-        session["reps"] = request.form.get("rep_ranges")
-        return redirect(url_for(".show_graph"))
-
+    categories_field = CategoryField()
     categorized_exercises: list[ExerciseDB] = (
         (db.session.execute(select(ExerciseDB))).scalars().all()
     )
-    categories_field = CategoryField()
     exercise_categories = {
         _dict["exerciseName"]: _dict["category"]
         for _dict in [_exerciseDB.get_dict() for _exerciseDB in categorized_exercises]
     }
     all_exercises = list_available_exercises(df)
     exercise_info = get_exercise_info(all_exercises, df, exercise_categories)
-    # exercise_field.set_choices(all_exercises)
+
+    if categories_field.is_submitted():
+        if any(
+            request.form.get(val) == ""
+            for val in ["categories", "exercises", "rep_ranges"]
+        ):
+            logger.debug("Submission prevented -- null graph param(s)")
+        else:
+            session["exercise"] = request.form.get("exercises")
+            session["reps"] = request.form.get("rep_ranges")
+            return redirect(url_for(".show_graph"))
 
     return render_template(
         "graph_params.html",

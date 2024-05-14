@@ -1,33 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8"/>
+  <head>
+    <meta charset="UTF-8" />
     <title>Title</title>
-</head>
-<body>
-<form method="post" id="submit-form">
-    <div id="exercise-form">
+  </head>
+  <body>
+    <form method="post" id="submit-form">
+      <div id="exercise-form">
         <h3>Select a Category</h3>
         {{ categories_field.csrf_token }} {{ categories_field.categories }}
         <h3>Select Exercise</h3>
         <select
-                id="exercises"
-                name="exercises"
-                style="visibility: hidden"
+          id="exercises"
+          name="exercises"
+          style="visibility: hidden"
         ></select>
         <h3>Select a Target Reps Filter</h3>
         <select
-                id="rep_ranges"
-                name="rep_ranges"
-                style="visibility: hidden"
+          id="rep_ranges"
+          name="rep_ranges"
+          style="visibility: hidden"
         ></select>
         <button type="submit" id="submit-btn">Submit</button>
-    </div>
-</form>
-</body>
-<script type="text/javascript" src={{url_for('static', filename='graph.js' )}} async>
-  document.getElementById("categories").addEventListener("change", onCategoriesChange);
-  document.getElementById("exercises").addEventListener("change", onExercisesChange)
-</script>
+      </div>
+    </form>
+    <!-- <script src={{ url_for('static', filename='graph.js') }}></script> -->
+    <script>
+      let categories_select = document.getElementById("categories");
+      let exercise_name_select = document.getElementById("exercises");
+      let reps_ranges_select = document.getElementById("rep_ranges");
+      let exercise_info_dict = {{ exercise_info | tojson }};
 
+      document.getElementById("categories").addEventListener("change", onCategoriesChange)
+      document.getElementById("exercises").addEventListener("change", onExercisesChange)
+
+      function onCategoriesChange(event) {
+        console.log(event)
+        changeExerciseOptions(categories_select.selectedOptions[0].label)
+        reps_ranges_select.replaceChildren();
+      }
+
+      function onExercisesChange(event) {
+        console.log(event)
+        changeRepsOptions(exercise_name_select.selectedOptions[0].label)
+      }
+
+      function createOption(select_element, text, value) {
+        let new_option = document.createElement('option');
+          new_option.text = text;
+          new_option.value = value;
+          select_element.add(new_option);
+      }
+      function changeExerciseOptions(category){
+        exercise_name_select.replaceChildren();
+        exercise_name_select.setAttribute('style', "visibility: visible;")
+        createOption(exercise_name_select,"-- Select a Category --", "");
+
+        for (var exercise_name in exercise_info_dict) {
+          let display_name = exercise_name.replaceAll("_", " ").toUpperCase();
+          if (exercise_info_dict[exercise_name]['category'] == category){
+            createOption(exercise_name_select, display_name, exercise_name);
+          }
+        }
+      }
+      function changeRepsOptions(exercise_name) {
+        let selected = exercise_name.toUpperCase().replaceAll(" ", "_");
+        reps_ranges_select.replaceChildren();
+        reps_ranges_select.setAttribute('style', "visibility: visible;")
+        let new_rep_ranges = exercise_info_dict[selected]['rep_ranges'];
+        createOption(reps_ranges_select, "No Filter", "None")
+
+        for (let i=0; i < new_rep_ranges.length; i++){
+          createOption(reps_ranges_select,new_rep_ranges[i],new_rep_ranges[i]);
+        }
+      }
+    </script>
+  </body>
 </html>
