@@ -199,7 +199,6 @@ def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
 
 
 def _fill_out_workouts(workouts: list[Workout] | Workout):
-    pattern = r"\b\d+(?:\.\d+)+\b"
     if isinstance(workouts, Workout):
         workouts = [workouts]
 
@@ -207,17 +206,11 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
         garmin_data = garth.connectapi(
             f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts"
         )
-        if garmin_data is None:
+        if garmin_data is None:  # TODO: ???? WHY
             print(f"{wo.datetime}")
             continue
         garmin_data = garmin_data[0]
-        workout_name_str = garmin_data["workoutName"]
-
-        version_str = re.search(pattern, workout_name_str)
-        version_str = version_str.group() if version_str is not None else None
-        workout_name = re.sub(pattern, "", workout_name_str).strip()
-        wo.version = version_str
-        wo.name = workout_name
+        wo = _get_workout_name(wo)
 
         for currSet in wo.sets:
             currStepIndex = currSet.stepIndex
@@ -232,6 +225,20 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
                 currSet.exerciseName = newName if newName is not None else newCategory
     q.put(workouts)
     q.task_done()
+
+
+def _get_workout_name(workout: Workout):
+    pattern = r"\b\d+(?:\.\d+)+\b"
+    garmin_data = garth.connectapi(
+        f"{Endpoints.garmin_connect_activity}/{workout.activityId}"
+    )
+    workout_name_str = garmin_data["activityName"]
+    version_str = re.search(pattern, workout_name_str)
+    version_str = version_str.group() if version_str is not None else None
+    workout_name = re.sub(pattern, "", workout_name_str).strip()
+    workout.version = version_str
+    workout.name = workout_name
+    return workout
 
 
 def run_service(
