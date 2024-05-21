@@ -13,7 +13,7 @@ from dotenv import dotenv_values
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout, ExerciseSet
 from backend.src.utils import Endpoints
-from backend.src.utils.utils import timer
+from backend.src.utils.utils import timer, filepath_validation
 
 logger = logging.getLogger(__name__)
 q = queue.Queue()
@@ -245,7 +245,7 @@ def run_service(
     params: dict, backup: bool = False, load: bool = False, filepath: str = None
 ) -> list[Workout] | None:
     if load is True:
-        _filepath_validation(filepath)
+        filepath_validation(filepath)
         workouts = Manager.load_workouts(filepath)
         workouts_ = Manager.sort_workouts(workouts, "datetime")
     else:
@@ -256,7 +256,7 @@ def run_service(
         workouts_filled = fill_out_workouts(workouts)
         workouts_ = Manager.sort_workouts(workouts_filled, "datetime")
         if backup is True:
-            _filepath_validation(filepath)
+            filepath_validation(filepath)
             Manager.dump_to_json(Manager.workouts_to_dict(workouts_), filepath, "w")
 
     Manager.list_incomplete_workouts(workouts_)
@@ -265,10 +265,3 @@ def run_service(
         f"\n\tset 3: {workouts_[0].view_sets()[3]}"
     )
     return workouts_
-
-
-def _filepath_validation(filepath):
-    if type(filepath) is not str:
-        raise TypeError(f"{filepath} is invalid filepath.")
-    # if not pathlib.Path(filepath).exists():
-    #     raise FileNotFoundError(f"{filepath} was not found.")

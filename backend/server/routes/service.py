@@ -1,5 +1,6 @@
 import io
 import logging
+import pathlib
 from datetime import datetime
 
 from flask import (
@@ -113,7 +114,10 @@ def setup_graph():
 
 @service_bp.route("/graph/show", methods=["GET"])
 def show_graph():
+    GRAPH_FILE = pathlib.Path.cwd() / "templates" / "plotly_graph.html"
     exercise = session["exercise"]
     reps = float(session["reps"]) if session["reps"] != "None" else None
-    plot_src = plot_dataframe(get_dataframe(), exercise, reps, buffer_mode=True)
-    return render_template("graph.html", plot_src=plot_src)
+    plot_dataframe(
+        get_dataframe(), exercise, reps, flask_mode=True, filepath=str(GRAPH_FILE)
+    )
+    return render_template("plotly_graph.html")
