@@ -4,8 +4,8 @@
 .vscode/*
 *.pyc
 
+# Project Data
 **/creds/*
 /.env
 **/data/*
-**/workouts.db
-/backend/server/templates/plotly_graph.html
+**/templates/plotly_graph_data.html

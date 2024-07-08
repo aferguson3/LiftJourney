@@ -28,7 +28,7 @@ from backend.src.garmin_interaction import run_service
 from backend.src.utils import set_params_by_weeks
 from backend.src.utils import timer
 
-GRAPH_FILE = pathlib.Path.cwd() / "templates" / "plotly_graph.html"
+GRAPH_FILE = pathlib.Path.cwd() / "templates" / "plotly_graph_data.html"
 
 logger = logging.getLogger(__name__)
 service_bp = Blueprint(
@@ -123,4 +123,4 @@ def show_graph():
     plot_dataframe(
         get_sets_df(), exercise, reps, flask_mode=True, filepath=str(GRAPH_FILE)
     )
-    return render_template("plotly_graph.html")
+    return render_template("plotly_graph_data.html")
