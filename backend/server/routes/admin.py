@@ -1,11 +1,12 @@
 import logging
 
 from flask import render_template, Blueprint, request
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 from backend.server import db
-from backend.server.models import ExerciseSetDB
-from backend.server.models.ExerciseDB import ExerciseDB, CATEGORY_LIST
+from backend.server.models import ExerciseSetDB, WorkoutDB
+from backend.server.models.ExerciseDB import CATEGORY_LIST
+from backend.server.models.ExerciseDB import ExerciseDB
 from backend.server.models.FormFields import CategoryField
 from backend.server.routes.database import new_exercise_entries
 
@@ -41,13 +42,18 @@ def _format_DB_exercise_names(values: list | str) -> list[str] | str:
 
 # obfuscate admin routes w/ pokemon
 # clear: clefairy
-# recored exercises: caterpie
+# record categories for exercises: caterpie
 
 
 @admin_bp.route("/clefairy")
 def clear_db():
-    db.drop_all()
-    return render_template("base.html", body="Empty")
+    # Clears out Exercise Info
+    delete_sets = delete(ExerciseSetDB)
+    delete_workouts = delete(WorkoutDB)
+    db.session.execute(delete_sets)
+    db.session.execute(delete_workouts)
+    db.session.commit()
+    return render_template("base.html", body="DB Emptied")
 
 
 @admin_bp.route("/caterpie", methods=["GET", "POST"])

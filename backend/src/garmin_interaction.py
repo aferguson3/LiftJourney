@@ -13,7 +13,7 @@ from dotenv import dotenv_values
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout, ExerciseSet
 from backend.src.utils import Endpoints
-from backend.src.utils.utils import timer
+from backend.src.utils.utils import timer, filepath_validation
 
 logger = logging.getLogger(__name__)
 q = queue.Queue()
@@ -199,7 +199,6 @@ def fill_out_workouts(workouts: list[Workout]) -> list[Workout]:
 
 
 def _fill_out_workouts(workouts: list[Workout] | Workout):
-    pattern = r"\b\d+(?:\.\d+)+\b"
     if isinstance(workouts, Workout):
         workouts = [workouts]
 
@@ -207,17 +206,11 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
         garmin_data = garth.connectapi(
             f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts"
         )
-        if garmin_data is None:
+        if garmin_data is None:  # TODO: ???? WHY
             print(f"{wo.datetime}")
             continue
         garmin_data = garmin_data[0]
-        workout_name_str = garmin_data["workoutName"]
-
-        version_str = re.search(pattern, workout_name_str)
-        version_str = version_str.group() if version_str is not None else None
-        workout_name = re.sub(pattern, "", workout_name_str).strip()
-        wo.version = version_str
-        wo.name = workout_name
+        wo = _get_workout_name(wo)
 
         for currSet in wo.sets:
             currStepIndex = currSet.stepIndex
@@ -234,32 +227,57 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
     q.task_done()
 
 
+def _get_workout_name(workout: Workout):
+    pattern = r"\b\d+(?:\.\d+)+\b"
+    garmin_data = garth.connectapi(
+        f"{Endpoints.garmin_connect_activity}/{workout.activityId}"
+    )
+    workout_name_str = garmin_data["activityName"]
+    version_str = re.search(pattern, workout_name_str)
+    version_str = version_str.group() if version_str is not None else None
+    workout_name = re.sub(pattern, "", workout_name_str).strip()
+    workout.version = version_str
+    workout.name = workout_name
+    return workout
+
+
 def run_service(
     params: dict, backup: bool = False, load: bool = False, filepath: str = None
-) -> list[Workout]:
+) -> list[Workout] | None:
     if load is True:
-        _filepath_validation(filepath)
+        filepath_validation(filepath)
         workouts = Manager.load_workouts(filepath)
         workouts_ = Manager.sort_workouts(workouts, "datetime")
     else:
         IDs, dates = get_activities(params)
         workouts = get_workouts(IDs, dates)
+        if len(workouts) == 0:
+            return
         workouts_filled = fill_out_workouts(workouts)
         workouts_ = Manager.sort_workouts(workouts_filled, "datetime")
+        workouts_ = set_tracking_status(workouts_)
         if backup is True:
-            _filepath_validation(filepath)
+            filepath_validation(filepath)
             Manager.dump_to_json(Manager.workouts_to_dict(workouts_), filepath, "w")
 
     Manager.list_incomplete_workouts(workouts_)
     logger.info(
-        f"Num of workouts: {len(workouts_)}, Workout 0: {workouts_[0].name} {workouts_[0].version}"
+        f"Num of workouts: {len(workouts_)}, Workout 0: {workouts_[0].name} {workouts_[0].version} {workouts_[0].category}"
         f"\n\tset 3: {workouts_[0].view_sets()[3]}"
     )
     return workouts_
 
 
-def _filepath_validation(filepath):
-    if type(filepath) is not str:
-        raise TypeError(f"{filepath} is invalid filepath.")
-    # if not pathlib.Path(filepath).exists():
-    #     raise FileNotFoundError(f"{filepath} was not found.")
+def set_tracking_status(workouts: list[Workout]) -> list[Workout]:
+    # Determines what workouts are graphed
+    for entry in workouts:
+        if (
+            entry.version is None
+            or "LIGHT" in str(entry.name).upper()
+            or "NOT HEAVY" in str(entry.name).upper()
+            or "REST" in str(entry.name).upper()
+        ):
+            entry.category = "UNTRACKED"
+        else:
+            entry.category = "TRACKED"
+    return workouts

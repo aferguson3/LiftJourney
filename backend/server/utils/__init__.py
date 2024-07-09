@@ -1,3 +1,13 @@
-from backend.server.utils.utils import remove_from_session, get_dataframe
+from backend.server.utils.utils import (
+    get_sets_df,
+    get_exercise_info,
+    format_DB_exercise_names,
+    format_display_exercise_names,
+)
 
-__all__ = ["remove_from_session", "get_dataframe"]
+__all__ = [
+    "get_sets_df",
+    "get_exercise_info",
+    "format_DB_exercise_names",
+    "format_display_exercise_names",
+]

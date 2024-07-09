@@ -1,29 +1,45 @@
+import io
 import logging
+import pathlib
 from datetime import datetime
 
-from flask import Blueprint, request, render_template, session, redirect, url_for
+from flask import (
+    Blueprint,
+    request,
+    render_template,
+    session,
+    redirect,
+    url_for,
+)
 from sqlalchemy import select
 
 from backend.server import db
 from backend.server.models import WorkoutDB
-from backend.server.models.FormFields import ExerciseField, RepRangeField
+from backend.server.models.ExerciseDB import ExerciseDB
+from backend.server.models.FormFields import CategoryField
 from backend.server.routes.database import new_workout_entries
-from backend.server.utils import get_dataframe
+from backend.server.utils import get_sets_df
+from backend.server.utils.utils import get_exercise_info
 from backend.src.dataframe_accessors import (
     list_available_exercises,
     plot_dataframe,
-    get_rep_ranges,
 )
 from backend.src.garmin_interaction import run_service
 from backend.src.utils import set_params_by_weeks
+from backend.src.utils import timer
+
+GRAPH_FILE = pathlib.Path.cwd() / "templates" / "plotly_graph_data.html"
 
 logger = logging.getLogger(__name__)
-service_bp = Blueprint("service_bp", __name__, url_prefix="/main")
+service_bp = Blueprint(
+    "service_bp", __name__, url_prefix="/main", template_folder="templates"
+)
 
 
 # Uploads new workout entries
 # URL Args: startDate (YYYY-MM-DD), weeks
 @service_bp.route("/run", methods=["GET"])
+@timer
 def service():
     args = request.args
     start_date = args.get(
@@ -52,7 +68,11 @@ def service():
     )
     logger.info(params.items())
     workouts = run_service(params)
-    new_workout_entries(workouts)
+    if workouts is not None:
+        new_workout_entries(workouts)
+    else:
+        logger.info(f"No new workout entries.")
+
     return render_template(
         "base.html", body=f"startDate: {start_date}, weeks: {weeks_of_workouts}"
     )
@@ -60,30 +80,39 @@ def service():
 
 @service_bp.route("/graph", methods=["GET", "POST"])
 def setup_graph():
-    df = get_dataframe()
-    logger.info(f"df memory usage: {df.info(memory_usage=True)}")
-    exercise_form = ExerciseField()
-    reps_form = RepRangeField()
-    all_exercises = list_available_exercises(df)
-    # exercises_rep_ranges: dict[str, list[float]] = {x: get_rep_ranges(df, x) for x in all_exercises}
-    exercise_form.set_choices(all_exercises)
+    df = get_sets_df()
+    buffer = io.StringIO()
+    df.info(memory_usage=True, buf=buffer)
+    logger.info(f"df memory usage: {buffer.getvalue()}")
 
-    if request.method == "POST":
-        if "exercises" in request.form:
-            selected_exercise = exercise_form.exercises.data
-            session["exercise"] = selected_exercise
-            rep_ranges = get_rep_ranges(get_dataframe(), selected_exercise)
-            reps_form.set_choices(rep_ranges)
-            return render_template(
-                "graph_params.html", exercise_form=exercise_form, reps_form=reps_form
-            )
+    categories_field = CategoryField()
+    exerciseDB_entries: list[ExerciseDB] = (
+        (db.session.execute(select(ExerciseDB))).scalars().all()
+    )
+    exercise_categories = {
+        _dict["exerciseName"]: _dict["category"]
+        for _dict in [
+            exercise_entry.get_dict() for exercise_entry in exerciseDB_entries
+        ]
+    }
+    all_exercise_names = list_available_exercises(df)
+    exercise_info = get_exercise_info(all_exercise_names, df, exercise_categories)
 
-        elif "rep_ranges" in request.form:
-            session["reps"] = reps_form.rep_ranges.data
+    if categories_field.is_submitted():
+        if any(
+            request.form.get(val) == ""
+            for val in ["categories", "exercises", "rep_ranges"]
+        ):
+            logger.debug("Submission prevented -- null graph param(s)")
+        else:
+            session["exercise"] = request.form.get("exercises")
+            session["reps"] = request.form.get("rep_ranges")
             return redirect(url_for(".show_graph"))
 
     return render_template(
-        "graph_params.html", exercise_form=exercise_form, reps_form=reps_form
+        "graph_params.html",
+        categories_field=categories_field,
+        exercise_info=exercise_info,
     )
 
 
@@ -91,5 +120,7 @@ def setup_graph():
 def show_graph():
     exercise = session["exercise"]
     reps = float(session["reps"]) if session["reps"] != "None" else None
-    plot_src = plot_dataframe(get_dataframe(), exercise, reps, buffer_mode=True)
-    return render_template("graph.html", plot_src=plot_src)
+    plot_dataframe(
+        get_sets_df(), exercise, reps, flask_mode=True, filepath=str(GRAPH_FILE)
+    )
+    return render_template("plotly_graph_data.html")

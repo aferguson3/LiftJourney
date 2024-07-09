@@ -4,7 +4,7 @@ import pathlib
 from flask import Blueprint, render_template
 from sqlalchemy import select
 
-from backend.server import db
+from backend.server import db, cache
 from backend.server.models.ExerciseDB import ExerciseDB
 from backend.server.models.WorkoutDB import WorkoutDB, workoutsDB_to_dict
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
@@ -44,9 +44,11 @@ def new_workout_entries(workouts: list[Workout]):
     if not isinstance(workouts[0], Workout):
         raise ValueError(f"{type(workouts[0])} is not type Workout")
 
+    cache.delete("get_sets_df")
     workoutsDB = WorkoutDB.list_to_workoutsDB(workouts)
+
     for wo in workoutsDB:
-        if not _isNewWorkoutEntry(wo):
+        if not _isNewWorkoutEntry(wo) or wo.category == "UNTRACKED":
             continue
         db.session.add(wo)
     db.session.commit()

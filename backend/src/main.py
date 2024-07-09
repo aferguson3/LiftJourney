@@ -25,16 +25,19 @@ def main():
         "3: Loaded data & no backup\n"
         "Choose an option: "
     )
-
-    match input(menu):
-        case "1":  # Fresh data & backup
-            workouts = run_service(params, backup=True, filepath=DATA_FILEPATH)
-        case "2":  # Fresh data & no backup
-            workouts = run_service(params)
-        case "3":  # Loaded data & no backup
-            workouts = run_service(params, load=True, filepath=DATA_FILEPATH)
-        case _:
-            pass
+    while True:
+        match input(menu):
+            case "1":  # Fresh data & backup
+                workouts = run_service(params, backup=True, filepath=DATA_FILEPATH)
+                break
+            case "2":  # Fresh data & no backup
+                workouts = run_service(params)
+                break
+            case "3":  # Loaded data & no backup
+                workouts = run_service(params, load=True, filepath=DATA_FILEPATH)
+                break
+            case _:
+                pass
 
     while True:
         show_graph(workouts)

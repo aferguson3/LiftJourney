@@ -1,14 +1,15 @@
-import base64
 import logging
 from datetime import datetime
-from io import BytesIO
 
 import pandas as pd
+import plotly.graph_objects as go
 from matplotlib import pyplot as plt
-from matplotlib.figure import Figure
+from plotly.io import write_html
+from plotly.subplots import make_subplots
 
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout
+from backend.src.utils import filepath_validation
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +42,10 @@ def load_dataframe(workouts: list[Workout]) -> pd.DataFrame:
 def plot_dataframe(
     df: pd.DataFrame,
     plotting_exercise: str,
-    targetReps: float = None,
-    buffer_mode: bool = False,
-) -> None | str:
+    targetReps: int = None,
+    flask_mode: bool = False,
+    filepath: str = None,
+) -> None:
     # plot the reps and weight of like exercisesNames
     if plotting_exercise not in df["exerciseName"].values:
         raise ValueError(f"Exercise {plotting_exercise} is not in df")
@@ -53,7 +55,7 @@ def plot_dataframe(
     df.drop_duplicates(
         subset=["date", "exerciseName"], inplace=True
     )  # Gets 1st rep of chosen exercise
-    df = df.ffill()
+    df = df.bfill()
 
     if targetReps is None:
         plot_df = df.loc[df["exerciseName"] == plotting_exercise]
@@ -62,29 +64,25 @@ def plot_dataframe(
             (df["exerciseName"] == plotting_exercise) & (df["targetReps"] == targetReps)
         ]
 
-    if buffer_mode is False:
+    if flask_mode is False:
         fig, axes = plt.subplots(2, 1, sharex=True)
-        _setup_plot_formatting(axes, plot_df, plotting_exercise, buffer_mode)
+        _setup_plot_formatting(plot_df, plotting_exercise, flask_mode, axes=axes)
         plt.show()
     else:
-        fig = Figure()
-        axes = fig.subplots(2, 1, sharex=True)
-        _setup_plot_formatting(axes, plot_df, plotting_exercise, buffer_mode)
-        buf = BytesIO()
-        fig.savefig(buf, format="png")
-        plt.close(fig)
-        data = base64.b64encode(buf.getbuffer()).decode("ascii")
-        return f"data:image/png;base64,{data}"
+        fig = make_subplots(2, 1, shared_xaxes=True)
+        filepath_validation(filepath)
+        _setup_plot_formatting(plot_df, plotting_exercise, flask_mode, fig=fig)
+        fig_as_div = write_html(fig, file=filepath)
 
 
 def _setup_plot_formatting(
-    axes, plot_df: pd.DataFrame, plotting_exercise: str, buffer_mode: bool
+    plot_df: pd.DataFrame, plotting_exercise: str, flask_mode: bool, axes=None, fig=None
 ) -> None:
-    axes[0].set_title(f"{plotting_exercise.replace('_', ' ').title()} Progress")
-    datapoints = len(plot_df)
-    figsize = (datapoints, 6)
+    if flask_mode is False:
+        axes[0].set_title(f"{plotting_exercise.replace('_', ' ').title()} Progress")
+        datapoints = len(plot_df)
+        figsize = (datapoints, 6)
 
-    if buffer_mode is False:
         plot_df.plot(
             x="date_str",
             y=["weight"],
@@ -106,23 +104,35 @@ def _setup_plot_formatting(
             figsize=figsize,
         )
     else:
-        axes[0].plot(
-            plot_df["date_str"], plot_df["weight"], label="Weight (lbs)", color="blue"
+        fig.update_layout(
+            title_text=f"{plotting_exercise.replace('_', ' ').title()} Progress",
+            xaxis=dict(title="Dates"),
+            yaxis=dict(title="Reps"),
         )
-        axes[0].set_ylabel("Weight (lbs)")
-        axes[0].grid(True)
-
-        axes[1].plot(
-            plot_df["date_str"], plot_df["targetReps"], label="Target Reps", color="red"
+        fig.add_traces(
+            [
+                go.Scatter(
+                    x=plot_df["date_str"],
+                    y=plot_df["weight"],
+                    mode="lines+markers",
+                    name="Weight (lbs)",
+                ),
+                go.Scatter(
+                    x=plot_df["date_str"],
+                    y=plot_df["targetReps"],
+                    mode="lines+markers",
+                    name="Target Reps",
+                ),
+                go.Scatter(
+                    x=plot_df["date_str"],
+                    y=plot_df["numReps"],
+                    mode="lines+markers",
+                    name="Reps",
+                ),
+            ],
+            rows=[1, 2, 2],
+            cols=[1, 1, 1],
         )
-        axes[1].plot(
-            plot_df["date_str"], plot_df["numReps"], label="Num Reps", color="green"
-        )
-        axes[1].tick_params(axis="x", rotation=30)
-        axes[1].set_xlabel("Dates")
-        axes[1].set_ylabel("Reps")
-        axes[1].grid(True)
-        axes[1].legend()
 
 
 def exercise_name_selection(available_exercises: list) -> str:
@@ -175,11 +185,13 @@ def target_reps_selection(available_target_reps: list) -> None | int:
     return target_reps
 
 
-def get_rep_ranges(df: pd.DataFrame, chosen_exercise: str) -> list[float]:
+def get_rep_ranges(df: pd.DataFrame, chosen_exercise: str) -> list[int]:
     target_reps = df.loc[
         (df["exerciseName"] == chosen_exercise, "targetReps")
     ].to_numpy(na_value=-1)
-    target_reps = list(set(target_reps))
+    target_reps = [int(item) for item in target_reps]
+    target_reps = set(target_reps)
+
     if -1 in target_reps:
         target_reps.remove(-1)
     return sorted(target_reps)

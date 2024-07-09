@@ -4,8 +4,8 @@
 .vscode/*
 *.pyc
 
+# Project Data
 **/creds/*
 /.env
 **/data/*
-**/flask_session/*
-**/workouts.db
+**/templates/plotly_graph_data.html
