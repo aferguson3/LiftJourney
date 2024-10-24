@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 import plotly.graph_objects as go
 from matplotlib import pyplot as plt
-from plotly.io import write_json
+from plotly.io import write_html
 from plotly.subplots import make_subplots
 
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
@@ -72,8 +72,7 @@ def plot_dataframe(
         fig = make_subplots(2, 1, shared_xaxes=True)
         filepath_validation(filepath)
         _setup_plot_formatting(plot_df, plotting_exercise, flask_mode, fig=fig)
-        # write_html(fig, file=filepath)
-        write_json(fig, file=filepath, pretty=True)
+        x = write_html(fig, file=filepath)
 
 
 def _setup_plot_formatting(
