@@ -3,19 +3,27 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Title</title>
+    <style>
+        label {
+            display: block;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
 <form method="post" id="submit-form">
     <div id="exercise-form">
-        <h3>Select a Category</h3>
-        {{ categories_field.csrf_token }} {{ categories_field.categories }}
-        <h3>Select Exercise</h3>
+        <label>Select a Category</label>
+        {{ muscle_group_field.csrf_token }}
+        {{ muscle_group_field.categories }}
+        <label for="exercises">Select Exercise</label>
         <select
                 id="exercises"
                 name="exercises"
                 style="visibility: hidden"
         ></select>
-        <h3>Select a Target Reps Filter</h3>
+        <label for="rep_ranges">Select a Target Reps Filter</label>
         <select
                 id="rep_ranges"
                 name="rep_ranges"
@@ -24,11 +32,11 @@
         <button type="submit" id="submit-btn">Submit</button>
     </div>
 </form>
-<input id="exercise_info" style="display: none" value="{{exercise_info}}"/>
+<label for="exercise_info" style="display:none"></label>
+<input id="exercise_info" style="display: none"
+       value="{{exercise_info}}"/>
 
-<script
-        type="text/javascript"
-        src="{{ url_for('static',filename='js/graph.js') }}"
-></script>
+<script type="text/javascript" src="{{ url_for('static',filename='js/graph.js') }}"></script>
+
 </body>
 </html>

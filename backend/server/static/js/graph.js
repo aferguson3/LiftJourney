@@ -1,5 +1,7 @@
-let temp_info = document.getElementById("exercise_info").value
-let exercise_info = JSON.parse(temp_info)
+let exercise_info = JSON.parse(
+    document.getElementById("exercise_info")
+        .value
+)
 
 const category_query = document.getElementById("categories")
 category_query.addEventListener("change", onMuscleGroupChange)
@@ -14,6 +16,7 @@ function createOption(select_element, text, value) {
     new_option.value = value;
     select_element.add(new_option);
 }
+
 function onMuscleGroupChange(event) {
     let categories_select = document.getElementById("categories");
     let reps_ranges_select = document.getElementById("rep_ranges");
@@ -27,6 +30,7 @@ function onExercisesChange(event) {
 
     changeRepsOptions(exercise_name_select.selectedOptions[0].label)
 }
+
 function changeExerciseOptions(category) {
     let exercise_name_select = document.getElementById("exercises");
     let exercise_info_dict = exercise_info
@@ -35,13 +39,14 @@ function changeExerciseOptions(category) {
     exercise_name_select.setAttribute('style', "visibility: visible;")
     createOption(exercise_name_select, "-- Select a Category --", "");
 
-    for (var exercise_name in exercise_info_dict) {
+    for (let exercise_name in exercise_info_dict) {
         let display_name = exercise_name.replaceAll("_", " ").toUpperCase();
-        if (exercise_info_dict[exercise_name]['category'] == category) {
+        if (exercise_info_dict[exercise_name]['category'] === category) {
             createOption(exercise_name_select, display_name, exercise_name);
         }
     }
 }
+
 function changeRepsOptions(exercise_name) {
     let selected = exercise_name.toUpperCase().replaceAll(" ", "_");
     let reps_ranges_select = document.getElementById("rep_ranges");

@@ -15,4 +15,3 @@ EXPOSE 3003
 USER app
 
 CMD ["gunicorn", "-c", "gunicorn.conf.py"]
-#CMD ["bash"]

@@ -5,9 +5,8 @@ from sqlalchemy import select, delete
 
 from backend.server.config import db
 from backend.server.models import ExerciseSetDB, WorkoutDB
-from backend.server.models.ExerciseDB import CATEGORY_LIST
-from backend.server.models.ExerciseDB import ExerciseDB
-from backend.server.models.FormFields import CategoryField
+from backend.server.models.MuscleMapDB import MUSCLE_GROUPS_LIST, MuscleMapDB
+from backend.server.models.forms import MuscleGroupsForm
 from backend.server.routes.database import new_exercise_entries
 
 logger = logging.getLogger(__name__)
@@ -59,9 +58,9 @@ def clear_db():
 
 @admin_bp.route("/caterpie", methods=["GET", "POST"])
 def record_exercises():
-    categories = CATEGORY_LIST
+    categories = MUSCLE_GROUPS_LIST
     categorized_exercises = (
-        (db.session.execute(select(ExerciseDB.exerciseName))).scalars().all()
+        (db.session.execute(select(MuscleMapDB.exerciseName))).scalars().all()
     )
     displayed_exercises = _format_display_exercise_names(
         (db.session.execute(select(ExerciseSetDB.exerciseName)))
@@ -74,7 +73,7 @@ def record_exercises():
     for exercise in compared_exercises:
         if exercise in displayed_exercises:
             displayed_exercises.remove(exercise)
-    categories_field = CategoryField()
+    categories_field = MuscleGroupsForm()
     categories_field.set_choices(categories)
 
     if categories_field.is_submitted():
@@ -86,7 +85,7 @@ def record_exercises():
                 if cur_selected_category == "-- Select a Category --"
                 else cur_selected_category
             )
-            cur_exercise = ExerciseDB(
+            cur_exercise = MuscleMapDB(
                 exerciseName=_format_DB_exercise_names(cur_exercise_name),
                 category=cur_selected_category,
             )

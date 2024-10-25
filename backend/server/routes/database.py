@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from backend.server import APP_DIRECTORY
 from backend.server.config import db, cache
-from backend.server.models.ExerciseDB import ExerciseDB
+from backend.server.models.MuscleMapDB import MuscleMapDB
 from backend.server.models.WorkoutDB import WorkoutDB, workoutsDB_to_dict
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout
@@ -27,11 +27,11 @@ def _isNewWorkoutEntry(entry: WorkoutDB) -> bool:
     return result is None
 
 
-def _isNewExerciseEntry(entry: ExerciseDB) -> bool:
+def _isNewExerciseEntry(entry: MuscleMapDB) -> bool:
     result = (
         db.session.execute(
-            select(ExerciseDB.exerciseName).where(
-                ExerciseDB.exerciseName == str(entry.exerciseName)
+            select(MuscleMapDB.exerciseName).where(
+                MuscleMapDB.exerciseName == str(entry.exerciseName)
             )
         )
         .scalars()
@@ -54,7 +54,7 @@ def new_workout_entries(workouts: list[Workout]):
     db.session.commit()
 
 
-def new_exercise_entries(values: list[ExerciseDB]):
+def new_exercise_entries(values: list[MuscleMapDB]):
     for exercise in values:
         if not _isNewExerciseEntry(exercise):
             continue

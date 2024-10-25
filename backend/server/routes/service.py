@@ -3,36 +3,33 @@ import logging
 import pathlib
 from datetime import datetime
 
-from flask import (
-    Blueprint,
-    request,
-    render_template,
-    session,
-    redirect,
-    url_for,
-)
+from flask import Blueprint, request, render_template, session, redirect, url_for, json
 from sqlalchemy import select
 
 from backend.server.config import db
 from backend.server.models import WorkoutDB
-from backend.server.models.ExerciseDB import ExerciseDB
-from backend.server.models.FormFields import CategoryField
+from backend.server.models.MuscleMapDB import MuscleMapDB
+from backend.server.models.forms import MuscleGroupsForm
 from backend.server.routes.database import new_workout_entries
-from backend.server.utils import get_sets_df
-from backend.server.utils.utils import get_exercise_info
+from backend.server.utils import get_sets_df, get_exercise_info
 from backend.src.dataframe_accessors import (
     list_available_exercises,
     plot_dataframe,
 )
 from backend.src.garmin_interaction import run_service
-from backend.src.utils import set_params_by_weeks
-from backend.src.utils import timer
+from backend.src.utils import set_params_by_weeks, timer
 
-GRAPH_FILE = pathlib.Path(__file__).parents[1] / "templates" / "plotly_graph_data.json"
+GRAPH_FILE = (
+    pathlib.Path(__file__).parents[1] / "templates" / "DATA_exercise_graph.html"
+)
 
 logger = logging.getLogger(__name__)
 service_bp = Blueprint(
-    "service_bp", __name__, url_prefix="/main", template_folder="templates"
+    "service_bp",
+    __name__,
+    url_prefix="/main",
+    template_folder="templates",
+    static_folder="static",
 )
 
 
@@ -85,9 +82,9 @@ def setup_graph():
     df.info(memory_usage=True, buf=buffer)
     logger.info(f"df memory usage: {buffer.getvalue()}")
 
-    categories_field = CategoryField()
-    exerciseDB_entries: list[ExerciseDB] = (
-        (db.session.execute(select(ExerciseDB))).scalars().all()
+    muscle_group_form = MuscleGroupsForm()
+    exerciseDB_entries: list[MuscleMapDB] = (
+        (db.session.execute(select(MuscleMapDB))).scalars().all()
     )
     exercise_categories = {
         _dict["exerciseName"]: _dict["category"]
@@ -98,7 +95,7 @@ def setup_graph():
     all_exercise_names = list_available_exercises(df)
     exercise_info = get_exercise_info(all_exercise_names, df, exercise_categories)
 
-    if categories_field.is_submitted():
+    if muscle_group_form.is_submitted():
         if any(
             request.form.get(val) == ""
             for val in ["categories", "exercises", "rep_ranges"]
@@ -111,8 +108,8 @@ def setup_graph():
 
     return render_template(
         "graph_params.html",
-        categories_field=categories_field,
-        exercise_info=exercise_info,
+        muscle_group_field=muscle_group_form,
+        exercise_info=json.dumps(exercise_info),
     )
 
 
