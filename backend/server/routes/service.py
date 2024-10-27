@@ -9,7 +9,7 @@ from sqlalchemy import select
 from backend.server.config import db
 from backend.server.models import WorkoutDB
 from backend.server.models.MuscleMapDB import MuscleMapDB
-from backend.server.models.forms import MuscleGroupsForm
+from backend.server.models.forms import FitnessSelectForm
 from backend.server.routes.database import new_workout_entries
 from backend.server.utils import get_sets_df, get_exercise_info
 from backend.src.dataframe_accessors import (
@@ -82,20 +82,18 @@ def setup_graph():
     df.info(memory_usage=True, buf=buffer)
     logger.info(f"df memory usage: {buffer.getvalue()}")
 
-    muscle_group_form = MuscleGroupsForm()
-    exerciseDB_entries: list[MuscleMapDB] = (
+    fitness_select_form = FitnessSelectForm()
+    muscle_map_entries: list[MuscleMapDB] = (
         (db.session.execute(select(MuscleMapDB))).scalars().all()
     )
-    exercise_categories = {
+    all_muscle_maps = {
         _dict["exerciseName"]: _dict["category"]
-        for _dict in [
-            exercise_entry.get_dict() for exercise_entry in exerciseDB_entries
-        ]
+        for _dict in [record.get_dict() for record in muscle_map_entries]
     }
     all_exercise_names = list_available_exercises(df)
-    exercise_info = get_exercise_info(all_exercise_names, df, exercise_categories)
+    exercise_info = get_exercise_info(all_exercise_names, df, all_muscle_maps)
 
-    if muscle_group_form.is_submitted():
+    if fitness_select_form.is_submitted():
         if any(
             request.form.get(val) == ""
             for val in ["categories", "exercises", "rep_ranges"]
@@ -108,7 +106,7 @@ def setup_graph():
 
     return render_template(
         "graph_params.html",
-        muscle_group_field=muscle_group_form,
+        muscle_group_field=fitness_select_form,
         exercise_info=json.dumps(exercise_info),
     )
 

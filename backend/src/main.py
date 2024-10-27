@@ -2,7 +2,7 @@ import logging
 import pathlib
 
 from backend.src import show_graph
-from backend.src.garmin_interaction import client_auth, run_service
+from backend.src.garmin_interaction import load_garmin_client, run_service
 from backend.src.utils import set_params_by_weeks
 
 DATA_FILEPATH = str(pathlib.Path("./data/workout_data.json").resolve())
@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def main():
-    client_auth()
+    load_garmin_client()
     startDate = "2024-01-01"
     weeks_of_workouts = 10
 

@@ -8,7 +8,7 @@ def _pretty_str(name: str):
     return name.replace("_", " ")
 
 
-class MuscleGroupsForm(FlaskForm):
+class FitnessSelectForm(FlaskForm):
     categories = SelectField("Categories")
 
     def __init__(self, **kwargs):

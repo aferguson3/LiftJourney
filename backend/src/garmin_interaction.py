@@ -10,7 +10,7 @@ from typing import Tuple
 import garth
 from dotenv import dotenv_values
 
-from backend.server import APP_DIRECTORY
+from backend.server import WORKING_DIR, ENV_PATH
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout, ExerciseSet
 from backend.src.utils import Endpoints
@@ -21,14 +21,11 @@ Queue_ = queue.Queue()
 MAX_THREADS = multiprocessing.cpu_count()
 NUM_THREADS = 6
 NUM_THREADS = NUM_THREADS if MAX_THREADS >= NUM_THREADS else multiprocessing.cpu_count()
-
-WORKING_DIR = APP_DIRECTORY.parents[1]
 CREDS_PATH = WORKING_DIR / "backend" / "creds"
-ENV_PATH = WORKING_DIR / ".env"
 
 
 # Assumes Garmin connect user/pass are saved in .env file
-def client_auth():
+def load_garmin_client():
     try:
         garth.resume(str(CREDS_PATH))
         logger.info("0Auth tokens found. Login successful.")

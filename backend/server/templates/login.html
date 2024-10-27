@@ -8,6 +8,7 @@
 <div>
     {% from "_formhelpers.html" import render_field %}
     <form method="post" action="{{ url_for('.login') }}">
+        {{ form.csrf_token }}
         {{ render_field(form.email) }}
         {{ render_field(form.password) }}
         <button type="submit">Submit</button>

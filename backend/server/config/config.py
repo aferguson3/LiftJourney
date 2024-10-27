@@ -27,19 +27,29 @@ def db_config(db_, app_):
         )
 
 
-def app_config_selection(selection: str) -> BaseConfig:
+def app_config_selection(selection: str = None) -> BaseConfig:
     if selection is None:
-        return BaseConfig()
+        curr_config = BaseConfig()
+        logger.info(f"App Config: {type(curr_config)}")
+        return curr_config
 
     if not isinstance(selection, str):
         raise TypeError(f"Invalid app_config: {selection}")
 
     match selection.upper():
         case "BASE":
-            return BaseConfig()
+            curr_config = BaseConfig()
+            LOGGING_LEVEL = logging.WARN
         case "DEBUG":
-            return DebugConfig()
+            curr_config = DebugConfig()
+            LOGGING_LEVEL = logging.DEBUG
         case "PROD":
-            return ProdConfig()
+            curr_config = ProdConfig()
+            LOGGING_LEVEL = logging.WARN
         case _:
-            return BaseConfig()
+            curr_config = BaseConfig()
+            LOGGING_LEVEL = logging.WARN
+
+    logging.basicConfig(level=LOGGING_LEVEL)
+    logger.info(f"App Config: {type(curr_config)}")
+    return curr_config

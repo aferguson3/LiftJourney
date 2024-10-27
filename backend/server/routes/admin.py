@@ -6,7 +6,7 @@ from sqlalchemy import select, delete
 from backend.server.config import db
 from backend.server.models import ExerciseSetDB, WorkoutDB
 from backend.server.models.MuscleMapDB import MUSCLE_GROUPS_LIST, MuscleMapDB
-from backend.server.models.forms import MuscleGroupsForm
+from backend.server.models.forms import FitnessSelectForm
 from backend.server.routes.database import new_exercise_entries
 
 logger = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ def record_exercises():
     for exercise in compared_exercises:
         if exercise in displayed_exercises:
             displayed_exercises.remove(exercise)
-    categories_field = MuscleGroupsForm()
+    categories_field = FitnessSelectForm()
     categories_field.set_choices(categories)
 
     if categories_field.is_submitted():

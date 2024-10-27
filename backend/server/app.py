@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from backend.server.config.config import app_config_selection, db, cache, db_config
 from backend.server.routes import *
-from backend.src import client_auth
+from backend.src import load_garmin_client
 
 
 def register_blueprints(app_: Flask):
@@ -38,11 +38,11 @@ def create_app(
     with curr_app.app_context():
         db_config(db_, curr_app)
     # cache.clear()
-    client_auth()
+    load_garmin_client()
     register_blueprints(curr_app)
 
     return curr_app
 
 
 if __name__ == "__main__":
-    create_app(db, cache)
+    create_app(db, cache, app_config="debug")
