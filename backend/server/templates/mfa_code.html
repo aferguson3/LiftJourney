@@ -2,15 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Enter MFA Code</title>
 </head>
 <body>
 <div>
     {% from "_formhelpers.html" import render_field %}
     <form method="post">
-        {{ form.csrf_token }}
-        {{ render_field(form.email) }}
-        {{ render_field(form.password) }}
+        {{form.csrf_token}}
+        {{render_field(form.mfa_code)}}
         <button type="submit">Submit</button>
     </form>
 </div>
