@@ -2,8 +2,9 @@ import logging
 
 from flask import Blueprint, render_template, request, redirect, url_for, session
 
-from backend.server.models.Client import custom_sso_login, MFA_auth, Client
+from backend.server.authenticate import custom_sso_login, mfa_authentication, Client
 from backend.server.models.forms import LoginForm, MFAForm
+from backend.src.garmin_interaction import load_garmin_client
 
 login_bp = Blueprint("login_bp", __name__, url_prefix="")
 logger = logging.getLogger(__name__)
@@ -14,22 +15,27 @@ client = Client()
 def login():
     # TODO: run using HTTPS
     login_form = LoginForm()
+    resume_status = load_garmin_client()
 
-    if request.method == "GET":
+    if resume_status == 0:
+        return render_template("base.html", body="Success", title="Login Success")
+
+    if not login_form.validate_on_submit():
+        if request.method == "POST":
+            logger.debug(f"Errors: {login_form.form_errors}")
         return render_template("login.html", form=login_form)
 
-    if login_form.validate_on_submit():
-        try:
-            session["csrf_garmin"] = custom_sso_login(
-                login_form.email.data, login_form.password.data, client=client
-            )
-        except Exception as e:
-            print(e)
-        # TODO: validate successful login for client
-        redirect(url_for(".get_mfa_code"))
+    if resume_status > 0:
+        csrf_garmin = custom_sso_login(
+            login_form.email.data, login_form.password.data, client=client
+        )
 
-    else:
-        logger.debug(f"{login_form.errors}")
+        if csrf_garmin is not None:
+            logger.info(f"Successful SSO login for {login_form.email.data}.")
+            session["csrf_garmin"] = csrf_garmin
+            return redirect(url_for(".get_mfa_code"))
+        else:
+            logger.info(f"Unsuccessful SSO login for {login_form.email.data}")
 
     return render_template("login.html", form=login_form)
 
@@ -38,19 +44,13 @@ def login():
 def get_mfa_code():
     mfa_form = MFAForm()
 
-    if request.method == "GET":
+    if request.method == "GET" or not mfa_form.validate_on_submit:
+        if request.method == "POST":
+            logger.debug(f"{mfa_form.errors}")
         return render_template("mfa_code.html", form=mfa_form)
 
-    if mfa_form.validate_on_submit():
-        mfa_code = mfa_form.mfa_code.data
-        try:
-            MFA_auth(session["csrf_garmin"], client, mfa_code)
-        except Exception as e:
-            print(e)
-        # TODO: validate correct MFA code
-        # TODO: redirect to success
-        redirect(url_for("hello"))
+    _error = mfa_authentication(session["csrf_garmin"], client, mfa_form.mfa_code.data)
+    if _error is None:
+        return render_template("base.html", body="Success", title="MFA Code")
     else:
-        logger.debug(f"{mfa_form.errors}")
-
-    return render_template("mfa_code.html", form=mfa_form)
+        return render_template("mfa_code.html", form=mfa_form)

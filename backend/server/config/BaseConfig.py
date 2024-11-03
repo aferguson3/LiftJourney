@@ -58,3 +58,8 @@ class DebugConfig(BaseConfig):
 
 class ProdConfig(BaseConfig):
     DEBUG = False
+
+
+class TestConfig(BaseConfig):
+    WTF_CSRF_ENABLED = False
+    TESTING = True

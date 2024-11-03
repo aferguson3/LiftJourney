@@ -4,7 +4,12 @@ from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import OperationalError
 
-from backend.server.config.BaseConfig import BaseConfig, DebugConfig, ProdConfig
+from backend.server.config.BaseConfig import (
+    BaseConfig,
+    DebugConfig,
+    ProdConfig,
+    TestConfig,
+)
 
 db = SQLAlchemy()
 cache = Cache(
@@ -46,6 +51,9 @@ def app_config_selection(selection: str = None) -> BaseConfig:
         case "PROD":
             curr_config = ProdConfig()
             LOGGING_LEVEL = logging.WARN
+        case "TEST":
+            curr_config = TestConfig()
+            LOGGING_LEVEL = logging.DEBUG
         case _:
             curr_config = BaseConfig()
             LOGGING_LEVEL = logging.WARN

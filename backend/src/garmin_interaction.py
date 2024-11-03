@@ -25,7 +25,7 @@ CREDS_PATH = WORKING_DIR / "backend" / "creds"
 
 
 # Assumes Garmin connect user/pass are saved in .env file
-def load_garmin_client():
+def load_garmin_from_env():
     try:
         garth.resume(str(CREDS_PATH))
         logger.info("0Auth tokens found. Login successful.")
@@ -35,7 +35,22 @@ def load_garmin_client():
         config = dotenv_values(str(ENV_PATH))
         garth.login(config["EMAIL"], config["PASSWORD"])
         garth.save(str(CREDS_PATH))
-        pass
+
+
+def load_garmin_client(filepath=None) -> int:
+    """
+
+    :return: 0: success, 1: No OAuth tokens
+    """
+    filepath_ = filepath if filepath is not None else CREDS_PATH
+    try:
+        garth.resume(str(filepath_))
+        logger.info("0Auth tokens found. Login successful.")
+        return 0
+    except FileNotFoundError:
+        if not pathlib.Path.exists(filepath_):
+            pathlib.Path.mkdir(filepath_)
+        return 1
 
 
 # Gathers all fitness activities by date

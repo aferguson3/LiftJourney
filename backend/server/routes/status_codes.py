@@ -5,7 +5,7 @@ statues_bp = Blueprint("statues_bp", __name__, url_prefix="")
 
 @statues_bp.route("/")
 def hello():
-    return "Hello, world!"
+    return render_template("base.html", body="Hello, world!")
 
 
 @statues_bp.errorhandler(404)
