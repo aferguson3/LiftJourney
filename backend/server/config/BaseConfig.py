@@ -1,6 +1,5 @@
 import logging
-
-import dotenv
+import uuid
 
 from backend.server import APP_DIRECTORY
 
@@ -33,7 +32,7 @@ def _db_uri_selection(uri_type):
 
 
 class BaseConfig(object):
-    SECRET_KEY = dotenv.get_key(str(ENV_PATH), "SECRET_KEY")
+    SECRET_KEY = uuid.uuid4().hex
 
     def __init__(self, uri_type: str = "MAIN_DB"):
         """

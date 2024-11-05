@@ -3,7 +3,6 @@ WORKDIR /home/app
 
 # Dependencies
 COPY --chmod=744 requirements.txt .
-COPY --chmod=744 .env .
 COPY --chmod=744 gunicorn.conf.py .
 RUN pip install -r requirements.txt
 
