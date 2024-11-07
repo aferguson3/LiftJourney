@@ -87,7 +87,7 @@ def _get_exercises_to_display():
 
 
 @admin_bp.route("/mapping", methods=["GET", "POST"])
-def record_exercises():
+def mapping():
     init_muscle_map_db()
     displayed_exercises = _get_exercises_to_display()
     muscle_group_field = ExerciseMappingForm()
@@ -95,7 +95,7 @@ def record_exercises():
 
     if request.method == "GET" or not muscle_group_field.is_submitted():
         return render_template(
-            "categorize_exercises.html",
+            "exercise_mapping.html",
             exercises=displayed_exercises,
             muscle_group_field=muscle_group_field,
         )
@@ -116,7 +116,7 @@ def record_exercises():
     new_displayed_exercises = _get_exercises_to_display()
 
     return render_template(
-        "categorize_exercises.html",
+        "exercise_mapping.html",
         exercises=new_displayed_exercises,
         muscle_group_field=muscle_group_field,
     )

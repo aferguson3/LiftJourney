@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Set Exercise Categories</title>
+	{% import './macros/_css_styles.html' as css_styles %}
+	{{ css_styles.setup() }}
+</head>
+<body>
+<div id="main-content">
+	{% import './macros/_navbar.html' as navbar %}
+	{{ navbar.content() }}
+	<div id="exercise-list">
+		<form method="post">
+			{{ muscle_group_field.csrf_token }}
+			<div id="form-header" style="display:flex; align-items:center;">
+				<h2 style="margin-right:10px;">Set Exercise Categories</h2>
+				<button id="submit-exercises" type="submit">Submit</button>
+			</div>
+
+			{% for cur_exercise in exercises %}
+			<div id="exercise-select">
+				<label for="{{cur_exercise}}">{{cur_exercise}}</label>
+				<select id="{{cur_exercise}}" name="{{cur_exercise}}">
+					{% for name, value in muscle_group_field.categories.choices %}
+					<option name="{{name}}">{{value}}</option>
+					{% endfor %}
+				</select>
+			</div>
+			{% endfor %}
+		</form>
+	</div>
+</div>
+</body>
+</html>

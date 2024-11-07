@@ -1,12 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{{title | title}}</title>
+	<meta charset="UTF-8">
+	<title>{{title | title}}</title>
+	{% import './macros/_css_styles.html' as css_styles %}
+	{{ css_styles.setup() }}
 </head>
 <body>
-<div>
-    {{body}}
+<div id="main-content">
+	<a> {{body}} </a>
+	{% if body == 'Success' %}
+	<a hx-get="/"
+	   hx-push-url="true"
+	   hx-swap="outerHTML"
+	   hx-target="#main-content"
+	   hx-trigger="revealed delay:3000ms"
+	></a>
+	{% endif %}
 </div>
 </body>
 </html>

@@ -51,7 +51,7 @@ def timer(func: Callable[..., ...]):
 
 
 def filepath_validation(filepath: str):
-    if isinstance(filepath, str):
+    if not isinstance(filepath, str):
         raise TypeError(f"{filepath} is invalid filepath.")
 
     if not pathlib.Path(filepath).is_file():

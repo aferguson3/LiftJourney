@@ -10,7 +10,7 @@ from sqlalchemy import select
 from backend.server.config import db
 from backend.server.models import WorkoutDB
 from backend.server.models.MuscleMapDB import MuscleMapDB
-from backend.server.models.forms import ExerciseMappingForm
+from backend.server.models.forms import ExerciseMappingForm, LoginForm
 from backend.server.routes.database import new_workout_entries
 from backend.server.utils import get_sets_df, get_exercise_info
 from backend.src.dataframe_accessors import (
@@ -109,6 +109,13 @@ def service():
     return render_template(
         "base.html", body=f"startDate: {start_date}, weeks: {weeks_of_workouts}"
     )
+
+
+@service_bp.route("/test1")
+@service_bp.route("/test2")
+def remove_test():
+    form = LoginForm()
+    return render_template("login/login.html", form=form)
 
 
 @service_bp.route("/graph", methods=["GET", "POST"])

@@ -1,4 +1,5 @@
 import logging
+import pathlib
 from enum import Enum
 
 from flask_caching import Cache
@@ -34,7 +35,9 @@ logger = logging.getLogger(__name__)
 def db_config(db_, app_):
     try:
         db_.create_all()
-        logger.info(f"DB URI: {app_.config.get('SQLALCHEMY_DATABASE_URI')}")
+        logger.info(
+            f"DB Name: {pathlib.Path(app_.config.get('SQLALCHEMY_DATABASE_URI')).name}"
+        )
     except OperationalError:
         raise FileNotFoundError(
             f"Unable to open DB URI: {app_.config.get('SQLALCHEMY_DATABASE_URI')}"

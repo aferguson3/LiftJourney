@@ -49,7 +49,7 @@ def login():
     if not login_form.validate_on_submit():
         if request.method == "POST":
             logger.debug(f"Errors: {login_form.form_errors}")
-        return render_template("login.html", form=login_form)
+        return render_template("login/login.html", form=login_form)
 
     if oauth_tokens_exist is False:
         email = login_form.email.data
@@ -59,7 +59,7 @@ def login():
         if _resp_or_none is not None:
             return _resp_or_none
 
-    return render_template("login.html", form=login_form)
+    return render_template("login/login.html", form=login_form)
 
 
 def _validate_mfa_code(mfa_code: str, cur_client: garth.Client = client) -> str | None:
@@ -78,7 +78,7 @@ def get_mfa_code():
     if request.method == "GET" or not mfa_form.validate_on_submit:
         if request.method == "POST":
             logger.debug(f"{mfa_form.errors}")
-        return render_template("mfa_code.html", form=mfa_form)
+        return render_template("login/mfa_code.html", form=mfa_form)
 
     _resp_or_none = _validate_mfa_code(mfa_form.mfa_code.data, client)
     if _resp_or_none is not None:

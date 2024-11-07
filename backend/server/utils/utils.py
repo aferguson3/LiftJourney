@@ -35,7 +35,7 @@ def _get_dataframe_index(workout_ids: list) -> list[Tuple]:
             .where(ExerciseSetDB.workout_id == int(cur_workout_id))
             .values(date=cur_workout_date)
         )
-        db.session.commit()
+    db.session.commit()
     return index_2d
 
 

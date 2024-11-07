@@ -4,9 +4,14 @@ statues_bp = Blueprint("statues_bp", __name__, url_prefix="")
 
 
 @statues_bp.route("/")
-def hello():
-    return render_template("base.html", body="Hello, world!")
+def home_page():
+    return render_template("home/index.html")
 
 
 def page_not_found(e):
-    return render_template("not_found.html", msg="404 - Page Not Found"), 404
+    return (
+        render_template(
+            "base.html", body="404 - Page Not Found", title="404 - Page Not Found"
+        ),
+        404,
+    )

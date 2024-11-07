@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Home</title>
+	{% import './macros/_css_styles.html' as css_styles %}
+	{{ css_styles.setup() }}
+</head>
+<body>
+<div id="main-content">
+	{% import './macros/_navbar.html' as navbar %}
+	{{ navbar.content() }}
+	<h1>Welcome to LiftJourney</h1>
+</div>
+</body>
+</html>

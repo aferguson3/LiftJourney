@@ -1,14 +1,23 @@
-let exercise_info = JSON.parse(
-    document.getElementById("exercise_info")
-        .value
-)
+exercise_info = () => {
+    console.log("Getting information")
+    return JSON.parse(
+        document.getElementById("exercise_info").value
+    )
 
-const category_query = document.getElementById("categories")
-category_query.addEventListener("change", onMuscleGroupChange)
+}
+category_query = () => {
+    let x = document.getElementById("categories")
+    x.addEventListener("change", onMuscleGroupChange)
+    return x
+}
 
-const exercise_query = document.getElementById("exercises")
-exercise_query.addEventListener("change", onExercisesChange)
-
+exercise_query = () => {
+    let x = document.getElementById("exercises")
+    x.addEventListener("change", onExercisesChange)
+    return x
+}
+category_query()
+exercise_query()
 
 function createOption(select_element, text, value) {
     let new_option = document.createElement('option');
@@ -20,14 +29,14 @@ function createOption(select_element, text, value) {
 function onMuscleGroupChange() {
     let categories_select = document.getElementById("categories");
     let reps_ranges_select = document.getElementById("rep_ranges");
-
+    console.log("Muscle group changing...")
     changeExerciseOptions(categories_select.selectedOptions[0].label)
     reps_ranges_select.replaceChildren();
 }
 
 function onExercisesChange() {
     let exercise_name_select = document.getElementById("exercises");
-
+    console.log("Exercise changing...")
     changeRepsOptions(exercise_name_select.selectedOptions[0].label)
 }
 
@@ -37,7 +46,7 @@ function changeExerciseOptions(category) {
 
     exercise_name_select.replaceChildren();
     exercise_name_select.setAttribute('style', "visibility: visible;")
-    createOption(exercise_name_select, "-- Select a Category --", "");
+    createOption(exercise_name_select, "", "");
 
     for (let exercise_name in exercise_info_dict) {
         let display_name = exercise_name.replaceAll("_", " ").toUpperCase();
@@ -45,6 +54,7 @@ function changeExerciseOptions(category) {
             createOption(exercise_name_select, display_name, exercise_name);
         }
     }
+    console.log("Exercise changing...")
 }
 
 function changeRepsOptions(exercise_name) {
@@ -60,4 +70,5 @@ function changeRepsOptions(exercise_name) {
     for (let i = 0; i < new_rep_ranges.length; i++) {
         createOption(reps_ranges_select, new_rep_ranges[i], new_rep_ranges[i]);
     }
+    console.log("Reps changing...")
 }
