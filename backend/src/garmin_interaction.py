@@ -37,20 +37,22 @@ def load_garmin_from_env():
         garth.save(str(CREDS_PATH))
 
 
-def load_garmin_client(filepath=None) -> int:
+def load_oauth_tokens(filepath=None) -> bool:
     """
-
-    :return: 0: success, 1: No OAuth tokens
+    Attempts to load Garmin OAuth Tokens or creates
+    :param filepath:
+    :return:
     """
     filepath_ = filepath if filepath is not None else CREDS_PATH
     try:
         garth.resume(str(filepath_))
         logger.info("0Auth tokens found. Login successful.")
-        return 0
+        return True
     except FileNotFoundError:
         if not pathlib.Path.exists(filepath_):
             pathlib.Path.mkdir(filepath_)
-        return 1
+            logger.info(f"No OAuth Tokens found.")
+        return False
 
 
 # Gathers all fitness activities by date

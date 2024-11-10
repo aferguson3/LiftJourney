@@ -17,11 +17,11 @@ def register_blueprints(app_: Flask):
 
 def create_app(
     db_: SQLAlchemy = db, cache_: Cache = cache, app_config: str | None = None
-):
+) -> Flask:
     """
     :param db_:
     :param cache_:
-    :param app_config: "base", "debug", or "prod". Default: "base"
+    :param app_config: "base", "debug", "prod", "test". Default: "base"
     :return:
     """
 
@@ -36,7 +36,6 @@ def create_app(
 
     with curr_app.app_context():
         db_config(db_, curr_app)
-    # cache.clear()
     register_blueprints(curr_app)
 
     return curr_app
