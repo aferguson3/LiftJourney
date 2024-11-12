@@ -9,3 +9,5 @@
 /.env
 **/data/*
 **/templates/*DATA*.html
+
+**/LiftJourney.egg-info
