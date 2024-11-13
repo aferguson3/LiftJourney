@@ -5,7 +5,7 @@ import pytest
 
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout, ExerciseSet
-from backend.tests.sample_data import sets1, sets2, sets3
+from tests.sample_data import sets1, sets2, sets3
 
 
 class TestManageWorkouts:
@@ -36,11 +36,16 @@ class TestManageWorkouts:
     def test_workouts_to_dict(self):
         assert Manager.workouts_to_dict(self.all_workouts)["workouts"] is not None
         assert Manager.workouts_to_dict([self.workout1])["workouts"] is not None
-        assert Manager.workouts_to_dict([self.workout1, self.workout2])["workouts"] is not None
+        assert (
+            Manager.workouts_to_dict([self.workout1, self.workout2])["workouts"]
+            is not None
+        )
 
     def test_dump_to_json_valid(self, tmp_path):
-        _sets = [ExerciseSet(exerciseName="PULL UPS", numReps=10, duration_secs=150),
-                 ExerciseSet(exerciseName="BENCH", numReps=5, duration_secs=10, weight=100)]
+        _sets = [
+            ExerciseSet(exerciseName="PULL UPS", numReps=10, duration_secs=150),
+            ExerciseSet(exerciseName="BENCH", numReps=5, duration_secs=10, weight=100),
+        ]
         self.workout1.sets = _sets
         # Create a temporary directory for the test
         temp_file = os.path.join(tmp_path, "test.json")
@@ -57,7 +62,9 @@ class TestManageWorkouts:
     def test_dump_to_json_file_not_found(self):
         with pytest.raises(FileNotFoundError):
             # Call the function with a non-existent filepath
-            Manager.dump_to_json(self.workout1.asdict(), "/path/to/nonexistent/file.json", "w")
+            Manager.dump_to_json(
+                self.workout1.asdict(), "/path/to/nonexistent/file.json", "w"
+            )
 
     # Test function for TypeError
     def test_dump_to_json_type_error(self, tmp_path):
@@ -71,23 +78,32 @@ class TestManageWorkouts:
     def test_dump_to_json_invalid_option(self, tmp_path):
         with pytest.raises(ValueError):
             # Call the function with an invalid option
-            Manager.dump_to_json(self.workout1.asdict(), os.path.join(tmp_path, "test.json"), "x")
+            Manager.dump_to_json(
+                self.workout1.asdict(), os.path.join(tmp_path, "test.json"), "x"
+            )
 
     @pytest.fixture
     def test_metadata(self):
-        metadata = {"numWorkouts": "", "filepath": "",
-                    "dates": {"firstWorkout": "", "lastWorkout": ""},
-                    "start": 0, "limit": 0
-                    }
+        metadata = {
+            "numWorkouts": "",
+            "filepath": "",
+            "dates": {"firstWorkout": "", "lastWorkout": ""},
+            "start": 0,
+            "limit": 0,
+        }
         return metadata
 
     def test_dump_to_json_correct_metadata(self, tmp_path, test_metadata):
         _metadata = test_metadata
-        _metadata["filepath"] = os.path.join(tmp_path, 'metadata.json')
+        _metadata["filepath"] = os.path.join(tmp_path, "metadata.json")
 
-        sorted_workouts = Manager.sort_workouts(self.all_workouts, 'datetime')
-        Manager.dump_to_json(Manager.workouts_to_dict(sorted_workouts), os.path.join(tmp_path, "test.json"), 'w',
-                             _metadata)
+        sorted_workouts = Manager.sort_workouts(self.all_workouts, "datetime")
+        Manager.dump_to_json(
+            Manager.workouts_to_dict(sorted_workouts),
+            os.path.join(tmp_path, "test.json"),
+            "w",
+            _metadata,
+        )
 
         with open(os.path.join(tmp_path, "metadata.json")) as file:
             metadata = json.load(file)
@@ -101,17 +117,31 @@ class TestManageWorkouts:
         # Test for FileNotFoundError for metadata
         metadata = test_metadata
         with pytest.raises(FileNotFoundError):
-            Manager.dump_to_json(Manager.workouts_to_dict([self.workout1]), os.path.join(tmp_path, "test.json"), "w",
-                                 metadata)
+            Manager.dump_to_json(
+                Manager.workouts_to_dict([self.workout1]),
+                os.path.join(tmp_path, "test.json"),
+                "w",
+                metadata,
+            )
 
     @pytest.fixture
     def sample_json_data_file(self, tmp_path):
         data = {
             "workouts": [
-                {"activityId": "123", "category": "Strength", "datetime": "2024-02-22T10:00:00", "name": "Workout 1",
-                 "sets": []},
-                {"activityId": "456", "category": "Cardio", "datetime": "2024-02-23T10:00:00", "name": "Workout 2",
-                 "sets": []}
+                {
+                    "activityId": "123",
+                    "category": "Strength",
+                    "datetime": "2024-02-22T10:00:00",
+                    "name": "Workout 1",
+                    "sets": [],
+                },
+                {
+                    "activityId": "456",
+                    "category": "Cardio",
+                    "datetime": "2024-02-23T10:00:00",
+                    "name": "Workout 2",
+                    "sets": [],
+                },
             ]
         }
         file_path = os.path.join(tmp_path, "test.json")
@@ -153,13 +183,24 @@ class TestManageWorkouts:
         setsData = Manager.view_sets_from_workouts(self.all_workouts)
 
         assert setsData is not None
-        assert len(setsData["duration_secs"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(
-            self.workout3.sets)
-        assert len(setsData["exerciseName"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(
-            self.workout3.sets)
-        assert len(setsData["numReps"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(self.workout3.sets)
-        assert len(setsData["targetReps"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(
-            self.workout3.sets)
-        assert len(setsData["startTime"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(self.workout3.sets)
-        assert len(setsData["stepIndex"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(self.workout3.sets)
-        assert len(setsData["weight"]) == len(self.workout1.sets) + len(self.workout2.sets) + len(self.workout3.sets)
+        assert len(setsData["duration_secs"]) == len(self.workout1.sets) + len(
+            self.workout2.sets
+        ) + len(self.workout3.sets)
+        assert len(setsData["exerciseName"]) == len(self.workout1.sets) + len(
+            self.workout2.sets
+        ) + len(self.workout3.sets)
+        assert len(setsData["numReps"]) == len(self.workout1.sets) + len(
+            self.workout2.sets
+        ) + len(self.workout3.sets)
+        assert len(setsData["targetReps"]) == len(self.workout1.sets) + len(
+            self.workout2.sets
+        ) + len(self.workout3.sets)
+        assert len(setsData["startTime"]) == len(self.workout1.sets) + len(
+            self.workout2.sets
+        ) + len(self.workout3.sets)
+        assert len(setsData["stepIndex"]) == len(self.workout1.sets) + len(
+            self.workout2.sets
+        ) + len(self.workout3.sets)
+        assert len(setsData["weight"]) == len(self.workout1.sets) + len(
+            self.workout2.sets
+        ) + len(self.workout3.sets)

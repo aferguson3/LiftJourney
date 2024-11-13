@@ -1,8 +1,7 @@
 **/creds
-**/tests
 **/*.pyc
 **/__pycache__
 **/.pytest_cache
 
-#**/data
+**/data
 **/*DATA*.html

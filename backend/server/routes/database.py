@@ -44,7 +44,7 @@ def new_workout_entries(workouts: list[Workout]):
     if not isinstance(workouts[0], Workout):
         raise ValueError(f"{type(workouts[0])} is not type Workout")
 
-    cache.delete("get_sets_df")
+    cache.delete("sets_df")
     workoutsDB = WorkoutDB.list_to_workoutsDB(workouts)
 
     for wo in workoutsDB:
@@ -74,7 +74,7 @@ def initialize_db():
 
 
 @database_bp.route("/workouts/<int:ID>")
-def user_by_id(ID):
+def user_by_id(ID: int):
     result = db.get_or_404(WorkoutDB, ID)
     return render_template("base.html", body=f"{result}")
 

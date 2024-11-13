@@ -21,8 +21,8 @@ def create_app(
     """
     :param db_:
     :param cache_:
-    :param app_config: "base", "debug", "prod", "test". Default: "base"
-    :return:
+    :param app_config: Defines the config type of the Flask environment. Options: base, debug, prod, and test.  Defaults to ``base``
+    :return: ``Flask`` instance
     """
 
     app_config = app_config_selection(app_config)
