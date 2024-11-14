@@ -32,7 +32,7 @@ def db_config(db_, app_):
         )
 
 
-def app_config_selection(selection: str = None) -> BaseConfig:
+def app_config_selection(selection: str = None, **kwargs) -> BaseConfig:
     if selection is None:
         curr_config = BaseConfig()
         logger.info(f"App Config: {type(curr_config)}")
@@ -43,19 +43,19 @@ def app_config_selection(selection: str = None) -> BaseConfig:
 
     match selection.upper():
         case "BASE":
-            curr_config = BaseConfig()
+            curr_config = BaseConfig(**kwargs)
             LOGGING_LEVEL = logging.WARN
         case "DEBUG":
-            curr_config = DebugConfig()
+            curr_config = DebugConfig(**kwargs)
             LOGGING_LEVEL = logging.DEBUG
         case "PROD":
-            curr_config = ProdConfig()
+            curr_config = ProdConfig(**kwargs)
             LOGGING_LEVEL = logging.WARN
         case "TEST":
-            curr_config = TestConfig()
+            curr_config = TestConfig(**kwargs)
             LOGGING_LEVEL = logging.DEBUG
         case _:
-            curr_config = BaseConfig()
+            curr_config = BaseConfig(**kwargs)
             LOGGING_LEVEL = logging.WARN
 
     logging.basicConfig(level=LOGGING_LEVEL)

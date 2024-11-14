@@ -16,7 +16,7 @@ def register_blueprints(app_: Flask):
 
 
 def create_app(
-    db_: SQLAlchemy = db, cache_: Cache = cache, app_config: str | None = None
+    db_: SQLAlchemy = db, cache_: Cache = cache, app_config: str | None = None, **kwargs
 ) -> Flask:
     """
     :param db_:
@@ -25,7 +25,7 @@ def create_app(
     :return: ``Flask`` instance
     """
 
-    app_config = app_config_selection(app_config)
+    app_config = app_config_selection(app_config, **kwargs)
     curr_app = Flask(__name__)
     curr_app.config.from_object(app_config)
 
@@ -42,4 +42,4 @@ def create_app(
 
 
 if __name__ == "__main__":
-    app = create_app(db, cache)
+    app = create_app(db, cache, uri_type="IN_MEMORY_DB")
