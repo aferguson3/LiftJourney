@@ -4,6 +4,7 @@ import pytest
 from garth import Client
 
 from backend.server.app import create_app
+# noinspection PyProtectedMember
 from backend.server.routes.auth import _validate_login
 
 LOGIN_PATH = "/login"

@@ -17,7 +17,7 @@ function createOption(select_element, text, value) {
     select_element.add(new_option);
 }
 
-function onMuscleGroupChange(event) {
+function onMuscleGroupChange() {
     let categories_select = document.getElementById("categories");
     let reps_ranges_select = document.getElementById("rep_ranges");
 
@@ -25,7 +25,7 @@ function onMuscleGroupChange(event) {
     reps_ranges_select.replaceChildren();
 }
 
-function onExercisesChange(event) {
+function onExercisesChange() {
     let exercise_name_select = document.getElementById("exercises");
 
     changeRepsOptions(exercise_name_select.selectedOptions[0].label)

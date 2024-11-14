@@ -223,7 +223,7 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
         garmin_data = garth.connectapi(
             f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts"
         )
-        if garmin_data is None:  # TODO: ???? WHY
+        if garmin_data is None:  # Checks workout data's present
             print(f"{wo.datetime}")
             continue
         garmin_data = garmin_data[0]

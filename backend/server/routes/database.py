@@ -18,7 +18,7 @@ def _isNewWorkoutEntry(entry: WorkoutDB) -> bool:
     result = (
         db.session.execute(
             select(WorkoutDB.activityId).where(
-                WorkoutDB.activityId == int(entry.activityId)
+                WorkoutDB.activityId is int(entry.activityId)
             )
         )
         .scalars()
@@ -31,7 +31,7 @@ def _isNewExerciseEntry(entry: MuscleMapDB) -> bool:
     result = (
         db.session.execute(
             select(MuscleMapDB.exerciseName).where(
-                MuscleMapDB.exerciseName == str(entry.exerciseName)
+                MuscleMapDB.exerciseName is str(entry.exerciseName)
             )
         )
         .scalars()

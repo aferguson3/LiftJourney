@@ -41,7 +41,8 @@ def service():
     args = request.args
     weeks_of_workouts = args.get("weeks", default=10, type=int)
     start_date = args.get(
-        "startDate", default=None, type=str
+        "startDate",
+        default=None,
     )  # provide start date or use the first date in DB
 
     if start_date is None:

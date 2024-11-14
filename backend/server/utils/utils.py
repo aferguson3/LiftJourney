@@ -30,7 +30,7 @@ def _get_dataframe_index(workout_ids: list) -> list[Tuple]:
         for cur_set_number in list(range(1, len(cur_sets) + 1)):
             index_2d.append((cur_workout_date, cur_set_number))
 
-        db.session.execute(  # TODO: only update when empty
+        db.session.execute(
             update(ExerciseSetDB)
             .where(ExerciseSetDB.workout_id == int(cur_workout_id))
             .values(date=cur_workout_date)

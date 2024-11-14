@@ -11,7 +11,7 @@ class Endpoints:
     garmin_connect_activity_types = "/activity-service/activity/activityTypes"
     # /activity-service/activity/{activityID}/{path} Endpoints
     # path =
-    #   "": gives health stats (cals, hr, sets, activityName, etc) from the activity
+    #   "": gives health stats (cals, hr, sets, activityName, etc.) from the activity
     #   "exerciseSets": recorded sets from the workout session
     #   "workouts": provides the workout name and planned exercises
     #   "typedsplits", "split_summaries", "details", "connectIQDisplayInfo", "jumpDetails", "powerTimeInZones",

@@ -66,13 +66,15 @@ def get_mfa_code():
             logger.debug(f"{mfa_form.errors}")
         return render_template("mfa_code.html", form=mfa_form)
 
-    return _validate_mfa_code(mfa_form.mfa_code.data)
+    _resp_or_none = _validate_mfa_code(mfa_form.mfa_code.data, client)
+    if _resp_or_none is not None:
+        return _resp_or_none
 
 
-def _validate_mfa_code(mfa_code: str, cur_client: garth.Client = client):
-    _error = mfa_authentication(session["csrf_garmin"], cur_client, mfa_code)
+def _validate_mfa_code(mfa_code: str, cur_client: garth.Client = client) -> str | None:
+    error = mfa_authentication(session["csrf_garmin"], cur_client, mfa_code)
 
-    if _error is None:
+    if error is None:
         return render_template("base.html", body="Success", title="MFA Code")
     else:
-        return render_template("mfa_code.html", form=mfa_form)
+        logger.info(error)

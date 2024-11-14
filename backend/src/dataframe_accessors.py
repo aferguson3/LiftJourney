@@ -72,7 +72,7 @@ def plot_dataframe(
         fig = make_subplots(2, 1, shared_xaxes=True)
         filepath_validation(filepath)
         _setup_plot_formatting(plot_df, plotting_exercise, flask_mode, fig=fig)
-        fig_as_div = write_html(fig, file=filepath)
+        write_html(fig, file=filepath)
 
 
 def _setup_plot_formatting(
