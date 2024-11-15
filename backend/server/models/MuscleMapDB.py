@@ -4,7 +4,7 @@ MUSCLE_GROUPS_LIST = sorted(["Arms", "Chest", "Core", "Back", "Legs", "Shoulders
 
 
 class MuscleMapDB(db.Model):
-    __tablename__ = "exercises"
+    __tablename__ = "muscle_map"
     id = db.Column(db.Integer, primary_key=True)
     exerciseName = db.Column(db.String(100))
     category = db.Column(db.String(50))

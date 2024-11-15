@@ -9,6 +9,7 @@ from backend.server.models.MuscleMapDB import MuscleMapDB
 from backend.server.models.WorkoutDB import WorkoutDB, workoutsDB_to_dict
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
 from backend.src.models import Workout
+from backend.src.utils import filepath_validation
 
 logger = logging.getLogger(__name__)
 database_bp = Blueprint("database_bp", __name__, url_prefix="/db")
@@ -66,11 +67,16 @@ def new_exercise_entries(values: list[MuscleMapDB]):
 def initialize_db():
     # purely initializing DB with stored workouts, NOT updating old entries
     app_directory = APP_DIRECTORY.parent
-    Datafile = app_directory.parent / "src" / "data" / "workout_data.json"
-    workouts = Manager.load_workouts(str(Datafile))
-    new_workout_entries(workouts)
+    datefile = app_directory.parent / "src" / "data" / "workout_data.json"
+    load_db_from_file(datefile)
 
     return render_template("base.html", body="Done"), 200
+
+
+def load_db_from_file(datafile: str):
+    filepath_validation(datafile)
+    workouts = Manager.load_workouts(str(datafile))
+    new_workout_entries(workouts)
 
 
 @database_bp.route("/workouts/<int:ID>")

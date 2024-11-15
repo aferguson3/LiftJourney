@@ -36,7 +36,6 @@ def _db_uri_selection(uri_type: str):
             case _:
                 raise RuntimeError(f"Invalid DB URI: {uri_type} was used.")
 
-        print(uri_type)
         return selected_URI
     else:
         logger.debug(f"{uri_type} is not str type")

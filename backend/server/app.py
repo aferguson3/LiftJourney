@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from backend.server.config.config import app_config_selection, db, cache, db_config
 from backend.server.routes import *
+from backend.server.routes.status_codes import page_not_found
 
 
 def register_blueprints(app_: Flask):
@@ -37,9 +38,11 @@ def create_app(
     with curr_app.app_context():
         db_config(db_, curr_app)
     register_blueprints(curr_app)
+    curr_app.register_error_handler(404, page_not_found)
 
     return curr_app
 
 
 if __name__ == "__main__":
-    app = create_app(db, cache, uri_type="IN_MEMORY_DB")
+    app = create_app(db, cache)
+    app.run(debug=True)

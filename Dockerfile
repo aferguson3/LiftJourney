@@ -10,7 +10,7 @@ RUN pip install -r requirements.txt
 RUN useradd -ms /bin/bash app
 COPY --chmod=777 backend ./backend
 RUN chown -R app:app .
-EXPOSE 3003
+EXPOSE 3000
 USER app
 
 CMD ["gunicorn", "-c", "gunicorn.conf.py"]

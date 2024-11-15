@@ -68,7 +68,7 @@ def get_mfa_code():
 
     _resp_or_none = _validate_mfa_code(mfa_form.mfa_code.data, client)
     if _resp_or_none is not None:
-        return _resp_or_none
+        return _resp_or_none, 302
 
 
 def _validate_mfa_code(mfa_code: str, cur_client: garth.Client = client) -> str | None:

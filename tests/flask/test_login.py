@@ -3,20 +3,12 @@ from unittest.mock import patch
 import pytest
 from garth import Client
 
-from backend.server.app import create_app
-
 # noinspection PyProtectedMember
 from backend.server.routes.auth import _validate_login
+from tests.flask import client
 
 LOGIN_PATH = "/login"
 MFA_PATH = "/mfa_code"
-
-
-@pytest.fixture
-def client():
-    app = create_app(app_config="test")
-    with app.test_client() as client:
-        yield client
 
 
 @pytest.fixture

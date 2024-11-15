@@ -8,6 +8,5 @@ def hello():
     return render_template("base.html", body="Hello, world!")
 
 
-@statues_bp.errorhandler(404)
-def not_found(*args, **kwargs):
-    return render_template("not_found.html", msg="Not Found"), 404
+def page_not_found(e):
+    return render_template("not_found.html", msg="404 - Page Not Found"), 404
