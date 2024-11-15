@@ -1,7 +1,8 @@
 import io
 import logging
 import pathlib
-from datetime import datetime
+import re
+from datetime import datetime, date
 
 from flask import Blueprint, request, render_template, session, redirect, url_for, json
 from sqlalchemy import select
@@ -33,6 +34,50 @@ service_bp = Blueprint(
 )
 
 
+def _validate_start_date(start_date_arg: str) -> str:
+    VALID_ISOFORMAT = r"\d{4}[-]\d{2}[-]\d{2}"
+    today = date.today()
+    match = re.search(VALID_ISOFORMAT, str(start_date_arg))
+
+    if match is None:
+        logger.info(f"No valid iso format strings: '{start_date_arg}'")
+        return "ERROR: NO-MATCH"
+
+    _date_match = match.group(0)
+    try:
+        start_date: date = date.fromisoformat(_date_match)
+        if start_date > today:
+            logger.debug(f"{start_date} is in the future.")
+            start_date = today
+        return str(start_date)
+    except ValueError as e:
+        logger.debug(e)
+        return "ERROR: INVALID"
+
+
+def get_start_date(start_date_arg: str | None) -> str | None:
+    if start_date_arg is None:
+        pass
+
+    result = _validate_start_date(start_date_arg)
+    if result.find("ERROR") == -1:
+        return result
+
+    last_stored_workout_date = (
+        db.session.execute(
+            select(WorkoutDB.datetime).order_by(WorkoutDB.datetime.desc())
+        )
+        .scalars()
+        .first()
+    )
+    if last_stored_workout_date is None:
+        # no start date provided and empty DB
+        logger.info(ValueError("DB is empty. Please select a start date."))
+        return
+
+    return str(datetime.fromisoformat(last_stored_workout_date).date())
+
+
 # Uploads new workout entries
 # URL Args: startDate (YYYY-MM-DD), weeks
 @service_bp.route("/run", methods=["GET"])
@@ -40,31 +85,21 @@ service_bp = Blueprint(
 def service():
     args = request.args
     weeks_of_workouts = args.get("weeks", default=10, type=int)
-    start_date = args.get(
-        "startDate",
-        default=None,
-    )  # provide start date or use the first date in DB
+    start_date_arg = args.get("startDate")
 
-    if start_date is None:
-        result = (
-            db.session.execute(
-                select(WorkoutDB.datetime).order_by(WorkoutDB.datetime.desc())
-            )
-            .scalars()
-            .first()
+    start_date = get_start_date(start_date_arg)
+    if start_date is None:  # empty DB case
+        return render_template(
+            "base.html",
+            body=f"startDate: {start_date}, weeks: {weeks_of_workouts}",
         )
-        if result is None:  # no start date provided and empty DB
-            logger.info(ValueError("DB is empty. Please select a start date."))
-            return render_template(
-                "base.html", body=f"startDate: {start_date}, weeks: {weeks_of_workouts}"
-            )
-        start_date = datetime.fromisoformat(result).date()
-        logger.info(f"startDate: {start_date}, weeks: {weeks_of_workouts}")
 
+    logger.info(f"startDate: {start_date}, weeks: {weeks_of_workouts}")
     params = set_params_by_weeks(
         weeks_of_workouts=weeks_of_workouts, start_date=start_date
     )
     logger.info(params.items())
+
     workouts = run_service(params)
     if workouts is not None:
         new_workout_entries(workouts)

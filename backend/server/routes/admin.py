@@ -43,8 +43,6 @@ def _format_DB_exercise_names(values: list | str) -> list[str] | str:
 # clear: clefairy
 # record categories for exercises: caterpie
 # TODO: remove routes for prod
-
-
 @admin_bp.route("/clefairy")
 def clear_db():
     # Clears out Exercise Info
@@ -56,9 +54,15 @@ def clear_db():
     return render_template("base.html", body="DB Emptied")
 
 
+def _function():
+    db.session.execute(
+        select(MuscleMapDB.exerciseName).where(MuscleMapDB.exerciseName is not None)
+    )
+
+
 @admin_bp.route("/caterpie", methods=["GET", "POST"])
 def record_exercises():
-    categories = MUSCLE_GROUPS_LIST
+    muscle_groups = MUSCLE_GROUPS_LIST
     categorized_exercises = (
         (db.session.execute(select(MuscleMapDB.exerciseName))).scalars().all()
     )
@@ -74,7 +78,7 @@ def record_exercises():
         if exercise in displayed_exercises:
             displayed_exercises.remove(exercise)
     categories_field = FitnessSelectForm()
-    categories_field.set_choices(categories)
+    categories_field.set_choices(muscle_groups)
 
     if categories_field.is_submitted():
         exercise_entries = list()

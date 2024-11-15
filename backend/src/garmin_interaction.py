@@ -39,7 +39,7 @@ def load_garmin_from_env():
 
 def load_oauth_tokens(filepath=None) -> bool:
     """
-    Attempts to load Garmin OAuth Tokens or creates
+    Attempts to load Garmin OAuth Tokens or creates a directory to store tokens, if the ``filepath`` doesnt already exist.
     :param filepath:
     :return:
     """
