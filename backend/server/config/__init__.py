@@ -3,7 +3,21 @@ from backend.server.config.BaseConfig import (
     DebugConfig,
     ProdConfig,
     TestConfig,
+    ValidURITypes,
 )
-from backend.server.config.config import db, cache
+from backend.server.config.config import db, cache, FlaskConfigs
 
-__all__ = ["BaseConfig", "DebugConfig", "ProdConfig", "TestConfig", "db", "cache"]
+_config_globals_vars = [
+    "db",
+    "cache",
+]
+
+__all__ = [
+    "BaseConfig",
+    "DebugConfig",
+    "ProdConfig",
+    "TestConfig",
+    "FlaskConfigs",
+    "ValidURITypes",
+    _config_globals_vars,
+]

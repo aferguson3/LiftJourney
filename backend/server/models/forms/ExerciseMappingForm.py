@@ -8,7 +8,7 @@ def _pretty_str(name: str):
     return name.replace("_", " ")
 
 
-class FitnessSelectForm(FlaskForm):
+class ExerciseMappingForm(FlaskForm):
     categories = SelectField("Categories")
 
     def __init__(self, **kwargs):
@@ -16,6 +16,4 @@ class FitnessSelectForm(FlaskForm):
         self.set_choices(MUSCLE_GROUPS_LIST)
 
     def set_choices(self, options: list[str]):
-        self.categories.choices = [("", "-- Select a Category --")] + [
-            (name, _pretty_str(name)) for name in options
-        ]
+        self.categories.choices = [("None", "")] + [(name, name) for name in options]

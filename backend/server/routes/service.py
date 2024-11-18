@@ -10,7 +10,7 @@ from sqlalchemy import select
 from backend.server.config import db
 from backend.server.models import WorkoutDB
 from backend.server.models.MuscleMapDB import MuscleMapDB
-from backend.server.models.forms import FitnessSelectForm
+from backend.server.models.forms import ExerciseMappingForm
 from backend.server.routes.database import new_workout_entries
 from backend.server.utils import get_sets_df, get_exercise_info
 from backend.src.dataframe_accessors import (
@@ -118,7 +118,7 @@ def setup_graph():
     df.info(memory_usage=True, buf=buffer)
     logger.info(f"df memory usage: {buffer.getvalue()}")
 
-    fitness_select_form = FitnessSelectForm()
+    fitness_select_form = ExerciseMappingForm()
     muscle_map_entries: list[MuscleMapDB] = (
         (db.session.execute(select(MuscleMapDB))).scalars().all()
     )

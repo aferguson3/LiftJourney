@@ -1,7 +1,7 @@
 import logging
 
 from flask import Blueprint, render_template
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from backend.server import APP_DIRECTORY
 from backend.server.config import db, cache
@@ -55,11 +55,22 @@ def new_workout_entries(workouts: list[Workout]):
     db.session.commit()
 
 
-def new_exercise_entries(values: list[MuscleMapDB]):
+def new_muscle_maps(values: list[MuscleMapDB]):
     for exercise in values:
         if not _isNewExerciseEntry(exercise):
             continue
         db.session.add(exercise)
+    db.session.commit()
+
+
+def update_muscle_maps(values: list[MuscleMapDB]):
+    for value in values:
+        # noinspection PyTypeChecker
+        db.session.execute(
+            update(MuscleMapDB)
+            .where(MuscleMapDB.exerciseName == value.exerciseName)
+            .values(category=f"{value.category}")
+        )
     db.session.commit()
 
 

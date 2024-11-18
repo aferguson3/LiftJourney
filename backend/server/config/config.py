@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
@@ -10,6 +11,14 @@ from backend.server.config.BaseConfig import (
     ProdConfig,
     TestConfig,
 )
+
+
+class FlaskConfigs(Enum):
+    BASE = 1
+    DEBUG = 2
+    PROD = 3
+    TEST = 4
+
 
 db = SQLAlchemy()
 cache = Cache(
@@ -32,26 +41,26 @@ def db_config(db_, app_):
         )
 
 
-def app_config_selection(selection: str = None, **kwargs) -> BaseConfig:
-    if selection is None:
+def app_config_selection(app_config: str = None, **kwargs) -> BaseConfig:
+    if app_config is None:
         curr_config = BaseConfig()
         logger.info(f"App Config: {type(curr_config)}")
         return curr_config
 
-    if not isinstance(selection, str):
-        raise TypeError(f"Invalid app_config: {selection}")
+    if not isinstance(app_config, str):
+        raise TypeError(f"Invalid app_config: {app_config}")
 
-    match selection.upper():
-        case "BASE":
+    match app_config.upper():
+        case FlaskConfigs.BASE.name:
             curr_config = BaseConfig(**kwargs)
             LOGGING_LEVEL = logging.WARN
-        case "DEBUG":
+        case FlaskConfigs.DEBUG.name:
             curr_config = DebugConfig(**kwargs)
             LOGGING_LEVEL = logging.DEBUG
-        case "PROD":
+        case FlaskConfigs.PROD.name:
             curr_config = ProdConfig(**kwargs)
             LOGGING_LEVEL = logging.WARN
-        case "TEST":
+        case FlaskConfigs.TEST.name:
             curr_config = TestConfig(**kwargs)
             LOGGING_LEVEL = logging.DEBUG
         case _:

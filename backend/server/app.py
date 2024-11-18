@@ -26,9 +26,9 @@ def create_app(
     :return: ``Flask`` instance
     """
 
-    app_config = app_config_selection(app_config, **kwargs)
+    _app_config = app_config_selection(app_config, **kwargs)
     curr_app = Flask(__name__)
-    curr_app.config.from_object(app_config)
+    curr_app.config.from_object(_app_config)
 
     if curr_app.config["DEBUG"] is True:
         DebugToolbarExtension(curr_app)
@@ -44,5 +44,5 @@ def create_app(
 
 
 if __name__ == "__main__":
-    app = create_app(db, cache)
+    app = create_app(db, cache, uri_type="TEST_DB")
     app.run(debug=True)
