@@ -37,6 +37,12 @@ def load_garmin_from_env():
         garth.save(str(CREDS_PATH))
 
 
+def is_oauth_tokens_active():
+    return (
+        garth.client.oauth1_token is not None and garth.client.oauth2_token is not None
+    )
+
+
 def load_oauth_tokens(filepath=None) -> bool:
     """
     Attempts to load Garmin OAuth Tokens or creates a directory to store tokens, if the ``filepath`` doesnt already exist.
