@@ -9,13 +9,14 @@ IN_MEMORY_DB = "sqlite:///:memory:"
 TEST_URI = "sqlite:///" + str(APP_DIRECTORY / "data" / "test_workouts.db")
 ENV_PATH = APP_DIRECTORY.parents[1] / ".env"
 
-logger = logging.getLogger(__name__)
-
 
 class ValidURITypes(Enum):
     IN_MEMORY_DB = 1
     TEST_DB = 2
     MAIN_DB = 3
+
+
+logger = logging.getLogger(__name__)
 
 
 def _db_uri_selection(uri_type: str):
@@ -51,9 +52,9 @@ def _default_uri_type(uri_type: str, default_uri: str):
 class BaseConfig(object):
     SECRET_KEY = uuid.uuid4().hex
 
-    def __init__(self, uri_type: str = None, custom_uri=None):
+    def __init__(self, uri_type: str = None):
         """
-        :param uri_type: Options: IN_MEMORY_DB, TEST_DB, or MAIN_DB
+        :param uri_type: Uses the SQLAlchemy DB URI defined by the provided key. Default ``MAIN_DB``
         :type uri_type: str
         """
 
