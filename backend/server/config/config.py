@@ -46,7 +46,7 @@ def db_config(db_, app_):
 
 def app_config_selection(app_config: str = None, **kwargs) -> BaseConfig:
     if app_config is None:
-        curr_config = BaseConfig()
+        curr_config = BaseConfig(**kwargs)
         logger.info(f"App Config: {type(curr_config)}")
         return curr_config
 

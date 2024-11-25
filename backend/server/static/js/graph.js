@@ -1,23 +1,23 @@
-exercise_info = () => {
-    console.log("Getting information")
+exercise_info = function () {
     return JSON.parse(
         document.getElementById("exercise_info").value
     )
 
 }
-category_query = () => {
-    let x = document.getElementById("categories")
-    x.addEventListener("change", onMuscleGroupChange)
-    return x
+
+function clearSelects() {
+    if (document.getElementById("categories").value !== "None") {
+        document.getElementById("categories").value = "None"
+    }
+    document.getElementById("exercises").replaceChildren()
+    document.getElementById("rep_ranges").replaceChildren()
 }
 
-exercise_query = () => {
-    let x = document.getElementById("exercises")
-    x.addEventListener("change", onExercisesChange)
-    return x
+function changeSelects() {
+    document.addEventListener("DOMContentLoaded", clearSelects)
+    document.getElementById("categories").addEventListener("change", onCategoryChange)
+    document.getElementById("exercises").addEventListener("change", onExercisesChange)
 }
-category_query()
-exercise_query()
 
 function createOption(select_element, text, value) {
     let new_option = document.createElement('option');
@@ -26,24 +26,21 @@ function createOption(select_element, text, value) {
     select_element.add(new_option);
 }
 
-function onMuscleGroupChange() {
+function onCategoryChange() {
     let categories_select = document.getElementById("categories");
     let reps_ranges_select = document.getElementById("rep_ranges");
-    console.log("Muscle group changing...")
     changeExerciseOptions(categories_select.selectedOptions[0].label)
     reps_ranges_select.replaceChildren();
 }
 
 function onExercisesChange() {
     let exercise_name_select = document.getElementById("exercises");
-    console.log("Exercise changing...")
     changeRepsOptions(exercise_name_select.selectedOptions[0].label)
 }
 
 function changeExerciseOptions(category) {
     let exercise_name_select = document.getElementById("exercises");
-    let exercise_info_dict = exercise_info
-
+    let exercise_info_dict = exercise_info()
     exercise_name_select.replaceChildren();
     exercise_name_select.setAttribute('style', "visibility: visible;")
     createOption(exercise_name_select, "", "");
@@ -54,13 +51,12 @@ function changeExerciseOptions(category) {
             createOption(exercise_name_select, display_name, exercise_name);
         }
     }
-    console.log("Exercise changing...")
 }
 
 function changeRepsOptions(exercise_name) {
     let selected = exercise_name.toUpperCase().replaceAll(" ", "_");
     let reps_ranges_select = document.getElementById("rep_ranges");
-    let exercise_info_dict = exercise_info
+    let exercise_info_dict = exercise_info()
 
     reps_ranges_select.replaceChildren();
     reps_ranges_select.setAttribute('style', "visibility: visible;")
@@ -70,5 +66,4 @@ function changeRepsOptions(exercise_name) {
     for (let i = 0; i < new_rep_ranges.length; i++) {
         createOption(reps_ranges_select, new_rep_ranges[i], new_rep_ranges[i]);
     }
-    console.log("Reps changing...")
 }

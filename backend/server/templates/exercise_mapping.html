@@ -18,7 +18,7 @@
 				<button id="submit-exercises" type="submit">Submit</button>
 			</div>
 
-			{% for cur_exercise in exercises %}
+			{%- for cur_exercise in exercises -%}
 			<div id="exercise-select">
 				<label for="{{cur_exercise}}">{{cur_exercise}}</label>
 				<select id="{{cur_exercise}}" name="{{cur_exercise}}">
