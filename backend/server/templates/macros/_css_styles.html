@@ -1,8 +1,8 @@
 {% macro setup() %}
-<script src="https://unpkg.com/htmx.org@2.0.3"
+<script crossorigin="anonymous"
 		integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq"
-		crossorigin="anonymous"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/graph_params.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/muscle_groups.css') }}">
+		src="https://unpkg.com/htmx.org@2.0.3"></script>
+<link href="{{ url_for('static', filename='css/graph_params.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/muscle_groups.css') }}" rel="stylesheet">
+<link href=" {{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet">
 {% endmacro %}

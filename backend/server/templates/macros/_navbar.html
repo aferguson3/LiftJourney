@@ -1,26 +1,39 @@
 {% macro content() %}
-<nav class="navbar" id="navbar">
-	<div class="nav-links" hx-boost="true" hx-push-url="true">
-		<a href="/">
-			Home
-		</a>
-		<a href="{{ url_for('service_bp.setup_graph') }}">
-			Graph
-		</a>
-		<a href="{{ url_for('admin_bp.mapping') }}">
-			Muscle Mappings
-		</a>
-		<a href="/main/test1">
-			Trends
-		</a>
-		<a href="/main/run">
-			Run Service
-		</a>
-		<a href="{{ url_for('login_bp.login') }}">
-			Login
-		</a>
+<nav class="navbar flex items-center bg-background h-12 px-5 border-b-2 border-b-black justify-items-start"
+	 id="navbar">
+	<div class="nav-links flex gap-5" hx-boost="true" hx-push-url="true">
+		<div>
+			<a class="text-primary" href="/">
+				LiftJourney
+			</a>
+		</div>
+		<div>
+			<a class="text-primary" href="{{ url_for('service_bp.setup_graph') }}">
+				Graph
+			</a>
+		</div>
+		<div>
+			<a class="text-primary" href="{{ url_for('admin_bp.mapping') }}">
+				Muscle Mappings
+			</a>
+		</div>
+		<div>
+			<a class="text-primary" href="/main/test1">
+				Trends
+			</a>
+		</div>
+		<div>
+			<a class="text-primary" href="/main/run">
+				Run Service
+			</a>
+		</div>
+		<div>
+			<a class="text-primary" href="{{ url_for('login_bp.login') }}">
+				Login
+			</a>
+		</div>
 	</div>
-	<div class="profile">AA</div>
+
 </nav>
 {% endmacro %}
 

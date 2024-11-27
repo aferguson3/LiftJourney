@@ -6,9 +6,12 @@
 
 # Project Data
 **/creds/*
-/.env
+**/.env
 **/data/*
 **/templates/*DATA*.html
+**/css/tailwind.css
 
+# Package Dist
 **/LiftJourney.egg-info
 **/build/
+**/node_modules/

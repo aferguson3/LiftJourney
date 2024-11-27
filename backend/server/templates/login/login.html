@@ -12,15 +12,16 @@
 <div id="main-content">
 	{% import './macros/_navbar.html' as navbar %}
 	{{ navbar.content() }}
-
 	<div id="login">
 		{% from "./macros/_formhelpers.html" import render_field %}
-		<form class="login-form" method="post">
-			{{ form.csrf_token }}
-			{{ render_field(form.email) }}
-			{{ render_field(form.password) }}
-			<button type="submit">Submit</button>
-		</form>
+		<div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+			<form class="login-form space-y-6" method="post">
+				{{ form.csrf_token }}
+				{{ render_field(form.email) }}
+				{{ render_field(form.password) }}
+				<button type="submit">Submit</button>
+			</form>
+		</div>
 	</div>
 </div>
 {% endblock %}
