@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Enter MFA Code</title>
+	<title>MFA Code</title>
 	{% import './macros/_css_styles.html' as css_styles %}
 	{{ css_styles.setup() }}
 </head>
@@ -11,13 +11,22 @@
 {% import './macros/_navbar.html' as navbar %}
 {{ navbar.content() }}
 
-<div id="main-content">
+<div class="mt-10 w-80 mx-auto border-2 border-black" id="main-content">
+	<div id="mfa-headers">
+		<h1 class="text-center m-5 text-2xl">Multifactor Authentication</h1>
+	</div>
 	<div id="MFA-Code">
-		{% from "./macros/_formhelpers.html" import render_field %}
-		<form method="post">
+		<form class="gap-6 grid grid-cols-1 mb-5" method="post">
 			{{form.csrf_token}}
-			{{render_field(form.mfa_code)}}
-			<button type="submit">Submit</button>
+			<label class="block px-5">
+				<span>Enter the 6-digit MFA code</span>
+				<input class="w-full mx-auto bg-gray-100 rounded border-2" id="mfa_code" name="mfa_code" required
+					   type="text"
+					   value="">
+			</label>
+			<button class="rounded block border px-2 py-2 w-fit mx-auto bg-gray-100 border-2 hover:cursor-pointer"
+					type="submit">Submit
+			</button>
 		</form>
 	</div>
 </div>

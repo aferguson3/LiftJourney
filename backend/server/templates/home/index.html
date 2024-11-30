@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
+	<meta charset="UTF-8"/>
 	<title>Home</title>
-	{% import './macros/_css_styles.html' as css_styles %}
-	{{ css_styles.setup() }}
+	{% import './macros/_css_styles.html' as css_styles %} {{ css_styles.setup() }}
 </head>
 
 <body>
 <div id="main-content">
-	{% import './macros/_navbar.html' as navbar %}
-	{{ navbar.content() }}
-	<h1 class="text-2xl text-center">Welcome to LiftJourney</h1>
+	{% import './macros/_navbar.html' as navbar %} {{ navbar.content() }}
+	<h1 class="main-header text-2xl text-center">Welcome to LiftJourney</h1>
 </div>
 </body>
 </html>

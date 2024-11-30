@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@plugin "@tailwindcss/forms";
+
 @theme {
     --color-ivory: oklch(97.48% 0.0214 118.21) ;
     --color-spanish-orange: oklch(67.4% 0.1913 43.07);
@@ -10,5 +12,4 @@
     --color-primary: var(--color-ivory);
     --color-secondary: var(--color-black);
     --color-background: var(--color-dark-slate-gray);
-
 }
