@@ -12,22 +12,34 @@
 	{% import './macros/_navbar.html' as navbar %}
 	{{ navbar.content() }}
 
-	<div id="submit-form" style="display: block;">
-		<form id="exercise-form" method="post">
-			<label>Select a Category</label>
+	<div class="max-w-fit px-5 py-5" id="submit-form">
+		<form class="grid grid-cols-1 gap-3 max-w-fit" id="exercise-form" method="post">
 			{{ muscle_group_field.csrf_token }}
-			{{ muscle_group_field.categories }}
-			<label for="exercises">Select Exercise</label>
-			<select
-					id="exercises"
-					name="exercises"
-			></select>
-			<label for="rep_ranges">Select a Target Reps Filter</label>
-			<select
-					id="rep_ranges"
-					name="rep_ranges"
-			></select>
-			<button id="submit-btn" type="submit">Submit</button>
+			<label class="block">
+				<span>Muscle Group</span>
+				{{ muscle_group_field.categories(class="rounded") }}
+			</label>
+			<label class="block" id="exercises_label">
+				<span>Exercise</span>
+				<select
+						class="rounded"
+						id="exercises"
+						name="exercises"
+				></select>
+			</label>
+			<label class="block" id="rep_ranges_label">
+				<span>Target Reps Filter</span>
+				<select
+						class="rounded"
+						id="rep_ranges"
+						name="rep_ranges"
+				></select>
+			</label>
+			<button class="rounded bg-gray-100 items-start block border px-2 py-2 w-fit border-2 hover:cursor-pointer"
+					id="submit-btn"
+					type="submit">
+				Submit
+			</button>
 		</form>
 	</div>
 	<script src="{{ url_for('static',filename='js/graph.js') }}" type="text/javascript"></script>

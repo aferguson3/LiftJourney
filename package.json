@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build-css": "npx @tailwindcss/cli -i ./backend/server/static/src/tailwind.css  -o ./backend/server/static/css/tailwind.css --watch"
+    "build-css": "npx @tailwindcss/cli -i ./backend/server/static/src/tailwind.css  -o ./backend/server/static/css/tailwind.css --watch --minify"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.0.0-beta.4",

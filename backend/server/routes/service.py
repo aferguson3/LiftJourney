@@ -113,7 +113,7 @@ def service():
 
 @service_bp.route("/test1")
 @service_bp.route("/test2")
-def remove_test():
+def remove_test():  # TODO: remove
     form = LoginForm()
     return render_template("login/login.html", form=form)
 

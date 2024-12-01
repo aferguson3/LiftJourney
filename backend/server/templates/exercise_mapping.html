@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Set Exercise Categories</title>
+	<title>Muscle Mappings</title>
 	{% import './macros/_css_styles.html' as css_styles %}
 	{{ css_styles.setup() }}
 </head>
@@ -10,24 +10,31 @@
 <div id="main-content">
 	{% import './macros/_navbar.html' as navbar %}
 	{{ navbar.content() }}
-	<div id="exercise-list">
-		<form method="post">
+	<div class="mx-5 my-5" id="exercise-list">
+		<form class="space-y-5" method="post">
 			{{ muscle_group_field.csrf_token }}
-			<div id="form-header" style="display:flex; align-items:center;">
-				<h2 style="margin-right:10px;">Set Exercise Categories</h2>
-				<button id="submit-exercises" type="submit">Submit</button>
+			<div class="flex flex-row items-center gap-8 w-96" id="form-header">
+				<h1 class="text-2xl w-fit max-w-fit">Set Muscle Mappings</h1>
+				<button class="rounded block border px-2 py-2 w-fit max-w-fit bg-gray-100 border-2 hover:cursor-pointer"
+						id="submit-exercises"
+						type="submit">
+					Submit
+				</button>
 			</div>
 
-			{%- for cur_exercise in exercises -%}
-			<div id="exercise-select">
-				<label for="{{cur_exercise}}">{{cur_exercise}}</label>
-				<select id="{{cur_exercise}}" name="{{cur_exercise}}">
-					{% for name, value in muscle_group_field.categories.choices %}
-					<option name="{{name}}">{{value}}</option>
-					{% endfor %}
-				</select>
+			<div class="grid grid-cols-3 gap-2 w-fit" id="mappings">
+				{%- for cur_exercise in exercises -%}
+				<label class="">
+					<span>{{cur_exercise}}</span>
+					<select class="w-full rounded" id="{{cur_exercise}}"
+							name="{{cur_exercise}}">
+						{% for name, value in muscle_group_field.categories.choices %}
+						<option name="{{name}}">{{value}}</option>
+						{% endfor %}
+					</select>
+				</label>
+				{% endfor %}
 			</div>
-			{% endfor %}
 		</form>
 	</div>
 </div>

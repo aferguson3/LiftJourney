@@ -46,6 +46,7 @@ def new_workout_entries(workouts: list[Workout]):
         raise ValueError(f"{type(workouts[0])} is not type Workout")
 
     cache.delete("sets_df")
+    cache.delete("exercise_info")
     workoutsDB = WorkoutDB.list_to_workoutsDB(workouts)
 
     for wo in workoutsDB:
