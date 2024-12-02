@@ -7,7 +7,7 @@ from datetime import datetime, date
 from flask import Blueprint, request, render_template, session, redirect, url_for, json
 from sqlalchemy import select
 
-from backend.server.config import db
+from backend.server.config import db, cache
 from backend.server.models import WorkoutDB
 from backend.server.models.MuscleMapDB import MuscleMapDB
 from backend.server.models.forms import ExerciseMappingForm, LoginForm
@@ -126,20 +126,24 @@ def setup_graph():
     logger.info(f"df memory usage: {buffer.getvalue()}")
 
     fitness_select_form = ExerciseMappingForm()
-    muscle_map_entries: list[MuscleMapDB] = (
-        (db.session.execute(select(MuscleMapDB))).scalars().all()
-    )
-    all_muscle_maps = {
-        _dict["exerciseName"]: _dict["category"]
-        for _dict in [record.get_dict() for record in muscle_map_entries]
-    }
-    all_exercise_names = list_available_exercises(df)
-    exercise_info = get_exercise_info(all_exercise_names, df, all_muscle_maps)
+    if cache.get("exercise_info") is None:
+        muscle_map_entries: list[MuscleMapDB] = (
+            (db.session.execute(select(MuscleMapDB))).scalars().all()
+        )
+        all_muscle_maps = {
+            _dict["exerciseName"]: _dict["category"]
+            for _dict in [record.get_dict() for record in muscle_map_entries]
+        }
+        all_exercise_names = list_available_exercises(df)
+        exercise_info = get_exercise_info(all_exercise_names, df, all_muscle_maps)
+    else:
+        exercise_info = cache.get("exercise_info")
+        logging.debug('Cache used for key: exercise_info')
 
     if fitness_select_form.is_submitted():
         if any(
-            request.form.get(val) == ""
-            for val in ["categories", "exercises", "rep_ranges"]
+                request.form.get(val) == ""
+                for val in ["categories", "exercises", "rep_ranges"]
         ):
             logger.debug("Submission prevented -- null graph param(s)")
         else:
