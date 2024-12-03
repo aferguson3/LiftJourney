@@ -75,7 +75,7 @@ def _validate_mfa_code(mfa_code: str, cur_client: garth.Client = client) -> str 
 def get_mfa_code():
     mfa_form = MFAForm()
 
-    if request.method == "GET" or not mfa_form.validate_on_submit:
+    if request.method == "GET" or not mfa_form.validate_on_submit():
         if request.method == "POST":
             logger.debug(f"{mfa_form.errors}")
         return render_template("login/mfa_code.html", form=mfa_form)

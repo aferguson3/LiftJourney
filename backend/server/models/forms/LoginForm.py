@@ -16,7 +16,6 @@ class LoginForm(FlaskForm):
 
 def _valid_MFA_code(form, field):
     if str(field.data).isdigit():
-        pass
         if 100000 <= int(field.data) <= 999999:
             return
     raise ValidationError(f"{field.data} is invalid MFA code")

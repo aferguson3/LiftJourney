@@ -61,6 +61,7 @@ function changeRepsOptions(exercise_name) {
     reps_ranges_select.replaceChildren();
     reps_ranges_select.setAttribute('style', "visibility: visible;")
     let new_rep_ranges = exercise_info_dict[selected]['rep_ranges'];
+    createOption(reps_ranges_select, "", "")
     createOption(reps_ranges_select, "No Filter", "None")
 
     for (let i = 0; i < new_rep_ranges.length; i++) {

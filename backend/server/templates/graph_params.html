@@ -18,7 +18,7 @@
 			<div class="text-2xl w-fit max-w-full" id="header">
 				<span>Workout Progression</span>
 			</div>
-			<label class="block">
+			<label id="categories_label" class="block">
 				<span>Muscle Group</span>
 				{{ muscle_group_field.categories(class="rounded") }}
 			</label>
@@ -28,6 +28,7 @@
 						class="rounded"
 						id="exercises"
 						name="exercises"
+						required
 				></select>
 			</label>
 			<label class="block" id="rep_ranges_label">
@@ -36,6 +37,7 @@
 						class="rounded"
 						id="rep_ranges"
 						name="rep_ranges"
+						required
 				></select>
 			</label>
 			<button class="rounded bg-gray-100 items-start block border px-2 py-2 w-fit border-2 hover:cursor-pointer"
