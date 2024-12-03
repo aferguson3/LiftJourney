@@ -46,7 +46,6 @@ def new_workout_entries(workouts: list[Workout]):
         raise ValueError(f"{type(workouts[0])} is not type Workout")
 
     cache.delete("sets_df")
-    cache.delete("exercise_info")
     workoutsDB = WorkoutDB.list_to_workoutsDB(workouts)
 
     for wo in workoutsDB:
@@ -64,7 +63,7 @@ def new_muscle_maps(values: list[MuscleMapDB]):
     db.session.commit()
 
 
-def update_muscle_maps(values: list[MuscleMapDB]):
+def set_muscle_categories(values: list[MuscleMapDB]):
     for value in values:
         # noinspection PyTypeChecker
         db.session.execute(
@@ -72,6 +71,7 @@ def update_muscle_maps(values: list[MuscleMapDB]):
             .where(MuscleMapDB.exerciseName == value.exerciseName)
             .values(category=f"{value.category}")
         )
+    cache.delete("exercise_info")
     db.session.commit()
 
 

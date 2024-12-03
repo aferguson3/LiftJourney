@@ -7,7 +7,7 @@ from backend.server.config import db
 from backend.server.models import ExerciseSetDB, WorkoutDB
 from backend.server.models.MuscleMapDB import MUSCLE_GROUPS_LIST, MuscleMapDB
 from backend.server.models.forms import ExerciseMappingForm
-from backend.server.routes.database import update_muscle_maps, new_muscle_maps
+from backend.server.routes.database import set_muscle_categories, new_muscle_maps
 
 logger = logging.getLogger(__name__)
 admin_bp = Blueprint("admin_bp", __name__, url_prefix="/admin")
@@ -51,7 +51,7 @@ def clear_db():
     return render_template("base.html", body="DB Emptied")
 
 
-def init_muscle_map_db():
+def initialize_muscle_map_db():
     exerciseSetDB_exercise_names = select(ExerciseSetDB.exerciseName).distinct()
     muscleMapDB_exercise_names = select(MuscleMapDB.exerciseName).distinct()
     new_muscleMapDB_exercise_names: list = (
@@ -88,7 +88,7 @@ def _get_exercises_to_display():
 
 @admin_bp.route("/mapping", methods=["GET", "POST"])
 def mapping():
-    init_muscle_map_db()
+    initialize_muscle_map_db()
     displayed_exercises = _get_exercises_to_display()
     muscle_group_field = ExerciseMappingForm()
     muscle_group_field.set_choices(MUSCLE_GROUPS_LIST)
@@ -112,7 +112,7 @@ def mapping():
             )
             new_exercise_entries.append(new_muscle_map)
 
-    update_muscle_maps(new_exercise_entries)
+    set_muscle_categories(new_exercise_entries)
     new_displayed_exercises = _get_exercises_to_display()
 
     return render_template(

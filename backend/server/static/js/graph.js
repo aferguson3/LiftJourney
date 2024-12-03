@@ -67,3 +67,6 @@ function changeRepsOptions(exercise_name) {
         createOption(reps_ranges_select, new_rep_ranges[i], new_rep_ranges[i]);
     }
 }
+
+/* Main */
+changeSelects()
