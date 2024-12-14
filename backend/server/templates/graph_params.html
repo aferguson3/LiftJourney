@@ -2,9 +2,9 @@
 <html lang="en">
 <meta charset="UTF-8"/>
 <head>
-	<meta content="width=device-width" name="viewport"/>
 	<title>{% block title %} Workout Progression {% endblock %} </title>
 	{% import './macros/_css_styles.html' as css_styles %}
+	{{ css_styles.meta() }}
 	{{ css_styles.setup() }}
 </head>
 
