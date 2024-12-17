@@ -35,7 +35,7 @@ def _db_uri_selection(uri_type: str):
             case ValidURITypes.MAIN_DB.name:
                 selected_URI = DB_URI
             case _:
-                raise RuntimeError(f"Invalid DB URI: {uri_type} was used.")
+                raise RuntimeError(f"Invalid URI Type: '{uri_type}' was used.")
 
         return selected_URI
     else:

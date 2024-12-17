@@ -1,9 +1,8 @@
 import logging
 import pathlib
+import time
 from collections.abc import Callable
 from datetime import date, timedelta
-
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -53,10 +52,5 @@ def timer(func: Callable[..., ...]):
 def filepath_validation(filepath: str):
     if not isinstance(filepath, str):
         raise TypeError(f"{filepath} is invalid filepath.")
-
     if not pathlib.Path(filepath).is_file():
         raise FileNotFoundError(f"{filepath} was not found.")
-    if not pathlib.Path(filepath).parent.exists():
-        raise NotADirectoryError(
-            f"Directory {pathlib.Path(filepath).parent} was not found."
-        )

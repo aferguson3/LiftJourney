@@ -9,9 +9,11 @@
 **/.env
 **/data/*
 **/templates/*DATA*.html
-**/css/tailwind.css
+**/css/tailwind-build.css
 
 # Package Dist
 **/LiftJourney.egg-info
 **/build/
 **/node_modules/
+**/package-lock.json
+**/plotly.min.js
