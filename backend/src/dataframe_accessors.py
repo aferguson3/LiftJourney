@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 import plotly.graph_objects as go
 from matplotlib import pyplot as plt
-from plotly.io import write_html
+from plotly.io import to_html
 from plotly.subplots import make_subplots
 
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
@@ -69,12 +69,13 @@ def plot_dataframe(
         plt.show()
         return
 
-    fig = make_subplots(2, 1, shared_xaxes=True)
+    if filepath is not None and not isinstance(filepath, str):
+        raise TypeError(f"{filepath} is invalid filepath.")
 
+    fig = make_subplots(2, 1, shared_xaxes=True)
     _setup_plot_formatting(plot_df, plotting_exercise, flask_mode, fig=fig)
-    graph_results = write_html(
+    graph_results = to_html(
         fig,
-        file=filepath,
         include_plotlyjs="directory",
         div_id="plotly_graph",
         full_html=False,
@@ -114,7 +115,9 @@ def _setup_plot_formatting(
         fig.update_layout(
             title_text=f"{plotting_exercise.replace('_', ' ').title()} Progress",
             xaxis=dict(title="Dates"),
-            yaxis=dict(title="Reps"),
+            yaxis=dict(title="Weight (lbs)"),
+            xaxis2=dict(title="Dates"),
+            yaxis2=dict(title="Target Reps"),
         )
         fig.add_traces(
             [

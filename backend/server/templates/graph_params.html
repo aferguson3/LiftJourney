@@ -1,67 +1,64 @@
 <!doctype html>
 <html lang="en">
-  <meta charset="UTF-8" />
-  <head>
-    <title>{% block title %} Workout Progression {% endblock %}</title>
-    {% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
-    }} {{ css_styles.setup() }}
-    <script
-      src="{{ url_for('static', filename='src/plotly.min.js') }}"
-      type="text/javascript"
-    ></script>
-  </head>
-
-  <body>
-    {% import './macros/_navbar.html' as navbar %} {{ navbar.content() }}
-    <div class="" id="content">
-      <div class="w-fit p-5 pb-0 text-2xl">
-        <span>Workout Progression</span>
-      </div>
-
-      <form class="max-w-60 p-5" id="exercise-form" method="post">
-        {{ muscle_group_field.csrf_token }}
-        <div class="grid grid-cols-1 justify-items-start gap-3" id="fields">
-          <label id="categories_label" class="w-full">
-            <span class="block">Category</span>
-            {{ muscle_group_field.categories(class="rounded w-full",
-            required="") }}
-          </label>
-          <label id="exercises_label" class="w-full">
-            <span class="block">Exercise</span>
-            <select
-              class="w-full rounded"
-              id="exercises"
-              name="exercises"
-              required
-            ></select>
-          </label>
-          <label id="rep_ranges_label" class="w-full">
-            <span class="block">Target Reps</span>
-            <select
-              class="w-full rounded"
-              id="rep_ranges"
-              name="rep_ranges"
-              required
-            ></select>
-          </label>
-        </div>
-        <button
-          class="my-5 w-full rounded border-2 bg-gray-100 px-2 py-2 hover:cursor-pointer"
-          id="submit-btn"
-          type="submit"
-        >
-          <span>Submit</span>
-        </button>
-      </form>
-    </div>
-
-    <script
-      src="{{ url_for('static',filename='js/graph.js') }}"
-      type="text/javascript"
-    ></script>
-    <div hidden id="exercise-results">
-      <label for="exercise_info"></label>
-      <input id="exercise_info" value="{{exercise_info}}" />
-    </div>
-  </body>
+<meta charset="UTF-8"/>
+<head>
+	<title>{% block title %} Workout Progression {% endblock %}</title>
+	{% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
+	}} {{ css_styles.setup() }}
+	<script
+			src="{{ url_for('static', filename='src/plotly.min.js') }}"
+			type="text/javascript"
+	></script>
+</head>
+<body>
+{% import './macros/_navbar.html' as navbar %} {{ navbar.content() }}
+<div class="" id="content">
+	<div class="w-fit p-5 pb-0 text-2xl">
+		<span>Workout Progression</span>
+	</div>
+	<form class="max-w-60 p-5" id="exercise-form" method="post">
+		{{ muscle_group_field.csrf_token }}
+		<div class="grid grid-cols-1 justify-items-start gap-3" id="fields">
+			<label class="w-full" id="categories_label">
+				<span class="block">Category</span>
+				{{ muscle_group_field.categories(class="rounded w-full gap-10",
+				required="") }}
+			</label>
+			<label class="w-full" id="exercises_label">
+				<span class="block">Exercise</span>
+				<select
+						class="w-full rounded gap-0"
+						id="exercises"
+						name="exercises"
+						required
+				></select>
+			</label>
+			<label class="w-full" id="rep_ranges_label">
+				<span class="block">Target Reps</span>
+				<select
+						class="w-full rounded"
+						id="rep_ranges"
+						name="rep_ranges"
+						required
+				></select>
+			</label>
+		</div>
+		<button
+				class="my-5 w-full rounded border-2 bg-gray-100 px-2 py-2 hover:cursor-pointer"
+				id="submit-btn"
+				type="submit"
+		>
+			<span>Submit</span>
+		</button>
+	</form>
+</div>
+<script
+		src="{{ url_for('static',filename='js/graph.js') }}"
+		type="text/javascript"
+></script>
+<div hidden id="exercise-results">
+	<label for="exercise_info"></label>
+	<input id="exercise_info" value="{{exercise_info}}"/>
+</div>
+</body>
 </html>

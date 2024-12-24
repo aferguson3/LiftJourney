@@ -1,13 +1,11 @@
 import io
 import logging
-import pathlib
 import re
 from datetime import datetime, date
 
 from flask import Blueprint, request, render_template, session, redirect, url_for, json
 from sqlalchemy import select
 
-from backend.server import APP_DIRECTORY
 from backend.server.config import db, cache
 from backend.server.models import WorkoutDB
 from backend.server.models.MuscleMapDB import MuscleMapDB
@@ -185,21 +183,16 @@ def show_graph():
         )
 
     exercise = session["exercise"]
-    if str(session["reps"]).isdigit():
-        reps = int(session["reps"])
-    else:
-        reps = None
-
-    plotly_src = pathlib.Path(APP_DIRECTORY).joinpath("static/src/graph.html")
+    reps_ = session["reps"]
+    reps = int(reps_) if str(reps_).isdigit() else None
     plotly_div = plot_dataframe(
         get_sets_df(),
         exercise,
         reps,
         flask_mode=True,
-        filepath=str(plotly_src.resolve()),
     )
     return render_template(
         "graph_results.html",
-        graph=plotly_src,
+        graph=plotly_div,
         exercise=str(exercise).replace("_", " ").title(),
     )
