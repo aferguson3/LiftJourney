@@ -49,17 +49,17 @@ def _default_uri_type(uri_type: str, default_uri: str):
     return uri_type if uri_type is not None else default_uri
 
 
-class BaseConfig(object):
+class AppConfig(object):
     SECRET_KEY = uuid.uuid4().hex
 
-    def __init__(self, uri_type: str = None):
+    def __init__(self, uri_type: str = None, custom_uri: str = None):
         """
         :param uri_type: Uses the SQLAlchemy DB URI defined by the provided key. Default ``MAIN_DB``
         :type uri_type: str
         """
 
         self.uri_type = _default_uri_type(uri_type, "MAIN_DB")
-        self._SQLALCHEMY_DATABASE_URI = _db_uri_selection(self.uri_type)
+        self._SQLALCHEMY_DATABASE_URI = _db_uri_selection(self.uri_type) if custom_uri is None else custom_uri
 
     @property
     def SQLALCHEMY_DATABASE_URI(self):
@@ -73,23 +73,23 @@ class BaseConfig(object):
             self._SQLALCHEMY_DATABASE_URI = _db_uri_selection(self.uri_type)
 
 
-class DebugConfig(BaseConfig):
+class DebugConfig(AppConfig):
     DEBUG = True
     DEBUG_TB_INTERCEPT_REDIRECTS = False
 
-    def __init__(self, uri_type=None):
+    def __init__(self, uri_type=None, custom_uri: str = None):
         self.uri_type = _default_uri_type(uri_type, "TEST_DB")
-        super().__init__(self.uri_type)
+        super().__init__(self.uri_type, custom_uri)
 
 
-class ProdConfig(BaseConfig):
+class ProdConfig(AppConfig):
     DEBUG = False
 
 
-class TestConfig(BaseConfig):
+class TestConfig(AppConfig):
     WTF_CSRF_ENABLED = False
     TESTING = True
 
-    def __init__(self, uri_type=None):
+    def __init__(self, uri_type=None, custom_uri: str = None):
         self.uri_type = _default_uri_type(uri_type, "IN_MEMORY_DB")
-        super().__init__(self.uri_type)
+        super().__init__(self.uri_type, custom_uri)

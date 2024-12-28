@@ -1,5 +1,5 @@
-from backend.server.config.BaseConfig import (
-    BaseConfig,
+from backend.server.config.AppConfig import (
+    AppConfig,
     DebugConfig,
     ProdConfig,
     TestConfig,
@@ -13,7 +13,7 @@ _config_globals_vars = [
 ]
 
 __all__ = [
-    "BaseConfig",
+    "AppConfig",
     "DebugConfig",
     "ProdConfig",
     "TestConfig",

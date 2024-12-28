@@ -5,13 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 requires-python = ">= 3.11"
 name = "LiftJourney"
-version = "0.1"
+version = "0.2"
 dynamic = ["dependencies"]
 
 [project.optional-dependencies]
 dev = [
     "pytest", "pip-tools", "Flask-DebugToolbar", "black"
 ]
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+exclude = ["creds"]
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.in"] }

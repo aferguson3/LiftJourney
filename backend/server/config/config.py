@@ -6,8 +6,8 @@ from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import OperationalError
 
-from backend.server.config.BaseConfig import (
-    BaseConfig,
+from backend.server.config.AppConfig import (
+    AppConfig,
     DebugConfig,
     ProdConfig,
     TestConfig,
@@ -44,9 +44,9 @@ def db_config(db_, app_):
         )
 
 
-def app_config_selection(app_config: str = None, **kwargs) -> BaseConfig:
+def app_config_selection(app_config: str = None, **kwargs) -> AppConfig:
     if app_config is None:
-        curr_config = BaseConfig(**kwargs)
+        curr_config = AppConfig(**kwargs)
         logger.info(f"App Config: {type(curr_config)}")
         return curr_config
 
@@ -55,7 +55,7 @@ def app_config_selection(app_config: str = None, **kwargs) -> BaseConfig:
 
     match app_config.upper():
         case FlaskConfigs.BASE.name:
-            curr_config = BaseConfig(**kwargs)
+            curr_config = AppConfig(**kwargs)
             LOGGING_LEVEL = logging.WARN
         case FlaskConfigs.DEBUG.name:
             curr_config = DebugConfig(**kwargs)
@@ -67,7 +67,7 @@ def app_config_selection(app_config: str = None, **kwargs) -> BaseConfig:
             curr_config = TestConfig(**kwargs)
             LOGGING_LEVEL = logging.DEBUG
         case _:
-            curr_config = BaseConfig(**kwargs)
+            curr_config = AppConfig(**kwargs)
             LOGGING_LEVEL = logging.WARN
 
     logging.basicConfig(level=LOGGING_LEVEL)
