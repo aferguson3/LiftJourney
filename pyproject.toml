@@ -14,8 +14,9 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["backend"]
-exclude = ["creds"]
+where = [""]
+include = ["backend"]
+exclude = ["backend/creds"]
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.in"] }

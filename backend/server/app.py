@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_caching import Cache
-from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
 
 from backend.server.config.config import app_config_selection, db, cache, db_config
@@ -31,6 +30,7 @@ def create_app(
     curr_app.config.from_object(_app_config)
 
     if curr_app.config["DEBUG"] is True:
+        from flask_debugtoolbar import DebugToolbarExtension
         DebugToolbarExtension(curr_app)
     cache_.init_app(curr_app)
     db_.init_app(curr_app)
