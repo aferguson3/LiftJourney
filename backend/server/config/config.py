@@ -6,6 +6,7 @@ from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import OperationalError
 
+from backend.server import APP_DIRECTORY
 from backend.server.config.AppConfig import (
     AppConfig,
     DebugConfig,
@@ -34,6 +35,10 @@ logger = logging.getLogger(__name__)
 
 def db_config(db_, app_):
     try:
+        db_dir = APP_DIRECTORY / "data"
+        if not db_dir.exists():
+            db_dir.mkdir(parents=True)
+
         db_.create_all()
         logger.info(
             f"DB Name: {pathlib.Path(app_.config.get('SQLALCHEMY_DATABASE_URI')).name}"

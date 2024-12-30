@@ -1,12 +1,13 @@
 import logging
+import pathlib
 import uuid
 from enum import Enum
 
 from backend.server import APP_DIRECTORY
 
-DB_URI = "sqlite:///" + str(APP_DIRECTORY / "data" / "workouts.db")
+DB_URI = "sqlite:///" + str(pathlib.Path("data", "workouts.db"))
 IN_MEMORY_DB = "sqlite:///:memory:"
-TEST_URI = "sqlite:///" + str(APP_DIRECTORY / "data" / "test_workouts.db")
+TEST_URI = "sqlite:///" + str(pathlib.Path("data", "test_workouts.db"))
 ENV_PATH = APP_DIRECTORY.parents[1] / ".env"
 
 
@@ -59,7 +60,9 @@ class AppConfig(object):
         """
 
         self.uri_type = _default_uri_type(uri_type, "MAIN_DB")
-        self._SQLALCHEMY_DATABASE_URI = _db_uri_selection(self.uri_type) if custom_uri is None else custom_uri
+        self._SQLALCHEMY_DATABASE_URI = (
+            _db_uri_selection(self.uri_type) if custom_uri is None else custom_uri
+        )
 
     @property
     def SQLALCHEMY_DATABASE_URI(self):

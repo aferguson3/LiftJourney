@@ -2,6 +2,7 @@ from flask import Flask
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 
+from backend.server import APP_DIRECTORY
 from backend.server.config.config import app_config_selection, db, cache, db_config
 from backend.server.routes import *
 from backend.server.routes.status_codes import page_not_found
@@ -26,11 +27,12 @@ def create_app(
     """
 
     _app_config = app_config_selection(app_config, **kwargs)
-    curr_app = Flask(__name__)
+    curr_app = Flask(__name__, instance_path=APP_DIRECTORY)
     curr_app.config.from_object(_app_config)
 
     if curr_app.config["DEBUG"] is True:
         from flask_debugtoolbar import DebugToolbarExtension
+
         DebugToolbarExtension(curr_app)
     cache_.init_app(curr_app)
     db_.init_app(curr_app)
