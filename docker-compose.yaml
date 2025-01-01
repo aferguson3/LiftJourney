@@ -1,0 +1,14 @@
+services:
+  backend:
+    build: .
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /home/LiftJourney/backend
+  web-server:
+    build: ./nginx
+    ports:
+      - '80:8080'
+    depends_on:
+      - backend
