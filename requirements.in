@@ -6,7 +6,6 @@ Flask-SQLAlchemy
 Flask-WTF[email]
 garth==0.5.2
 gunicorn
-matplotlib
 pandas
 plotly
 python-dotenv

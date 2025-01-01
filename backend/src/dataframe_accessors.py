@@ -3,7 +3,6 @@ from datetime import datetime
 
 import pandas as pd
 import plotly.graph_objects as go
-from matplotlib import pyplot as plt
 from plotly.io import to_html
 from plotly.subplots import make_subplots
 
@@ -63,17 +62,13 @@ def plot_dataframe(
             (df["exerciseName"] == plotting_exercise) & (df["targetReps"] == targetReps)
         ]
 
+    fig = make_subplots(2, 1, shared_xaxes=True)
+    _setup_plot_formatting(plot_df, plotting_exercise, fig=fig)
+
     if flask_mode is False:
-        fig, axes = plt.subplots(2, 1, sharex=True)
-        _setup_plot_formatting(plot_df, plotting_exercise, flask_mode, axes=axes)
-        plt.show()
+        fig.show()
         return
 
-    if filepath is not None and not isinstance(filepath, str):
-        raise TypeError(f"{filepath} is invalid filepath.")
-
-    fig = make_subplots(2, 1, shared_xaxes=True)
-    _setup_plot_formatting(plot_df, plotting_exercise, flask_mode, fig=fig)
     graph_results = to_html(
         fig,
         include_plotlyjs="directory",
@@ -84,65 +79,41 @@ def plot_dataframe(
 
 
 def _setup_plot_formatting(
-    plot_df: pd.DataFrame, plotting_exercise: str, flask_mode: bool, axes=None, fig=None
+    plot_df: pd.DataFrame,
+    plotting_exercise: str,
+    fig=None,
 ) -> None:
-    if flask_mode is False:
-        axes[0].set_title(f"{plotting_exercise.replace('_', ' ').title()} Progress")
-        datapoints = len(plot_df)
-        figsize = (datapoints, 6)
-
-        plot_df.plot(
-            x="date_str",
-            y=["weight"],
-            kind="line",
-            ax=axes[0],
-            ylabel="Weight (lbs)",
-            grid=True,
-        )
-        plot_df.plot(
-            x="date_str",
-            y=["targetReps", "numReps"],
-            kind="line",
-            ax=axes[1],
-            xlabel="Dates",
-            ylabel="Reps",
-            grid=True,
-            xticks=range(datapoints),
-            rot=30.0,
-            figsize=figsize,
-        )
-    else:
-        fig.update_layout(
-            title_text=f"{plotting_exercise.replace('_', ' ').title()} Progress",
-            xaxis=dict(title="Dates"),
-            yaxis=dict(title="Weight (lbs)"),
-            xaxis2=dict(title="Dates"),
-            yaxis2=dict(title="Target Reps"),
-        )
-        fig.add_traces(
-            [
-                go.Scatter(
-                    x=plot_df["date_str"],
-                    y=plot_df["weight"],
-                    mode="lines+markers",
-                    name="Weight (lbs)",
-                ),
-                go.Scatter(
-                    x=plot_df["date_str"],
-                    y=plot_df["targetReps"],
-                    mode="lines+markers",
-                    name="Target Reps",
-                ),
-                go.Scatter(
-                    x=plot_df["date_str"],
-                    y=plot_df["numReps"],
-                    mode="lines+markers",
-                    name="Reps",
-                ),
-            ],
-            rows=[1, 2, 2],
-            cols=[1, 1, 1],
-        )
+    fig.update_layout(
+        title_text=f"{plotting_exercise.replace('_', ' ').title()} Progress",
+        xaxis=dict(title="Dates"),
+        yaxis=dict(title="Weight (lbs)"),
+        xaxis2=dict(title="Dates"),
+        yaxis2=dict(title="Target Reps"),
+    )
+    fig.add_traces(
+        [
+            go.Scatter(
+                x=plot_df["date_str"],
+                y=plot_df["weight"],
+                mode="lines+markers",
+                name="Weight (lbs)",
+            ),
+            go.Scatter(
+                x=plot_df["date_str"],
+                y=plot_df["targetReps"],
+                mode="lines+markers",
+                name="Target Reps",
+            ),
+            go.Scatter(
+                x=plot_df["date_str"],
+                y=plot_df["numReps"],
+                mode="lines+markers",
+                name="Reps",
+            ),
+        ],
+        rows=[1, 2, 2],
+        cols=[1, 1, 1],
+    )
 
 
 def exercise_name_selection(available_exercises: list) -> str:

@@ -6,11 +6,10 @@ from backend.src.garmin_interaction import load_garmin_from_env, run_service
 from backend.src.utils import set_params_by_weeks
 
 DATA_FILEPATH = str(pathlib.Path("./data/workout_data.json").resolve())
-METADATA_FILEPATH = "./data/workout_metadata.json"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 
 
 def main():
@@ -40,7 +39,22 @@ def main():
                 pass
 
     while True:
-        show_graph(workouts)
+        menu = (
+            "---------------------------------------\n"
+            "1. View a progression graph\n"
+            "2. Close Program\n"
+            "---------------------------------------\n"
+            "Choose an option: "
+        )
+        match (input(menu)):
+            case "1":
+                show_graph(workouts)
+                print("Displaying workout graph.")
+                continue
+            case "2":
+                exit(0)
+            case _:
+                continue
 
 
 if __name__ == "__main__":
