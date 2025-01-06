@@ -10,7 +10,7 @@ dynamic = ["dependencies"]
 
 [project.optional-dependencies]
 dev = [
-    "pytest", "pip-tools", "Flask-DebugToolbar", "black"
+    "pytest", "Flask-DebugToolbar", "black"
 ]
 
 [tool.setuptools.packages.find]
