@@ -7,26 +7,27 @@ from flask import Blueprint, request, render_template, session, redirect, url_fo
 from sqlalchemy import select
 
 from backend.server.config import db, cache
+from backend.server.database_interface import (
+    add_workouts,
+    select_mappings,
+    select_activityIDs,
+)
 from backend.server.models import WorkoutDB
 from backend.server.models.MuscleMapDB import MuscleMapDB
-from backend.server.models.forms import ExerciseMappingForm, LoginForm
-from backend.server.routes.database import (
-    new_workout_entries,
-    retrieve_muscle_map_entries,
-)
+from backend.server.models.forms import ExerciseMappingForm
 from backend.server.utils import get_sets_df, get_exercise_info
 from backend.src.dataframe_accessors import (
     list_available_exercises,
     plot_dataframe,
 )
 from backend.src.garmin_interaction import run_service
-from backend.src.utils import set_params_by_weeks, timer
+from backend.src.utils import set_params_by_weeks
 
 logger = logging.getLogger(__name__)
 service_bp = Blueprint(
     "service_bp",
     __name__,
-    url_prefix="/main",
+    url_prefix="",
     template_folder="templates",
     static_folder="static",
 )
@@ -53,7 +54,7 @@ def _validate_start_date(start_date_arg: str) -> str:
         return "ERROR: INVALID"
 
 
-def get_start_date(start_date_arg: str | None) -> str | None:
+def _get_start_date(start_date_arg: str | None) -> str | None:
     if start_date_arg is None:
         pass
 
@@ -78,14 +79,13 @@ def get_start_date(start_date_arg: str | None) -> str | None:
 
 # Uploads new workout entries
 # URL Args: startDate (YYYY-MM-DD), weeks
-@service_bp.route("/run", methods=["GET"])
-@timer
+@service_bp.route("/retrieve-workouts", methods=["GET"])
 def service():
     args = request.args
     weeks_of_workouts = args.get("weeks", default=10, type=int)
     start_date_arg = args.get("startDate")
 
-    start_date = get_start_date(start_date_arg)
+    start_date = _get_start_date(start_date_arg)
     if start_date is None:  # empty DB case
         return render_template(
             "base.html",
@@ -98,22 +98,16 @@ def service():
     )
     logger.info(params.items())
 
-    workouts = run_service(params)
+    stored_activities = select_activityIDs()
+    workouts = run_service(params, stored_IDs=stored_activities)
     if workouts is not None:
-        new_workout_entries(workouts)
+        add_workouts(workouts)
     else:
         logger.info(f"No new workout entries.")
 
     return render_template(
         "base.html", body=f"startDate: {start_date}, weeks: {weeks_of_workouts}"
     )
-
-
-@service_bp.route("/test1")
-@service_bp.route("/test2")
-def remove_test():  # TODO: remove
-    form = LoginForm()
-    return render_template("login/login.html", form=form)
 
 
 @service_bp.route("/graph", methods=["GET", "POST"])
@@ -125,7 +119,7 @@ def setup_graph():
 
     fitness_select_form = ExerciseMappingForm()
     if cache.get("exercise_info") is None:
-        muscle_map_entries: list[MuscleMapDB] = retrieve_muscle_map_entries()
+        muscle_map_entries: list[MuscleMapDB] = select_mappings()
         all_muscle_maps = {
             _dict["exerciseName"]: _dict["category"]
             for _dict in [record.get_dict() for record in muscle_map_entries]

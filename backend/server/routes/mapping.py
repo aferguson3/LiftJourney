@@ -1,16 +1,16 @@
 import logging
 
 from flask import render_template, Blueprint, request
-from sqlalchemy import select, delete
+from sqlalchemy import select
 
 from backend.server.config import db
-from backend.server.models import ExerciseSetDB, WorkoutDB
+from backend.server.database_interface import add_mappings, update_mappings
+from backend.server.models import ExerciseSetDB
 from backend.server.models.MuscleMapDB import MUSCLE_GROUPS_LIST, MuscleMapDB
 from backend.server.models.forms import ExerciseMappingForm
-from backend.server.routes.database import set_muscle_categories, new_muscle_maps
 
 logger = logging.getLogger(__name__)
-admin_bp = Blueprint("admin_bp", __name__, url_prefix="/admin")
+mapping_bp = Blueprint("mapping_bp", __name__, url_prefix="")
 
 
 def _format_display_exercise_names(values: list | str) -> list[str] | str:
@@ -39,18 +39,6 @@ def _format_DB_exercise_names(values: list | str) -> list[str] | str:
     return values
 
 
-# TODO: remove routes for prod
-@admin_bp.route("/clear")
-def clear_db():
-    # Clears out Exercise Info
-    delete_sets = delete(ExerciseSetDB)
-    delete_workouts = delete(WorkoutDB)
-    db.session.execute(delete_sets)
-    db.session.execute(delete_workouts)
-    db.session.commit()
-    return render_template("base.html", body="DB Emptied")
-
-
 def initialize_muscle_map_db():
     exerciseSetDB_exercise_names = select(ExerciseSetDB.exerciseName).distinct()
     muscleMapDB_exercise_names = select(MuscleMapDB.exerciseName).distinct()
@@ -71,7 +59,7 @@ def initialize_muscle_map_db():
             MuscleMapDB(exerciseName=muscle_map, category="None")
             for muscle_map in new_muscleMapDB_exercise_names
         ]
-        new_muscle_maps(muscle_map_collection)
+        add_mappings(muscle_map_collection)
 
 
 def _get_exercises_to_display():
@@ -86,7 +74,7 @@ def _get_exercises_to_display():
     return _format_display_exercise_names(result)
 
 
-@admin_bp.route("/mapping", methods=["GET", "POST"])
+@mapping_bp.route("/mapping", methods=["GET", "POST"])
 def mapping():
     initialize_muscle_map_db()
     displayed_exercises = _get_exercises_to_display()
@@ -112,7 +100,7 @@ def mapping():
             )
             new_exercise_entries.append(new_muscle_map)
 
-    set_muscle_categories(new_exercise_entries)
+    update_mappings(new_exercise_entries)
     new_displayed_exercises = _get_exercises_to_display()
 
     return render_template(

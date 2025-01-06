@@ -9,6 +9,7 @@ from typing import Tuple
 
 import garth
 from dotenv import dotenv_values
+from garth.exc import GarthException
 
 from backend.server import WORKING_DIR, ENV_PATH
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
@@ -62,22 +63,23 @@ def load_oauth_tokens(filepath=None) -> bool:
 
 
 # Gathers all fitness activities by date
-def get_activities(params: dict) -> Tuple[list[int], list[str]]:
-    activity_data = garth.connectapi(
-        f"{Endpoints.garmin_connect_activities}", params=params
-    )
+@timer
+def get_activities(params: dict) -> Tuple[list[int] | None, list[str] | None]:
+    try:
+        activity_data: dict = garth.connectapi(
+            f"{Endpoints.garmin_connect_activities}", params=params
+        )
+    except GarthException as e:
+        logger.debug(e.error)
+        return None, None
+
     activityIds, removedIds = list(), list()
     activityDatetimes = list()
 
     for activity in activity_data:
-        if (
-            str(activity["activityName"]).find("Pickup") > -1
-            or str(activity["activityName"]).find("Basketball") > -1
-        ):
-            # Excludes the basketball activities
+        if _is_unwanted_activity(activity):
             removedIds.append(activity["activityId"])
             continue
-
         activityIds.append(activity["activityId"])
         activityDatetimes.append(activity["startTimeLocal"])
     logger.debug(
@@ -87,13 +89,28 @@ def get_activities(params: dict) -> Tuple[list[int], list[str]]:
     return activityIds, activityDatetimes
 
 
-def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
+def _is_unwanted_activity(activity: dict) -> bool:
+    return (
+        str(activity["activityName"]).find("Pickup") > -1
+        or str(activity["activityName"]).find("Basketball") > -1
+    )
+
+
+@timer
+def get_workouts(
+    activityIds: list, activityDatetimes: list, stored_IDs: list[int] = None
+) -> list[Workout]:
     threads = []
-    splice = int(len(activityIds) / NUM_THREADS)
+    if stored_IDs is not None:
+        activityIds_ = set(activityIds).difference(stored_IDs)
+    else:
+        activityIds_ = activityIds
+
+    splice = int(len(activityIds_) / NUM_THREADS)
     workouts_rv = []
 
-    if len(activityIds) < NUM_THREADS:
-        for ID, _datetime in zip(activityIds, activityDatetimes):
+    if len(activityIds_) < NUM_THREADS:
+        for ID, _datetime in zip(activityIds_, activityDatetimes):
             t = Thread(target=_get_workouts, args=(activityDatetimes, ID))
             t.start()
             threads.append(t)
@@ -104,7 +121,7 @@ def get_workouts(activityIds: list, activityDatetimes: list) -> list[Workout]:
                 target=_get_workouts,
                 args=(
                     activityDatetimes[cur_index : cur_index + splice],
-                    activityIds[cur_index : cur_index + splice],
+                    activityIds_[cur_index : cur_index + splice],
                 ),
             )
             t.start()
@@ -125,9 +142,13 @@ def _get_workouts(activityDatetimes: list, activityIds: list | int) -> None:
         activityIds = [activityIds]
 
     for Id, _datetime in zip(activityIds, activityDatetimes):
-        data = garth.connectapi(
-            f"{Endpoints.garmin_connect_activity}/{Id}/exerciseSets"
-        )
+        try:
+            data = garth.connectapi(
+                f"{Endpoints.garmin_connect_activity}/{Id}/exerciseSets"
+            )
+        except GarthException as e:
+            logger.debug(e.error)
+            return
         a_workout = Workout()
         all_workout_sets = list()
 
@@ -226,9 +247,12 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
         workouts = [workouts]
 
     for wo in workouts:
-        garmin_data = garth.connectapi(
-            f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts"
-        )
+        try:
+            garmin_data = garth.connectapi(
+                f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts"
+            )
+        except GarthException as e:
+            li
         if garmin_data is None:  # Checks workout data's present
             print(f"{wo.datetime}")
             continue
@@ -252,9 +276,13 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
 
 def _get_workout_name(workout: Workout):
     pattern = r"\b\d+(?:\.\d+)+\b"
-    garmin_data = garth.connectapi(
-        f"{Endpoints.garmin_connect_activity}/{workout.activityId}"
-    )
+    try:
+        garmin_data = garth.connectapi(
+            f"{Endpoints.garmin_connect_activity}/{workout.activityId}"
+        )
+    except GarthException as e:
+        logger.debug(e.error)
+        return
     workout_name_str = garmin_data["activityName"]
     version_str = re.search(pattern, workout_name_str)
     version_str = version_str.group() if version_str is not None else None
@@ -265,30 +293,36 @@ def _get_workout_name(workout: Workout):
 
 
 def run_service(
-    params: dict, backup: bool = False, load: bool = False, filepath: str = None
+    params: dict,
+    backup: bool = False,
+    load: bool = False,
+    filepath: str = None,
+    stored_IDs: list[int] = None,
 ) -> list[Workout] | None:
-    if load is True:
-        filepath_validation(filepath)
-        workouts = Manager.load_workouts(filepath)
-        workouts_ = Manager.sort_workouts(workouts, "datetime")
-    else:
-        IDs, dates = get_activities(params)
-        workouts = get_workouts(IDs, dates)
-        if len(workouts) == 0:
-            return
-        workouts_filled = fill_out_workouts(workouts)
-        workouts_ = Manager.sort_workouts(workouts_filled, "datetime")
-        workouts_ = _set_tracking_status(workouts_)
-        if backup is True:
+    workouts = list()
+    match load:
+        case True:
             filepath_validation(filepath)
-            Manager.dump_to_json(Manager.workouts_to_dict(workouts_), filepath, "w")
+            workouts = Manager.load_workouts(filepath)
+            workouts = Manager.sort_workouts(workouts, "datetime")
+        case False:
+            IDs, dates = get_activities(params)
+            workouts = get_workouts(IDs, dates, stored_IDs=stored_IDs)
+            if len(workouts) == 0:
+                return
+            workouts = fill_out_workouts(workouts)
+            workouts = Manager.sort_workouts(workouts, "datetime")
+            workouts = _set_tracking_status(workouts)
+    if backup:
+        filepath_validation(filepath)
+        Manager.dump_to_json(Manager.workouts_to_dict(workouts), filepath, "w")
 
-    Manager.list_incomplete_workouts(workouts_)
+    Manager.list_incomplete_workouts(workouts)
     logger.info(
-        f"Num of workouts: {len(workouts_)}, Workout 0: {workouts_[0].name} {workouts_[0].version} {workouts_[0].category}"
-        f"\n\tset 3: {workouts_[0].view_sets()[3]}"
+        f"Num of workouts: {len(workouts)}, Workout 0: {workouts[0].name} {workouts[0].version} {workouts[0].category}"
+        f"\n\tset 3: {workouts[0].view_sets()[3]}"
     )
-    return workouts_
+    return workouts
 
 
 def _set_tracking_status(workouts: list[Workout]) -> list[Workout]:

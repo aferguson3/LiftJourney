@@ -9,9 +9,8 @@ from backend.server.routes.status_codes import page_not_found
 
 
 def register_blueprints(app_: Flask):
-    app_.register_blueprint(database_bp)
     app_.register_blueprint(service_bp)
-    app_.register_blueprint(admin_bp)
+    app_.register_blueprint(mapping_bp)
     app_.register_blueprint(login_bp)
     app_.register_blueprint(statues_bp)
 

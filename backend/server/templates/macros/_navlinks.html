@@ -1,17 +1,17 @@
 {% macro links(a) %}
-<li class="{{ li }}"><a class="{{ a }}" href="{{ url_for('service_bp.setup_graph') }}">
-	Graph</a>
+<li class="{{ li }}">
+  <a class="{{ a }}" href="{{ url_for('service_bp.setup_graph') }}"> Graph</a>
 </li>
-<li class="{{ li }}"><a class="{{ a }}" href="{{ url_for('admin_bp.mapping') }}">
-	Muscle Mappings</a>
+<li class="{{ li }}">
+  <a class="{{ a }}" href="{{ url_for('mapping_bp.mapping') }}">
+    Muscle Mappings</a
+  >
 </li>
-<li class="{{ li }}"><a class="{{ a }}" href="/main/test1">
-	Trends</a>
+
+<li class="{{ li }}">
+  <a class="{{ a }}" href="{{ url_for('service_bp.service') }}"> Run Service</a>
 </li>
-<li class="{{ li }}"><a class="{{ a }}" href="/main/run">
-	Run Service</a>
-</li>
-<li class="{{ li }}"><a class="{{ a }}" href="{{ url_for('login_bp.login') }}">
-	Login</a>
+<li class="{{ li }}">
+  <a class="{{ a }}" href="{{ url_for('login_bp.login') }}"> Login</a>
 </li>
 {% endmacro %}
