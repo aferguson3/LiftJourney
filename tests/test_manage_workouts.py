@@ -3,8 +3,8 @@ import os
 
 import pytest
 
+from backend.server.models import Workout, ExerciseSet
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
-from backend.src.models import Workout, ExerciseSet
 from tests.sample_data import sets1, sets2, sets3
 
 

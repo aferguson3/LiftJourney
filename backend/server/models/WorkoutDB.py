@@ -1,8 +1,8 @@
 import logging
 
 from backend.server.config import db
+from backend.server.models import Workout
 from backend.server.models.ExerciseSetDB import ExerciseSetDB
-from backend.src.models import Workout
 
 logger = logging.getLogger(__name__)
 

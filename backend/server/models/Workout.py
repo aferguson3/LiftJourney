@@ -1,7 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 
-from backend.src.models.ExerciseSet import ExerciseSet
+from backend.server.models.ExerciseSet import ExerciseSet
 
 
 @dataclass

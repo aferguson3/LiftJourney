@@ -31,5 +31,5 @@ previous workouts, LiftJourney can group similarly named exercises and display t
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/aferguson3/GarminTrainingStats.git
-   cd GarminTrainingStats
+   git clone https://github.com/aferguson3/LiftJourney.git
+   cd LiftJourney

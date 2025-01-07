@@ -6,8 +6,8 @@ import plotly.graph_objects as go
 from plotly.io import to_html
 from plotly.subplots import make_subplots
 
+from backend.server.models import Workout
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
-from backend.src.models import Workout
 
 logger = logging.getLogger(__name__)
 

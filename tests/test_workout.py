@@ -1,6 +1,6 @@
 import pytest
 
-from backend.src.models import ExerciseSet, Workout
+from backend.server.models import ExerciseSet, Workout
 from tests.sample_data import sets1, sets2, sets3
 
 

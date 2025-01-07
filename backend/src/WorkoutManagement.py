@@ -2,8 +2,8 @@ import dataclasses
 import json
 import logging
 
-from backend.src.models.ExerciseSet import ExerciseSet
-from backend.src.models.Workout import Workout
+from backend.server.models.ExerciseSet import ExerciseSet
+from backend.server.models.Workout import Workout
 
 logger = logging.getLogger(__name__)
 

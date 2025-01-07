@@ -12,8 +12,8 @@ from dotenv import dotenv_values
 from garth.exc import GarthException
 
 from backend.server import WORKING_DIR, ENV_PATH
+from backend.server.models import Workout, ExerciseSet
 from backend.src.WorkoutManagement import WorkoutManagement as Manager
-from backend.src.models import Workout, ExerciseSet
 from backend.src.utils import Endpoints
 from backend.src.utils.utils import timer, filepath_validation
 
@@ -98,20 +98,30 @@ def _is_unwanted_activity(activity: dict) -> bool:
 
 @timer
 def get_workouts(
-    activityIds: list, activityDatetimes: list, stored_IDs: list[int] = None
+    activity_IDs: list,
+    datetimes: list,
+    stored_activity_info: dict = None,
 ) -> list[Workout]:
     threads = []
-    if stored_IDs is not None:
-        activityIds_ = set(activityIds).difference(stored_IDs)
+    if stored_activity_info is not None:
+        duplicate_IDs = list(stored_activity_info.keys())
+        new_info = {
+            ID: datetime_
+            for ID, datetime_ in zip(activity_IDs, datetimes)
+            if ID not in duplicate_IDs
+        }
+        activity_IDs_ = list(new_info.keys())
+        datetimes_ = list(new_info.values())
     else:
-        activityIds_ = activityIds
+        activity_IDs_ = activity_IDs
+        datetimes_ = datetimes
 
-    splice = int(len(activityIds_) / NUM_THREADS)
+    splice = int(len(activity_IDs_) / NUM_THREADS)
     workouts_rv = []
 
-    if len(activityIds_) < NUM_THREADS:
-        for ID, _datetime in zip(activityIds_, activityDatetimes):
-            t = Thread(target=_get_workouts, args=(activityDatetimes, ID))
+    if len(activity_IDs_) < NUM_THREADS:
+        for ID, _datetime in zip(activity_IDs_, datetimes_):
+            t = Thread(target=_get_workouts, args=(datetimes_, ID))
             t.start()
             threads.append(t)
     else:
@@ -120,8 +130,8 @@ def get_workouts(
             t = Thread(
                 target=_get_workouts,
                 args=(
-                    activityDatetimes[cur_index : cur_index + splice],
-                    activityIds_[cur_index : cur_index + splice],
+                    datetimes_[cur_index : cur_index + splice],
+                    activity_IDs_[cur_index : cur_index + splice],
                 ),
             )
             t.start()
@@ -252,9 +262,10 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
                 f"{Endpoints.garmin_connect_activity}/{wo.activityId}/workouts"
             )
         except GarthException as e:
-            li
-        if garmin_data is None:  # Checks workout data's present
-            print(f"{wo.datetime}")
+            logger.debug(e.error)
+            return
+        if len(garmin_data) == 0:  # Checks workout data's present
+            logger.debug(f"{wo.datetime} has no target reps.")
             continue
         garmin_data = garmin_data[0]
         wo = _get_workout_name(wo)
@@ -263,9 +274,8 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
             currStepIndex = currSet.stepIndex
             if currStepIndex is None:
                 continue  # Ignores unscheduled exercises w/o stepIndex
-            currSet.targetReps = int(
-                garmin_data["steps"][currStepIndex]["durationValue"]
-            )
+            target_reps = str(garmin_data["steps"][currStepIndex]["durationValue"])
+            currSet.targetReps = int(target_reps) if target_reps.isdigit() else None
             if currSet.exerciseName is None:
                 newName = garmin_data["steps"][currStepIndex]["exerciseName"]
                 newCategory = garmin_data["steps"][currStepIndex]["exerciseCategory"]
@@ -297,7 +307,7 @@ def run_service(
     backup: bool = False,
     load: bool = False,
     filepath: str = None,
-    stored_IDs: list[int] = None,
+    stored_activity_info: dict = None,
 ) -> list[Workout] | None:
     workouts = list()
     match load:
@@ -307,7 +317,7 @@ def run_service(
             workouts = Manager.sort_workouts(workouts, "datetime")
         case False:
             IDs, dates = get_activities(params)
-            workouts = get_workouts(IDs, dates, stored_IDs=stored_IDs)
+            workouts = get_workouts(IDs, dates, stored_activity_info)
             if len(workouts) == 0:
                 return
             workouts = fill_out_workouts(workouts)

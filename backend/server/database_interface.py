@@ -3,8 +3,8 @@ import logging
 from sqlalchemy import select, update
 
 from backend.server.config import db, cache
+from backend.server.models import Workout
 from backend.server.models import WorkoutDB, MuscleMapDB
-from backend.src.models import Workout
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +74,10 @@ def select_mappings() -> list[MuscleMapDB]:
 
 def select_activityIDs() -> list[int]:
     return (db.session.execute(select(WorkoutDB.activityId))).scalars().all()
+
+
+def select_datetimes() -> list[int]:
+    return (db.session.execute(select(WorkoutDB.datetime))).scalars().all()
 
 
 def update_mappings(values: list[MuscleMapDB]):

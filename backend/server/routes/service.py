@@ -11,17 +11,18 @@ from backend.server.database_interface import (
     add_workouts,
     select_mappings,
     select_activityIDs,
+    select_datetimes,
 )
 from backend.server.models import WorkoutDB
 from backend.server.models.MuscleMapDB import MuscleMapDB
 from backend.server.models.forms import ExerciseMappingForm
-from backend.server.utils import get_sets_df, get_exercise_info
 from backend.src.dataframe_accessors import (
     list_available_exercises,
     plot_dataframe,
 )
 from backend.src.garmin_interaction import run_service
 from backend.src.utils import set_params_by_weeks
+from backend.src.utils.server_utils import get_sets_df, get_exercise_info
 
 logger = logging.getLogger(__name__)
 service_bp = Blueprint(
@@ -98,8 +99,8 @@ def service():
     )
     logger.info(params.items())
 
-    stored_activities = select_activityIDs()
-    workouts = run_service(params, stored_IDs=stored_activities)
+    stored_info = dict(zip(select_activityIDs(), select_datetimes()))
+    workouts = run_service(params, stored_activity_info=stored_info)
     if workouts is not None:
         add_workouts(workouts)
     else:
