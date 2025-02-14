@@ -121,7 +121,7 @@ def get_workouts(
 
     if len(activity_IDs_) < NUM_THREADS:
         for ID, _datetime in zip(activity_IDs_, datetimes_):
-            t = Thread(target=_get_workouts, args=(datetimes_, ID))
+            t = Thread(target=_get_workouts, args=(_datetime, ID))
             t.start()
             threads.append(t)
     else:
@@ -274,12 +274,15 @@ def _fill_out_workouts(workouts: list[Workout] | Workout):
             currStepIndex = currSet.stepIndex
             if currStepIndex is None:
                 continue  # Ignores unscheduled exercises w/o stepIndex
+
             target_reps = str(garmin_data["steps"][currStepIndex]["durationValue"])
-            currSet.targetReps = int(target_reps) if target_reps.isdigit() else None
+            target_reps = target_reps.split(".")[0]
+            currSet.targetReps = int(target_reps)
             if currSet.exerciseName is None:
                 newName = garmin_data["steps"][currStepIndex]["exerciseName"]
                 newCategory = garmin_data["steps"][currStepIndex]["exerciseCategory"]
                 currSet.exerciseName = newName if newName is not None else newCategory
+
     Queue_.put(workouts)
     Queue_.task_done()
 
