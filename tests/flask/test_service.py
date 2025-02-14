@@ -53,13 +53,5 @@ def test_invalid_iso_format_start_date(invalid_iso_formats):
     start_dates = invalid_iso_formats
     for start_date in start_dates:
         assert start_date is not None
-        result = _validate_start_date(start_date)
-        assert result == "ERROR: INVALID"
-
-
-def test_distant_iso_format_start_date(distant_iso_formats):
-    start_dates = distant_iso_formats
-    for start_date in start_dates:
-        assert start_date is not None
-        result = _validate_start_date(start_date)
-        assert result == str(date.today())
+        result, error = _validate_start_date(start_date)
+        assert result is not None

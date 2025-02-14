@@ -1,3 +1,4 @@
+import datetime
 import logging
 import pathlib
 
@@ -14,10 +15,10 @@ logging.basicConfig(level=logging.ERROR)
 
 def main():
     load_garmin_from_env()
-    startDate = "2024-01-01"
+    endDate = datetime.date.today()
     weeks_of_workouts = 10
 
-    params = set_params_by_weeks(weeks_of_workouts, startDate)
+    params = set_params_by_weeks(weeks_of_workouts, endDate)
     menu = (
         "1: Fresh data & backup\n"
         "2: Fresh data & no backup\n"

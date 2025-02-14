@@ -7,7 +7,7 @@ from backend.src.utils.server_utils import (
 )
 from backend.src.utils.utils import (
     set_params_by_weeks,
-    set_params_by_limit,
+    set_params_by_date,
     timer,
     filepath_validation,
 )
@@ -15,7 +15,7 @@ from backend.src.utils.utils import (
 __all__ = [
     "Endpoints",
     "set_params_by_weeks",
-    "set_params_by_limit",
+    "set_params_by_date",
     "timer",
     "filepath_validation",
     "get_sets_df",

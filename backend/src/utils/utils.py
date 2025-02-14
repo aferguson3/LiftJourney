@@ -8,16 +8,16 @@ logger = logging.getLogger(__name__)
 
 
 def set_params_by_weeks(
-    weeks_of_workouts: int, start_date: str | date, start: int = 0, limit: int = 999
+    weeks_of_workouts: int, end_date: str | date, start: int = 0, limit: int = 999
 ):
-    start_date = str(start_date)
-    _endDate = date.fromisoformat(start_date) + timedelta(days=7 * weeks_of_workouts)
-    endDate = (
-        str(_endDate) if _endDate <= date.today() else str(date.today().isoformat())
+    end_date = str(end_date)
+    start_date = date.fromisoformat(end_date) - timedelta(days=7 * weeks_of_workouts)
+    start_date = (
+        str(start_date) if start_date <= date.today() else str(date.today().isoformat())
     )
     params = {
         "startDate": start_date,
-        "endDate": endDate,
+        "endDate": end_date,
         "start": start,
         "limit": str(limit),
         "activityType": "fitness_equipment",
@@ -25,14 +25,24 @@ def set_params_by_weeks(
     return params
 
 
-def set_params_by_limit(
-    limit: int, start: int = 0, start_date: str | date = "2023-03-08"
+def set_params_by_date(
+    start_date: str,
+    end_date: str | date = None,
+    start: int = 0,
 ):
+    if date.fromisoformat(str(start_date)) > date.today():
+        start_date = date.today()
+
+    if end_date is None:
+        end_date = date.today()
+    elif date.fromisoformat(str(end_date)) > date.today():
+        end_date = date.today()
+
     params = {
         "startDate": str(start_date),
-        "endDate": date.today(),
+        "endDate": str(end_date),
         "start": start,
-        "limit": str(limit),
+        "limit": 999,
         "activityType": "fitness_equipment",
     }
     return params

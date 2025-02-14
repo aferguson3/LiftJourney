@@ -1,13 +1,11 @@
 {% macro meta() %}
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="width=device-width, initial-scale=1" name="viewport" />
 {% endmacro %} {% macro setup() %}
-<script
-		crossorigin="anonymous"
-		integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq"
-		src="https://unpkg.com/htmx.org@2.0.3"
-></script>
+<script crossorigin="anonymous"
+        integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"
+        src="https://unpkg.com/htmx.org@2.0.4"></script>
 <link
-		href=" {{ url_for('static', filename='css/tailwind-build.css') }}"
-		rel="stylesheet"
+  href=" {{ url_for('static', filename='css/tailwind-build.css') }}"
+  rel="stylesheet"
 />
 {% endmacro %}
