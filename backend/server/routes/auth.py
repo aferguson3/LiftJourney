@@ -13,7 +13,7 @@ from flask import (
 
 from backend.server.authenticate import custom_sso_login, mfa_authentication, Client
 from backend.server.models.forms import LoginForm, MFAForm
-from backend.src.garmin_interaction import load_oauth_tokens, is_oauth_tokens_active
+from backend.src.garmin_interaction import is_oauth_tokens_active
 
 login_bp = Blueprint("login_bp", __name__, url_prefix="")
 logger = logging.getLogger(__name__)
@@ -41,7 +41,8 @@ def _validate_login(
 def login():
     # TODO: run using HTTPS
     login_form = LoginForm()
-    oauth_tokens_exist = load_oauth_tokens()
+    # oauth_tokens_exist = load_oauth_tokens()
+    oauth_tokens_exist = False
 
     if oauth_tokens_exist is True:
         return render_template("base.html", body="Success", title="Login Success")

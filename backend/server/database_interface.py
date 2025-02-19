@@ -4,7 +4,7 @@ from sqlalchemy import select, update
 
 from backend.server.config import db, cache
 from backend.server.models import Workout
-from backend.server.models import WorkoutDB, MuscleMapDB
+from backend.server.models import WorkoutDB, MuscleMapDB, SessionsDB
 
 logger = logging.getLogger(__name__)
 
@@ -90,3 +90,8 @@ def update_mappings(values: list[MuscleMapDB]):
         )
     invalidate_cache(["exercise_info"])
     db.session.commit()
+
+
+def add_new_session(session: SessionsDB):
+    db.session.add(session)
+    db.session.execute()
