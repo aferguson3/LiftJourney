@@ -1,4 +1,4 @@
-APP_CONFIG = "debug"
+APP_CONFIG = "prod"
 wsgi_app = f"backend.server.app:create_app(app_config={APP_CONFIG!r})"
 proc_name = "LiftJourney"
 
