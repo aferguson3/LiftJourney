@@ -1,7 +1,7 @@
 {% macro meta() %}
 <meta content="width=device-width, initial-scale=1" name="viewport" />
 {% endmacro %} {% macro setup() %}
-<link href="{{ url_for('static', filename='src/htmx.min.js') }}" rel="stylesheet" />
+<script src="{{ url_for('static', filename='src/htmx.min.js') }}"></script>
 <link
   href=" {{ url_for('static', filename='css/tailwind-build.css') }}"
   rel="stylesheet"

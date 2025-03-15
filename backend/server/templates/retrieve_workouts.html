@@ -1,47 +1,56 @@
 <!doctype html>
 <html lang="en">
-<meta charset="UTF-8" />
-<head>
-  <title>Loading Workout Data</title>
-  {% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
-  }} {{ css_styles.setup() }}
-</head>
-<body>
-{% import './macros/_navbar.html' as navbar %} {{ navbar.content() }}
-<form method="post">
-  <label>Load Workouts</label>
-  <div hidden>
-    <label for="selection"></label>
-    <input id="selection" name="selection" type="text" value="" />
-  </div>
-  <div>
-    <label for="start_date">Start Date</label>
-    <input id="start_date" min="2000-01-01" name="start_date" type="date" />
-    <button
-      id="start_date_btn"
-      onclick="document.getElementById('selection').value='start_date'"
-    >
-      Submit
-    </button>
-  </div>
-  <div>
-    <label for="weeks">Weeks</label>
-    <input
-      id="weeks"
-      max="99"
-      min="0"
-      name="weeks"
-      placeholder="0"
-      type="number"
-    />
-    <button
-      id="weeks_btn"
-      onclick="document.getElementById('selection').value='weeks' "
-    >
-      Submit
-    </button>
-  </div>
-  <div id="error-message">{{ error }}</div>
-</form>
-</body>
+  <meta charset="UTF-8" />
+  <head>
+    <title>Loading Workout Data</title>
+    {% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
+    }} {{ css_styles.setup() }}
+  </head>
+  <body>
+    {% import './macros/_navbar.html' as navbar %} {{ navbar.content() }}
+    <form method="post" class="m-5 w-fit">
+      <div class="flex">
+        <h1 class="text-2xl">Load Workouts</h1>
+      </div>
+      <div hidden>
+        <label for="selection"></label>
+        <input id="selection" name="selection" type="text" value="" />
+      </div>
+      <div id="container" class="grid grid-flow-row auto-rows-auto gap-3">
+        <div>
+          <label for="start_date">Start Date</label>
+          <input
+            id="start_date"
+            min="2000-01-01"
+            name="start_date"
+            type="date"
+          />
+          <button
+            id="start_date_btn"
+            onclick="document.getElementById('selection').value='start_date'"
+          >
+            Submit
+          </button>
+        </div>
+        <div>
+          <label for="weeks">Weeks</label>
+          <input
+            id="weeks"
+            max="99"
+            min="0"
+            name="weeks"
+            placeholder="0"
+            type="number"
+          />
+          <button
+            id="weeks_btn"
+            onclick="document.getElementById('selection').value='weeks' "
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+      <div id="error-message">{{ error }}</div>
+    </form>
+  </body>
 </html>
