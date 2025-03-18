@@ -26,17 +26,19 @@ def set_params_by_weeks(
 
 
 def set_params_by_date(
-    start_date: str,
+    start_date: str | date,
     end_date: str | date = None,
     start: int = 0,
 ):
-    if date.fromisoformat(str(start_date)) > date.today():
-        start_date = date.today()
-
     if end_date is None:
         end_date = date.today()
     elif date.fromisoformat(str(end_date)) > date.today():
         end_date = date.today()
+
+    if date.fromisoformat(str(start_date)) > date.today():
+        start_date = date.today()
+    elif date.fromisoformat(str(start_date)) > date.fromisoformat(str(end_date)):
+        start_date = end_date
 
     params = {
         "startDate": str(start_date),
