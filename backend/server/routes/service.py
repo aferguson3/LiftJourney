@@ -31,16 +31,22 @@ service_bp = Blueprint(
 )
 
 
-def _validate_start_date(start_date_arg: str) -> (str, str | None):
+def _validate_dates(start_date: str, end_date: str) -> (str, str, str | None):
     error = None
+    cur_date = start_date
     try:
-        result = date.fromisoformat(start_date_arg)
+        first_day = date.fromisoformat(cur_date)
+        cur_date = end_date
+        last_day = date.fromisoformat(cur_date)
+        if first_day > last_day:
+            error = f"Start Date: {str(first_day)} should occur before the End Date: {str(last_day)}"
+            return "", "", error
     except ValueError as e:
-        logger.info(f"Invalid iso format string: '{start_date_arg}'")
-        error = "ERROR: Invalid date. Select a valid date."
-        return "", error
+        logger.info(f"Invalid iso format string: '{cur_date}'")
+        error = "Invalid date(s). Select valid date(s)"
+        return "", "", error
 
-    return result, error
+    return first_day, last_day, error
 
 
 def _validate_weeks(weeks_arg: str) -> (int, str | None):
@@ -48,7 +54,7 @@ def _validate_weeks(weeks_arg: str) -> (int, str | None):
     if weeks_arg.isdigit():
         result = int(weeks_arg)
     else:
-        error = f"ERROR: Invalid amount. Enter a valid number of weeks."
+        error = f"Invalid amount. Enter a valid number of weeks"
         return -1, error
 
     return result, error
@@ -72,11 +78,12 @@ def retrieve_workouts_POST():
     selected_option = request.form.get("selection")
 
     match selected_option:
-        case "start_date":
-            start_date, error = _validate_start_date(request.form.get("start_date"))
+        case "dates":
+            start_date, end_date, error = _validate_dates(
+                request.form.get("start_date"), request.form.get("end_date")
+            )
             if error is not None:
                 return render_template("retrieve_workouts.html", error=error)
-            end_date = date.today()
             params = set_params_by_date(start_date, end_date)
 
         case "weeks":
@@ -92,12 +99,17 @@ def retrieve_workouts_POST():
     logger.info(params.items())
     stored_info = dict(zip(select_activityIDs(), select_datetimes()))
     workouts = run_service(params, stored_activity_info=stored_info)
+    success = (
+        f"Loaded workouts from {params.get("startDate")} to {params.get("endDate")}."
+    )
+
     if workouts is not None:
         add_workouts(workouts)
     else:
         logger.info(f"No new workout entries.")
+        success = "No new workouts were loaded."
 
-    return render_template("retrieve_workouts.html")
+    return render_template("retrieve_workouts.html", success=success)
 
 
 @service_bp.route("/graph", methods=["GET", "POST"])

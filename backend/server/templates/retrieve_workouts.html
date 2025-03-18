@@ -1,56 +1,92 @@
 <!doctype html>
 <html lang="en">
-  <meta charset="UTF-8" />
-  <head>
-    <title>Loading Workout Data</title>
-    {% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
-    }} {{ css_styles.setup() }}
-  </head>
-  <body>
-    {% import './macros/_navbar.html' as navbar %} {{ navbar.content() }}
-    <form method="post" class="m-5 w-fit">
-      <div class="flex">
-        <h1 class="text-2xl">Load Workouts</h1>
+<meta charset="UTF-8" />
+<head>
+  <title>Loading Workouts</title>
+  {% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
+  }} {{ css_styles.setup() }}
+</head>
+<body>
+{% import './macros/_navbar.html' as navbar %} {{ navbar.content() }}
+<div class="p-3" id="content">
+  <header class="inline-block max-w-fit " id="header">
+    <h1 class="text-2xl">Load Workouts</h1>
+  </header>
+  <form class="max-w-sm" method="post">
+    {% if error %}
+    <div class="p-4 mt-4 text-sm text-red-800 rounded-lg bg-red-50 dark:text-red-400" role="alert">
+      <span class="font-medium">Error!</span> {{ error }}
+    </div>
+    {% endif %}
+    {% if success %}
+    <div class="p-4 mt-4 text-sm text-green-800 rounded-lg bg-green-50 dark:text-green-400" role="alert">
+      <span class="font-medium">Success!</span> {{ success }}
+    </div>
+    {% endif %}
+    <div class="max-w-sm " id="dates_menu">
+      <div
+        class="flex mt-3 border-2 p-3 rounded w-full justify-center hover:bg-orange-200 first:has-checked:bg-orange-200"
+        id="dates_btn">
+        <input class="radio" hidden id="selection_date" name="selection" type="radio" value="dates">
+        <button class="" type="button">Select a date range</button>
       </div>
-      <div hidden>
-        <label for="selection"></label>
-        <input id="selection" name="selection" type="text" value="" />
-      </div>
-      <div id="container" class="grid grid-flow-row auto-rows-auto gap-3">
-        <div>
-          <label for="start_date">Start Date</label>
+      <div class="settings space-y-3 mt-3" hidden id="dates_settings">
+        <div class="grid grid-row-2 ">
+          <label for="start_date">Start</label>
           <input
             id="start_date"
+            max="2050-01-01"
             min="2000-01-01"
             name="start_date"
             type="date"
+            value=""
           />
-          <button
-            id="start_date_btn"
-            onclick="document.getElementById('selection').value='start_date'"
-          >
-            Submit
-          </button>
         </div>
-        <div>
+        <div class="grid grid-row-2 ">
+          <label for="end_date">End </label>
+          <input
+            id="end_date"
+            max="2050-01-01"
+            min="2000-01-01"
+            name="end_date"
+            type="date"
+            value=""
+          />
+        </div>
+      </div>
+    </div>
+    <div class="max-w-sm " id="weeks_menu">
+      <div
+        class="flex rounded border-2 p-3 mt-5 w-full justify-center hover:bg-orange-200 first:has-checked:bg-orange-200"
+        id="weeks_btn">
+        <input class="radio" hidden id="selection_weeks" name="selection" type="radio" value="weeks">
+        <button class="" type="button">Select the number of weeks prior
+          to today
+        </button>
+      </div>
+      <div class="settings mt-3 space-y-3" hidden id="weeks_settings">
+        <div class="grid grid-row-2">
           <label for="weeks">Weeks</label>
           <input
             id="weeks"
             max="99"
             min="0"
             name="weeks"
-            placeholder="0"
             type="number"
+            value=""
           />
-          <button
-            id="weeks_btn"
-            onclick="document.getElementById('selection').value='weeks' "
-          >
-            Submit
-          </button>
         </div>
       </div>
-      <div id="error-message">{{ error }}</div>
-    </form>
-  </body>
+    </div>
+    <button
+      class="flex rounded border-2 pt-3 pb-3 px-10 w-full mt-10 justify-center hover:bg-orange-200 disabled:bg-red-200"
+      disabled
+      id="submit_button"
+      type="submit">Submit
+    </button>
+  </form>
+</div>
+<script src="{{ url_for('static', filename='js/dates.js') }}"></script>
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
 </html>
