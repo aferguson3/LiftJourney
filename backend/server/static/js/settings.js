@@ -7,8 +7,15 @@ function weeks_menu() {
 }
 
 function enable_submission_check() {
-  let inputs = [document.getElementById("start_date"), document.getElementById("end_date"), document.getElementById("weeks")];
-  let menus = [document.getElementById("dates_menu"), document.getElementById("weeks_menu")];
+  let inputs = [
+    document.getElementById("start_date"),
+    document.getElementById("end_date"),
+    document.getElementById("weeks")
+  ];
+  let menus = [
+    document.getElementById("dates_menu"),
+    document.getElementById("weeks_menu")
+  ];
   let radios = document.getElementsByClassName("radio");
 
   function submit_helper() {
@@ -20,11 +27,13 @@ function enable_submission_check() {
         case "selection_date":
           let start_date = document.getElementById("start_date");
           let end_date = document.getElementById("end_date");
-          document.getElementById("submit_button").disabled = (start_date.value === "" || end_date.value === "");
+          document.getElementById("submit_button").disabled =
+            start_date.value === "" || end_date.value === "";
           break;
         case "selection_weeks":
           let weeks = document.getElementById("weeks");
-          document.getElementById("submit_button").disabled = weeks.value === "";
+          document.getElementById("submit_button").disabled =
+            weeks.value === "";
           break;
         default:
           console.log("Unknown radio");
@@ -45,7 +54,6 @@ function enable_submission_check() {
   }
 }
 
-
 function open_menu(selected_menu, other_menus) {
   if (selected_menu.querySelector(".radio").checked === true) {
     return;
@@ -61,6 +69,10 @@ function open_menu(selected_menu, other_menus) {
 dates_menu().querySelector(".radio").checked = false;
 weeks_menu().querySelector(".radio").checked = false;
 
-dates_menu().addEventListener("click", () => open_menu(dates_menu(), weeks_menu()));
-weeks_menu().addEventListener("click", () => open_menu(weeks_menu(), dates_menu()));
+dates_menu().addEventListener("click", () =>
+  open_menu(dates_menu(), weeks_menu())
+);
+weeks_menu().addEventListener("click", () =>
+  open_menu(weeks_menu(), dates_menu())
+);
 enable_submission_check();
