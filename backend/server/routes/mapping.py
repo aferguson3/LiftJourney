@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 mapping_bp = Blueprint("mapping_bp", __name__, url_prefix="")
 
 
-def _format_display_exercise_names(values: list | str) -> list[str] | str:
+def _display_name_formatting(values: list | str) -> list[str] | str:
     # applies title formatting when displayed on /caterpie
     if isinstance(values, list):
         values = [str(x).replace("_", " ").title() for x in values]
@@ -27,7 +27,7 @@ def _format_display_exercise_names(values: list | str) -> list[str] | str:
     return values
 
 
-def _format_DB_exercise_names(values: list | str) -> list[str] | str:
+def _database_name_formatting(values: list | str) -> list[str] | str:
     # applies the single word & all caps formatting
     if isinstance(values, list):
         values = [str(x).replace(" ", "_").upper() for x in values]
@@ -39,7 +39,35 @@ def _format_DB_exercise_names(values: list | str) -> list[str] | str:
     return values
 
 
-def initialize_muscle_map_db():
+def _change_exercise_mappings(exercise_names: list, categories: list) -> dict | None:
+    changes_to_db = False
+    # noinspection PyTypeChecker
+    db_mappings = db.session.execute(
+        select(MuscleMapDB.exerciseName, MuscleMapDB.category).where(
+            MuscleMapDB.category != "None"
+        )
+    ).all()
+    db_mappings = dict(db_mappings)
+    for row in zip(exercise_names, categories, strict=True):
+        cur_exercise = row[0]
+        cur_category = row[1]
+        if db_mappings.get(cur_exercise) is None:
+            continue
+        if db_mappings[cur_exercise] == cur_category:
+            db_mappings.pop(cur_exercise)
+        else:
+            changes_to_db = True
+            db_mappings[cur_exercise] = cur_category
+
+    if changes_to_db:
+        update_mappings(db_mappings)
+        return db_mappings
+    else:
+        logger.debug("No new muscle mappings to update.")
+        return None
+
+
+def _default_muscle_groupings():
     exerciseSetDB_exercise_names = select(ExerciseSetDB.exerciseName).distinct()
     muscleMapDB_exercise_names = select(MuscleMapDB.exerciseName).distinct()
     new_muscleMapDB_exercise_names: list = (
@@ -62,7 +90,7 @@ def initialize_muscle_map_db():
         add_mappings(muscle_map_collection)
 
 
-def _get_exercises_to_display():
+def load_ungrouped_exercises():
     # noinspection PyTypeChecker
     result: list = (
         db.session.execute(
@@ -71,40 +99,153 @@ def _get_exercises_to_display():
         .scalars()
         .all()
     )
-    return _format_display_exercise_names(result)
+    return _display_name_formatting(result)
+
+
+def load_muscle_mappings() -> tuple[list, list]:
+    exercise_names, categories = list(), list()
+    # noinspection PyTypeChecker
+
+    result: list = db.session.execute(
+        select(MuscleMapDB.exerciseName, MuscleMapDB.category).where(
+            MuscleMapDB.category != "None"
+        )
+    ).all()
+    for row in result:
+        exercise_names.append(row[0])
+        categories.append(row[1])
+    return _display_name_formatting(exercise_names), categories
 
 
 @mapping_bp.route("/mapping", methods=["GET", "POST"])
 def mapping():
-    initialize_muscle_map_db()
-    displayed_exercises = _get_exercises_to_display()
+    match request.method:
+        case "GET":
+            return mapping_get()
+        case "POST":
+            return mapping_post_handler()
+        case _:
+            logger.error("Invalid method requested.")
+            return mapping_get()
+
+
+def mapping_get():
     muscle_group_field = ExerciseMappingForm()
-    muscle_group_field.set_choices(MUSCLE_GROUPS_LIST)
+    return render_template(
+        "exercise_mapping.html",
+        muscle_group_field=muscle_group_field,
+        exercises=None,
+    )
 
-    if request.method == "GET" or not muscle_group_field.is_submitted():
-        return render_template(
-            "exercise_mapping.html",
-            exercises=displayed_exercises,
-            muscle_group_field=muscle_group_field,
-        )
 
+@mapping_bp.route("/mapping/menu_change", methods=["POST"])
+def menu_selection():
+    option = request.form.get("menu_select")
+    muscle_group_field = ExerciseMappingForm()
+
+    match option:
+        case "modify":
+            current_exercises, categories = load_muscle_mappings()
+            exercise_categories = list(zip(current_exercises, categories))
+            return render_template(
+                "exercise_mapping.html",
+                exercises=current_exercises,
+                exercise_categories=exercise_categories,
+                muscle_group_field=muscle_group_field,
+            )
+        case "create":
+            _default_muscle_groupings()
+            displayed_exercises = load_ungrouped_exercises()
+
+            return render_template(
+                "exercise_mapping.html",
+                exercises=displayed_exercises,
+                muscle_group_field=muscle_group_field,
+            )
+        case _:
+            logger.error("Invalid menu options")
+            return render_template(
+                "exercise_mapping.html",
+                exercises=None,
+                muscle_group_field=muscle_group_field,
+                error="400: Invalid menu option",
+            )
+
+
+@mapping_bp.route("/mapping/submission_change", methods=["POST"])
+def mapping_post_handler():
+    option = request.form.get("menu_select")
+    match option:
+        case "modify":
+            return modifying_mappings()
+        case "create":
+            return creating_mappings()
+        case _:
+            error = f"500: Invalid option: {option}."
+            logger.error(f"{error}")
+            return render_template(
+                "exercise_mapping.html",
+                error=error,
+                muscle_group_field=None,
+                exercises=None,
+            )
+
+
+def modifying_mappings() -> str:
+    muscle_group_field = ExerciseMappingForm()
+    request_form = request.form.copy()
+    valid_categories = MUSCLE_GROUPS_LIST.copy()
+    valid_categories.append("None")
+    updated_entries = dict()
+
+    cur_exercises, cur_categories = load_muscle_mappings()
+    for exercise_name, stored_category in zip(cur_exercises, cur_categories):
+        updated_category = request_form.get(exercise_name)
+        if stored_category not in valid_categories:
+            logger.debug(
+                f"Invalid mapping: {exercise_name}:{stored_category}. Use valid categories."
+            )
+            continue
+        if updated_category != stored_category:
+            updated_entries[_database_name_formatting(exercise_name)] = updated_category
+
+    _change_exercise_mappings(
+        list(updated_entries.keys()), list(updated_entries.values())
+    )
+    cur_exercises, cur_categories = load_muscle_mappings()
+    exercise_categories = list(zip(cur_exercises, cur_categories))
+    return render_template(
+        "exercise_mapping.html",
+        exercises=cur_exercises,
+        exercise_categories=exercise_categories,
+        muscle_group_field=muscle_group_field,
+    )
+
+
+def creating_mappings() -> str:
+    # mapping process submitted form
     new_exercise_entries = list()
+    displayed_exercises = load_ungrouped_exercises()
+    muscle_group_field = ExerciseMappingForm()
     submitted_form = request.form
+
     for cur_exercise_name in displayed_exercises:
         cur_selected_category = submitted_form.get(f"{cur_exercise_name}")
-
-        if cur_selected_category != "":
+        if cur_selected_category != "None":
             new_muscle_map = MuscleMapDB(
-                exerciseName=_format_DB_exercise_names(cur_exercise_name),
+                exerciseName=_database_name_formatting(cur_exercise_name),
                 category=cur_selected_category,
             )
             new_exercise_entries.append(new_muscle_map)
 
-    update_mappings(new_exercise_entries)
-    new_displayed_exercises = _get_exercises_to_display()
+    if len(new_exercise_entries) > 0:
+        update_mappings(new_exercise_entries)
+        displayed_exercises = load_ungrouped_exercises()
+    else:
+        logger.debug("No new muscle mappings to add.")
 
     return render_template(
         "exercise_mapping.html",
-        exercises=new_displayed_exercises,
+        exercises=displayed_exercises,
         muscle_group_field=muscle_group_field,
     )

@@ -1,20 +1,20 @@
 <!doctype html>
 <html lang="en">
-<meta charset="UTF-8"/>
+<meta charset="UTF-8" />
 <head>
-	<title>{{title | title}}</title>
-	{% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
-	}} {{ css_styles.setup() }}
+  <title>{{title | title}}</title>
+  {% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
+  }} {{ css_styles.setup() }}
 </head>
 <body hx-target="this">
 {% if body == 'Success' %}
 <a
-		hx-boost="true"
-		hx-get="/"
-		hx-push-url="true"
-		hx-trigger="revealed delay:1500ms"
+  hx-boost="true"
+  hx-get="/"
+  hx-push-url="true"
+  hx-trigger="revealed delay:1500ms"
 >
-	{{ body }}
+  {{ body }}
 </a>
 {% else %}
 <a> {{body}} </a>

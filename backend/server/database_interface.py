@@ -80,13 +80,29 @@ def select_datetimes() -> list[int]:
     return (db.session.execute(select(WorkoutDB.datetime))).scalars().all()
 
 
-def update_mappings(values: list[MuscleMapDB]):
-    for value in values:
-        # noinspection PyTypeChecker
-        db.session.execute(
-            update(MuscleMapDB)
-            .where(MuscleMapDB.exerciseName == value.exerciseName)
-            .values(category=f"{value.category}")
-        )
+def update_mappings(new_entries: list[MuscleMapDB] | dict):
+    if new_entries is None or len(new_entries) == 0:
+        return
+
+    if isinstance(new_entries, list):
+        for value in new_entries:
+            # noinspection PyTypeChecker
+            db.session.execute(
+                update(MuscleMapDB)
+                .where(MuscleMapDB.exerciseName == value.exerciseName)
+                .values(category=f"{value.category}")
+            )
+    elif isinstance(new_entries, dict):
+        for exercise_name, category in new_entries.items():
+            # noinspection PyTypeChecker
+            db.session.execute(
+                update(MuscleMapDB)
+                .where(MuscleMapDB.exerciseName == exercise_name)
+                .values(category=f"{category}")
+            )
+    else:
+        logger.debug(f"TypeError: {new_entries} is not of type list, dict.")
+        return
+
     invalidate_cache(["exercise_info"])
     db.session.commit()

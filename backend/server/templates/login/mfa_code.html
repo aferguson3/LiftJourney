@@ -1,35 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <head>
-	<title>MFA Code</title>
-	{% import './macros/_css_styles.html' as css_styles %}
-	{{ css_styles.meta() }}
-	{{ css_styles.setup() }}
+  <title>MFA Code</title>
+  {% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
+  }} {{ css_styles.setup() }}
 </head>
-
 <body>
-{% import './macros/_navbar.html' as navbar %}
-{{ navbar.content() }}
-
-<div class="mt-10 w-80 mx-auto border-2 border-black" id="main-content">
-	<div id="mfa-headers">
-		<h1 class="text-center m-5 text-2xl">Multifactor Authentication</h1>
-	</div>
-	<div id="MFA-Code">
-		<form class="gap-6 grid grid-cols-1 mb-5" method="post">
-			{{form.csrf_token}}
-			<label class="block px-5">
-				<span>Enter the 6-digit MFA code</span>
-				<input class="w-full mx-auto bg-gray-100 rounded border-2" id="mfa_code" name="mfa_code" required
-					   type="text"
-					   value="">
-			</label>
-			<button class="rounded block px-2 py-2 w-fit mx-auto bg-gray-100 border-2 hover:cursor-pointer"
-					type="submit">Submit
-			</button>
-		</form>
-	</div>
+{% import './macros/_navbar.html' as navbar %} {{ navbar.content() }}
+<div class="mx-auto mt-10 w-80 border-2 border-black" id="main-content">
+  <div id="mfa-headers">
+    <h1 class="m-5 text-center text-2xl">Multifactor Authentication</h1>
+  </div>
+  <div id="MFA-Code">
+    <form class="mb-5 grid grid-cols-1 gap-6" method="post">
+      {{form.csrf_token}}
+      <label class="block px-5">
+        <span>Enter the 6-digit MFA code</span>
+        <input
+          class="mx-auto w-full rounded border-2 bg-gray-100"
+          id="mfa_code"
+          name="mfa_code"
+          required
+          type="text"
+          value=""
+        />
+      </label>
+      <button
+        class="mx-auto block w-fit rounded border-2 bg-gray-100 px-2 py-2 hover:cursor-pointer"
+        type="submit"
+      >
+        Submit
+      </button>
+    </form>
+  </div>
 </div>
 </body>
 </html>
