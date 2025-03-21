@@ -15,3 +15,8 @@ def page_not_found(e):
         ),
         404,
     )
+
+
+def invalid_method():
+    error = "405: Method Not Allowed"
+    return render_template("base.html", body=error)

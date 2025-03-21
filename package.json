@@ -4,18 +4,18 @@
     "watch": "npx @tailwindcss/cli -i backend/server/static/src/tailwind-input.css  -o ./backend/server/static/css/tailwind-build.css --minify --watch"
   },
   "dependencies": {
-    "@tailwindcss/cli": "^4.0.0-beta.4",
-    "@tailwindcss/forms": "^0.5.9",
-    "tailwindcss": "^4.0.0-beta.4"
+    "@tailwindcss/cli": "^4.0.14",
+    "@tailwindcss/forms": "^0.5.10",
+    "tailwindcss": "^4.0.14"
   },
   "devDependencies": {
-    "prettier": "^3.4.2",
-    "prettier-plugin-tailwindcss": "^0.6.9"
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11"
   },
   "prettier": {
     "plugins": [
       "prettier-plugin-tailwindcss"
     ],
-    "tailwindStylesheet": ".\\backend\\server\\static\\src\\tailwind.css"
+    "tailwindStylesheet": ".\\backend\\server\\static\\src\\tailwind-input.css"
   }
 }

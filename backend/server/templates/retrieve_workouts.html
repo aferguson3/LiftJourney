@@ -2,46 +2,114 @@
 <html lang="en">
 <meta charset="UTF-8" />
 <head>
-  <title>Loading Workout Data</title>
+  <title>Loading Workouts</title>
   {% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
   }} {{ css_styles.setup() }}
 </head>
 <body>
 {% import './macros/_navbar.html' as navbar %} {{ navbar.content() }}
-<form method="post">
-  <label>Load Workouts</label>
-  <div hidden>
-    <label for="selection"></label>
-    <input id="selection" name="selection" type="text" value="" />
-  </div>
-  <div>
-    <label for="start_date">Start Date</label>
-    <input id="start_date" min="2000-01-01" name="start_date" type="date" />
+<div class="mx-auto w-fit p-3" id="content">
+  <header class="inline-block max-w-fit" id="header">
+    <h1 class="text-2xl">Load Workouts</h1>
+  </header>
+  <form class="max-w-sm" method="post">
+    {% if error %}
+    <div
+      class="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:text-red-400"
+      role="alert"
+    >
+      <span class="font-medium">Error!</span> {{ error }}
+    </div>
+    {% endif %} {% if success %}
+    <div
+      class="mt-4 rounded-lg bg-green-50 p-4 text-sm text-green-800 dark:text-green-400"
+      role="alert"
+    >
+      <span class="font-medium">Success!</span> {{ success }}
+    </div>
+    {% endif %}
+    <div class="max-w-sm" id="dates_menu">
+      <div
+        class="mt-3 flex w-full justify-center rounded border-2 p-3 hover:bg-orange-200 first:has-checked:bg-orange-200"
+        id="dates_btn"
+      >
+        <input
+          class="radio"
+          hidden
+          id="selection_date"
+          name="selection"
+          type="radio"
+          value="dates"
+        />
+        <button class="" type="button">Select a date range</button>
+      </div>
+      <div class="settings mt-3 space-y-3" hidden id="dates_settings">
+        <div class="grid-row-2 grid">
+          <label for="start_date">Start</label>
+          <input
+            id="start_date"
+            max="2050-01-01"
+            min="2000-01-01"
+            name="start_date"
+            type="date"
+            value=""
+          />
+        </div>
+        <div class="grid-row-2 grid">
+          <label for="end_date">End </label>
+          <input
+            id="end_date"
+            max="2050-01-01"
+            min="2000-01-01"
+            name="end_date"
+            type="date"
+            value=""
+          />
+        </div>
+      </div>
+    </div>
+    <div class="max-w-sm" id="weeks_menu">
+      <div
+        class="mt-5 flex w-full justify-center rounded border-2 p-3 hover:bg-orange-200 first:has-checked:bg-orange-200"
+        id="weeks_btn"
+      >
+        <input
+          class="radio"
+          hidden
+          id="selection_weeks"
+          name="selection"
+          type="radio"
+          value="weeks"
+        />
+        <button class="" type="button">
+          Select the number of weeks prior to today
+        </button>
+      </div>
+      <div class="settings mt-3 space-y-3" hidden id="weeks_settings">
+        <div class="grid-row-2 grid">
+          <label for="weeks">Weeks</label>
+          <input
+            id="weeks"
+            max="99"
+            min="0"
+            name="weeks"
+            type="number"
+            value=""
+          />
+        </div>
+      </div>
+    </div>
     <button
-      id="start_date_btn"
-      onclick="document.getElementById('selection').value='start_date'"
+      class="my-5 flex w-full justify-center rounded border-2 px-10 py-3 hover:bg-orange-200 disabled:bg-red-200 sm:w-fit"
+      disabled
+      id="submit_button"
+      type="submit"
     >
       Submit
     </button>
-  </div>
-  <div>
-    <label for="weeks">Weeks</label>
-    <input
-      id="weeks"
-      max="99"
-      min="0"
-      name="weeks"
-      placeholder="0"
-      type="number"
-    />
-    <button
-      id="weeks_btn"
-      onclick="document.getElementById('selection').value='weeks' "
-    >
-      Submit
-    </button>
-  </div>
-  <div id="error-message">{{ error }}</div>
-</form>
+  </form>
+</div>
+<script src="{{ url_for('static', filename='js/dates.js') }}"></script>
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from backend.server.routes.service import _validate_start_date
+from backend.server.routes.service import _validate_dates
 
 
 @pytest.fixture
@@ -46,12 +46,24 @@ def test_valid_iso_format_start_date(valid_iso_formats):
     start_dates = valid_iso_formats
 
     for start_date in start_dates:
-        assert _validate_start_date(start_date)
+        start, end, error = _validate_dates(start_date, str(date.today()))
+        assert error is None
 
 
 def test_invalid_iso_format_start_date(invalid_iso_formats):
     start_dates = invalid_iso_formats
     for start_date in start_dates:
         assert start_date is not None
-        result, error = _validate_start_date(start_date)
-        assert result is not None
+        start, end, error = _validate_dates(start_date, str(date.today()))
+        assert error is not None
+
+
+def test_dates_not_synced(valid_iso_formats):
+    start_dates = valid_iso_formats
+    end_date = None
+    for start_date in start_dates:
+        end_date = date.fromisoformat(start_date) - timedelta(days=1)
+        assert start_date
+        assert end_date
+        start, end, error = _validate_dates(start_date, str(end_date))
+        assert error is not None

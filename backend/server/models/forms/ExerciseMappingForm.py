@@ -16,4 +16,6 @@ class ExerciseMappingForm(FlaskForm):
         self.set_choices(MUSCLE_GROUPS_LIST)
 
     def set_choices(self, options: list[str]):
-        self.categories.choices = [("", "")] + [(name, name) for name in options]
+        self.categories.choices = [("None", "None")] + [
+            (name, name) for name in options
+        ]

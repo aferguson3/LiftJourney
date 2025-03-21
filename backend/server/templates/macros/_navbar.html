@@ -1,13 +1,13 @@
 {% macro content() %}
-<header class="bg-background sticky top-0 z-50 shadow-md" id="navbar">
+<header class="sticky top-0 z-50 bg-background shadow-md" id="navbar">
   <nav
-    class="h-15 flex w-screen items-center border-b-2 border-b-black px-5 max-sm:justify-between"
+    class="flex h-15 w-full items-center border-b-2 border-b-black px-5 max-sm:justify-between"
   >
-    <div class="text-primary w-fit cursor-pointer pe-5" id="home-page">
+    <div class="w-fit cursor-pointer pe-5 text-primary" id="home-page">
       <a href="/">LiftJourney</a>
     </div>
     <ul
-      class="text-primary flex w-fit gap-5 max-sm:hidden"
+      class="flex w-fit gap-5 text-primary max-sm:hidden"
       hx-boost="true"
       hx-push-url="true"
       id="desktop-links"
@@ -41,7 +41,7 @@
   </nav>
   <nav class="sticky h-fit w-screen items-center py-3" hidden id="mobile-menu">
     <ul
-      class="text-primary grid w-full grid-cols-1 justify-items-start gap-3 px-5 text-base"
+      class="grid w-full grid-cols-1 justify-items-start gap-3 px-5 text-base text-primary"
       hx-boost="true"
       hx-push-url="true"
     >
