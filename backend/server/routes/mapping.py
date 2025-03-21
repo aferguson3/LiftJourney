@@ -8,6 +8,7 @@ from backend.server.database_interface import add_mappings, update_mappings
 from backend.server.models import ExerciseSetDB
 from backend.server.models.MuscleMapDB import MUSCLE_GROUPS_LIST, MuscleMapDB
 from backend.server.models.forms import ExerciseMappingForm
+from backend.server.routes.status_codes import invalid_method
 
 logger = logging.getLogger(__name__)
 mapping_bp = Blueprint("mapping_bp", __name__, url_prefix="")
@@ -125,8 +126,7 @@ def mapping():
         case "POST":
             return mapping_post_handler()
         case _:
-            logger.error("Invalid method requested.")
-            return mapping_get()
+            return invalid_method()
 
 
 def mapping_get():
@@ -181,14 +181,7 @@ def mapping_post_handler():
         case "create":
             return creating_mappings()
         case _:
-            error = f"500: Invalid option: {option}."
-            logger.error(f"{error}")
-            return render_template(
-                "exercise_mapping.html",
-                error=error,
-                muscle_group_field=None,
-                exercises=None,
-            )
+            return invalid_method()
 
 
 def modifying_mappings() -> str:

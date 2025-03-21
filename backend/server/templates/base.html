@@ -6,18 +6,7 @@
   {% import './macros/_css_styles.html' as css_styles %} {{ css_styles.meta()
   }} {{ css_styles.setup() }}
 </head>
-<body hx-target="this">
-{% if body == 'Success' %}
-<a
-  hx-boost="true"
-  hx-get="/"
-  hx-push-url="true"
-  hx-trigger="revealed delay:1500ms"
->
-  {{ body }}
-</a>
-{% else %}
+<body>
 <a> {{body}} </a>
-{% endif %}
 </body>
 </html>

@@ -13,6 +13,14 @@ navbar.content() }}
   <div class="form header">
     <h1 class="m-5 text-center text-2xl">Login</h1>
   </div>
+  {% if error %}
+  <div
+    class="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:text-red-400"
+    role="alert"
+  >
+    <span class="font-medium"></span>Error! {{ error }}
+  </div>
+  {% endif %}
   <form
     class="mb-5 grid grid-cols-1 gap-6 bg-white/50"
     id="login-form"
@@ -25,7 +33,7 @@ navbar.content() }}
         class="block w-full rounded border-2 bg-gray-100"
         name="email"
         placeholder="example@email.com"
-        type="text"
+        type="email"
       />
     </label>
     <label class="block px-5">
