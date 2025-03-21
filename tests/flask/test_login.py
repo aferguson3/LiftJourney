@@ -8,7 +8,7 @@ from backend.server.routes.auth import _validate_login
 from tests.flask import client
 
 LOGIN_PATH = "/login"
-MFA_PATH = "/mfa_code"
+MFA_PATH = "/login/mfa_code"
 
 
 @pytest.fixture
@@ -35,8 +35,8 @@ def successful_login():
 
 def test_get_request_login(client):
     response = client.get(LOGIN_PATH)
-    assert response.status_code == 200
-    assert b"Login" in response.data
+    assert response.status_code == 302
+    assert response.location == "/"
 
 
 def test_successful_load_oauth_tokens(oauth_tokens_found, client):
@@ -45,8 +45,8 @@ def test_successful_load_oauth_tokens(oauth_tokens_found, client):
     assert oauth_tokens_found() is True
     response = client.get("/login")
 
-    assert response.status_code == 200
-    assert b"Login Success" in response.data
+    assert response.status_code == 302
+    assert response.location == "/"
 
 
 def test_invalid_login_form_entry(oauth_tokens_found, successful_login, client):
@@ -80,10 +80,12 @@ def test_valid_login_entry_login_fail(client):
     password2 = "V3ryV4LiD$"
     garth_client = Client()
 
-    result = _validate_login(email, password, garth_client)
+    result, error = _validate_login(email, password, garth_client)
     assert result is None
-    result = _validate_login(email2, password2, garth_client)
+    assert error is not None
+    result, error = _validate_login(email2, password2, garth_client)
     assert result is None
+    assert error is not None
 
 
 def test_mfa_code_get(client):

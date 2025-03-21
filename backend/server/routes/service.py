@@ -13,6 +13,8 @@ from backend.server.database_interface import (
 )
 from backend.server.models.MuscleMapDB import MuscleMapDB
 from backend.server.models.forms import ExerciseMappingForm
+from backend.server.routes.auth import login_check
+from backend.server.routes.status_codes import invalid_method
 from backend.src.dataframe_accessors import (
     list_available_exercises,
     plot_dataframe,
@@ -68,10 +70,16 @@ def service():
             return retrieve_workouts_GET()
         case "POST":
             return retrieve_workouts_POST()
+        case _:
+            return invalid_method()
 
 
 def retrieve_workouts_GET():
-    return render_template("retrieve_workouts.html")
+    result = login_check()
+    if result is not None:
+        return result
+    else:
+        return render_template("retrieve_workouts.html")
 
 
 def retrieve_workouts_POST():
