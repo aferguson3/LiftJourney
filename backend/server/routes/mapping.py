@@ -68,7 +68,7 @@ def _change_exercise_mappings(exercise_names: list, categories: list) -> dict | 
         return None
 
 
-def _default_muscle_groupings():
+def default_muscle_groupings():
     exerciseSetDB_exercise_names = select(ExerciseSetDB.exerciseName).distinct()
     muscleMapDB_exercise_names = select(MuscleMapDB.exerciseName).distinct()
     new_muscleMapDB_exercise_names: list = (
@@ -154,7 +154,6 @@ def menu_selection():
                 muscle_group_field=muscle_group_field,
             )
         case "create":
-            _default_muscle_groupings()
             displayed_exercises = load_ungrouped_exercises()
 
             return render_template(

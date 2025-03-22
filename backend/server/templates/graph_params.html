@@ -13,16 +13,28 @@
 <body>
 {% import './macros/_navbar.html' as navbar %} {{ navbar.content() }}
 <div class="" id="content">
-  <div class="w-fit p-5 pb-0 text-2xl">
-    <span>Workout Progression</span>
-  </div>
-  <form class="max-w-60 p-5" id="exercise-form" method="post">
+  <form class="mx-auto max-w-72 px-5 py-3" id="exercise-form" method="post">
+    <div class="w-fit text-2xl" id="header">
+      <span>Workout Progression</span>
+    </div>
     {{ muscle_group_field.csrf_token }}
-    <div class="grid grid-cols-1 justify-items-start gap-3" id="fields">
+    <div
+      class="mt-3 grid grid-cols-1 justify-items-start gap-3"
+      id="fields"
+    >
       <label class="w-full" id="categories_label">
         <span class="block">Category</span>
-        {{ muscle_group_field.categories(class="rounded w-full gap-10",
-        required="") }}
+        <select
+          class="w-full gap-10 rounded"
+          id="categories"
+          name="categories"
+          required
+        >
+          <option disabled name="" selected value=""></option>
+          {% for name, value in muscle_group_field.categories.choices %}
+          <option name="{{name}}" value="{{value}}">{{value}}</option>
+          {% endfor %}
+        </select>
       </label>
       <label class="w-full" id="exercises_label">
         <span class="block">Exercise</span>

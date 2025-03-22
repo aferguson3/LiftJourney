@@ -14,6 +14,7 @@ from backend.server.database_interface import (
 from backend.server.models.MuscleMapDB import MuscleMapDB
 from backend.server.models.forms import ExerciseMappingForm
 from backend.server.routes.auth import login_check
+from backend.server.routes.mapping import default_muscle_groupings
 from backend.server.routes.status_codes import invalid_method
 from backend.src.dataframe_accessors import (
     list_available_exercises,
@@ -113,6 +114,8 @@ def retrieve_workouts_POST():
 
     if workouts is not None:
         add_workouts(workouts)
+        default_muscle_groupings()
+
     else:
         logger.info(f"No new workout entries.")
         success = "No new workouts were loaded."
