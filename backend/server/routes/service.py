@@ -14,6 +14,7 @@ from backend.server.database_interface import (
 from backend.server.models.MuscleMapDB import MuscleMapDB
 from backend.server.models.forms import ExerciseMappingForm
 from backend.server.routes.auth import login_check
+from backend.server.routes.mapping import default_muscle_groupings
 from backend.server.routes.status_codes import invalid_method
 from backend.src.dataframe_accessors import (
     list_available_exercises,
@@ -21,7 +22,7 @@ from backend.src.dataframe_accessors import (
 )
 from backend.src.garmin_interaction import run_service
 from backend.src.utils import set_params_by_date, set_params_by_weeks
-from backend.src.utils.server_utils import get_sets_df, get_exercise_info
+from backend.src.utils.server_utils import get_sets_df, _exercise_info_dict
 
 logger = logging.getLogger(__name__)
 service_bp = Blueprint(
@@ -67,14 +68,14 @@ def _validate_weeks(weeks_arg: str) -> (int, str | None):
 def service():
     match request.method:
         case "GET":
-            return retrieve_workouts_GET()
+            return retrieve_workouts_get()
         case "POST":
-            return retrieve_workouts_POST()
+            return retrieve_workouts_post()
         case _:
             return invalid_method()
 
 
-def retrieve_workouts_GET():
+def retrieve_workouts_get():
     result = login_check()
     if result is not None:
         return result
@@ -82,7 +83,7 @@ def retrieve_workouts_GET():
         return render_template("retrieve_workouts.html")
 
 
-def retrieve_workouts_POST():
+def retrieve_workouts_post():
     selected_option = request.form.get("selection")
 
     match selected_option:
@@ -113,6 +114,8 @@ def retrieve_workouts_POST():
 
     if workouts is not None:
         add_workouts(workouts)
+        default_muscle_groupings()
+
     else:
         logger.info(f"No new workout entries.")
         success = "No new workouts were loaded."
@@ -121,25 +124,45 @@ def retrieve_workouts_POST():
 
 
 @service_bp.route("/graph", methods=["GET", "POST"])
-def setup_graph():
+def graph_handler():
+    match request.method:
+        case "GET":
+            return graph_get()
+        case "POST":
+            return graph_post()
+        case _:
+            return invalid_method()
+
+
+def graph_get():
     df = get_sets_df()
     buffer = io.StringIO()
     df.info(memory_usage=True, buf=buffer)
     logger.info(f"df memory usage: {buffer.getvalue()}")
-
     fitness_select_form = ExerciseMappingForm()
-    if cache.get("exercise_info") is None:
-        muscle_map_entries: list[MuscleMapDB] = select_mappings()
-        all_muscle_maps = {
-            _dict["exerciseName"]: _dict["category"]
-            for _dict in [record.get_dict() for record in muscle_map_entries]
-        }
-        all_exercise_names = list_available_exercises(df)
-        exercise_info = get_exercise_info(all_exercise_names, df, all_muscle_maps)
-    else:
-        exercise_info = cache.get("exercise_info")
-        logging.debug("Cache used for key: exercise_info")
+    exercise_info = get_exercise_info(df)
 
+    return render_template(
+        "graph_params.html",
+        muscle_group_field=fitness_select_form,
+        exercise_info=json.dumps(exercise_info),
+    )
+
+
+@cache.cached(key_prefix="exercise_info")
+def get_exercise_info(df):
+    muscle_map_entries: list[MuscleMapDB] = select_mappings()
+    all_muscle_maps = {
+        _dict["exerciseName"]: _dict["category"]
+        for _dict in [record.get_dict() for record in muscle_map_entries]
+    }
+    all_exercise_names = list_available_exercises(df)
+    exercise_info = _exercise_info_dict(all_exercise_names, df, all_muscle_maps)
+    return exercise_info
+
+
+def graph_post():
+    fitness_select_form = ExerciseMappingForm()
     if fitness_select_form.is_submitted():
         if _validate_graph_args(request.form.to_dict()) == 0:
             session["exercise"] = request.form.get("exercises")

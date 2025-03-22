@@ -8,6 +8,7 @@
 **/creds/*
 **/.env
 **/data/*
+*.db
 **/css/tailwind-build.css
 
 # Package Dist
