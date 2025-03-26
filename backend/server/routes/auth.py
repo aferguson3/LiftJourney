@@ -27,7 +27,7 @@ def login_check() -> Response | None:
         return None
     if not load_oauth_tokens():
         session["caller"] = caller
-        return redirect(url_for(".login"))
+        return redirect(url_for("login_bp.login"))
 
 
 def _validate_login(

@@ -3,7 +3,7 @@ from backend.src.utils.server_utils import (
     get_sets_df,
     format_display_exercise_names,
     format_DB_exercise_names,
-    get_exercise_info,
+    _exercise_info_dict,
 )
 from backend.src.utils.utils import (
     set_params_by_weeks,
@@ -21,5 +21,5 @@ __all__ = [
     "get_sets_df",
     "format_display_exercise_names",
     "format_DB_exercise_names",
-    "get_exercise_info",
+    "_exercise_info_dict",
 ]

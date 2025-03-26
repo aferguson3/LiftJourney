@@ -14,10 +14,9 @@
   </div>
   <div id="MFA-Code">
     <form class="mb-5 grid grid-cols-1 gap-6" method="post">
-      {{form.csrf_token}}
-      {% if error %}
+      {{form.csrf_token}} {% if error %}
       <div
-        class="w-fit mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:text-red-400"
+        class="mt-4 w-fit rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:text-red-400"
         role="alert"
       >
         <span class="font-medium"></span>Error! {{ error }}

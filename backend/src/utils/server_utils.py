@@ -6,16 +6,17 @@ import pandas
 import pandas as pd
 from sqlalchemy import select, update
 
-from backend.server.config import db, cache
+from backend.server.config import cache
+from backend.server.config import db
 from backend.server.models import WorkoutDB, ExerciseSetDB
 from backend.src.dataframe_accessors import get_rep_ranges
 
 logger = logging.getLogger(__name__)
 
 
-def _get_dataframe_index(workout_ids: list) -> list[Tuple]:
+def _get_dataframe_index(df: pd.DataFrame) -> list[Tuple]:
     index_2d: list[Tuple] = []
-    workout_ids = list(set(workout_ids))
+    workout_ids = df["workout_id"].unique()
 
     for cur_workout_id in workout_ids:
         cur_workout_date = db.session.execute(
@@ -35,7 +36,9 @@ def _get_dataframe_index(workout_ids: list) -> list[Tuple]:
             .where(ExerciseSetDB.workout_id == int(cur_workout_id))
             .values(date=cur_workout_date)
         )
+        df.loc[df["workout_id"] == cur_workout_id, "date"] = cur_workout_date
     db.session.commit()
+
     return index_2d
 
 
@@ -48,7 +51,7 @@ def get_sets_df() -> pandas.DataFrame:
         params={"category": "TRACKED"},
     )
     index_df = pd.MultiIndex.from_tuples(
-        _get_dataframe_index(sets_df["workout_id"]), names=["Dates", "Sets"]
+        _get_dataframe_index(sets_df), names=["Dates", "Sets"]
     )
     sets_df.set_index(index_df, inplace=True)
     return sets_df
@@ -78,8 +81,7 @@ def format_DB_exercise_names(values: list | str) -> list[str] | str:
     return values
 
 
-@cache.cached(key_prefix="exercise_info")
-def get_exercise_info(
+def _exercise_info_dict(
     exercise_names: list[str], df: pd.DataFrame, exercise_categories: dict
 ):
 
