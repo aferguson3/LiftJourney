@@ -7,13 +7,15 @@ services:
           path: ./backend
           target: /home/LiftJourney/backend
     volumes:
-      - ./app/db-data:/home/LiftJourney/backend/server/data
+      - ./app/db:/home/LiftJourney/backend/server/data
       - ./app/creds:/home/LiftJourney/backend/creds
+    restart: always
   web-server:
     build: ./nginx
     ports:
       - '80:8080'
     depends_on:
       - backend
+    restart: always
 volumes:
   db-data:
