@@ -3,7 +3,6 @@ from datetime import datetime
 
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.io import to_html
 from plotly.subplots import make_subplots
 
 from backend.server.models import Workout
@@ -42,7 +41,6 @@ def plot_dataframe(
     plotting_exercise: str,
     targetReps: int = None,
     flask_mode: bool = False,
-    filepath: str = None,
 ) -> None | str:
     # plot the reps and weight of like exercisesNames
     if plotting_exercise not in df["exerciseName"].values:
@@ -61,16 +59,25 @@ def plot_dataframe(
         plot_df = df.loc[
             (df["exerciseName"] == plotting_exercise) & (df["targetReps"] == targetReps)
         ]
-
-    fig = make_subplots(2, 1, shared_xaxes=True)
+    fig = make_subplots(
+        2, 1, shared_xaxes=True, vertical_spacing=0.025, horizontal_spacing=0.05
+    )
     _setup_plot_formatting(plot_df, plotting_exercise, fig=fig)
 
-    if flask_mode is False:
+    if not flask_mode:
         fig.show()
-        return
+        return None
 
-    graph_results = to_html(
-        fig,
+    config = {
+        "responsive": True,
+        "displayModeBar": "Hover",
+        "doubleClickDelay": 350,
+        "displaylogo": False,
+        # "modeBarButtonsToAdd": "",
+        "modeBarButtonsToRemove": ["toImage", "lasso", "select"],
+    }
+    graph_results = fig.to_html(
+        config=config,
         include_plotlyjs="directory",
         div_id="plotly_graph",
         full_html=False,
@@ -83,37 +90,75 @@ def _setup_plot_formatting(
     plotting_exercise: str,
     fig=None,
 ) -> None:
+    fig.add_trace(
+        go.Scatter(
+            x=plot_df["date_str"],
+            y=plot_df["weight"],
+            mode="lines+markers",
+            name="Weight (lbs)",
+        ),
+        row=1,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=plot_df["date_str"],
+            y=plot_df["targetReps"],
+            mode="lines+markers",
+            name="Target Reps",
+        ),
+        row=2,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=plot_df["date_str"],
+            y=plot_df["numReps"],
+            mode="lines+markers",
+            name="Reps",
+        ),
+        row=2,
+        col=1,
+    )
+
+    graph_title = f"{plotting_exercise.replace('_', ' ').title()} Progress"
     fig.update_layout(
-        title_text=f"{plotting_exercise.replace('_', ' ').title()} Progress",
-        xaxis=dict(title="Dates"),
-        yaxis=dict(title="Weight (lbs)"),
+        font={
+            "family": "Arial, sans-serif",
+            "size": 14,
+            "textcase": "word caps",
+            "weight": "normal",
+        },
+        title={
+            "text": graph_title,
+            "automargin": True,
+            "font": {
+                "size": 20,
+                "textcase": "word caps",
+                "weight": "normal",
+            },
+            "xref": "paper",
+            "xanchor": "center",
+            "yanchor": "top",
+            "x": 0.5,
+            "y": 0.975,
+        },
+        height=750,
+        dragmode="pan",
+        hovermode="x",
+        hoversubplots="single",
+        margin=dict(l=60, r=40, t=60, b=20),
+        modebar={"orientation": "v"},
         xaxis2=dict(title="Dates"),
-        yaxis2=dict(title="Target Reps"),
+        yaxis=dict(title="Weight (lbs)"),
+        yaxis2=dict(title="Target Reps vs Reps"),
+        showlegend=False,
     )
-    fig.add_traces(
-        [
-            go.Scatter(
-                x=plot_df["date_str"],
-                y=plot_df["weight"],
-                mode="lines+markers",
-                name="Weight (lbs)",
-            ),
-            go.Scatter(
-                x=plot_df["date_str"],
-                y=plot_df["targetReps"],
-                mode="lines+markers",
-                name="Target Reps",
-            ),
-            go.Scatter(
-                x=plot_df["date_str"],
-                y=plot_df["numReps"],
-                mode="lines+markers",
-                name="Reps",
-            ),
-        ],
-        rows=[1, 2, 2],
-        cols=[1, 1, 1],
+    fig.update_xaxes(
+        automargin="top+bottom",
+        autorange=True,
     )
+    fig.update_yaxes(title_standoff=3)
 
 
 def exercise_name_selection(available_exercises: list) -> str:

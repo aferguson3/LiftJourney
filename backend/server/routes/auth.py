@@ -39,7 +39,7 @@ def _validate_login(
     if csrf_garmin is not None:
         logger.info(f"Successful SSO login for {email}.")
         session["csrf_garmin"] = csrf_garmin
-        return redirect(url_for(".mfa_handler")), None
+        return redirect(url_for(".mfa_handler")), error
     else:
         error = f"Unsuccessful SSO login for {email}"
         logger.info(error)
@@ -71,14 +71,14 @@ def login_process() -> (Response | int | None, None | str):
     oauth_tokens_exist = load_oauth_tokens()
     error = None
 
-    if oauth_tokens_exist is True:
+    if oauth_tokens_exist:
         return 200, error
 
     elif not login_form.validate_on_submit():
         logger.debug(f"Errors: {login_form.errors}")
         error = login_form.errors
 
-    elif oauth_tokens_exist is False:
+    elif not oauth_tokens_exist:
         email = login_form.email.data
         password = login_form.password.data
         resp, error = _validate_login(email, password)

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class WorkoutManagement:
     @staticmethod
     def workouts_to_dict(workouts_list: list[Workout]) -> dict:
-        if isinstance(workouts_list, list) is not True:
+        if not isinstance(workouts_list, list):
             raise TypeError(f"{workouts_list} is not type list.")
 
         workouts = list()
@@ -35,13 +35,14 @@ class WorkoutManagement:
     def dump_to_json(
         workout_data: dict, filepath: str, option, _metadata: dict | None = None
     ):
-        if isinstance(workout_data, dict) is not True:
+        if not isinstance(workout_data, dict):
             raise TypeError(f"{workout_data} is not type dict.")
 
         match option:
             case "a" | "w":
                 try:
                     with open(filepath, option) as file:
+                        # noinspection PyTypeChecker
                         json.dump(workout_data, file, sort_keys=True)
                 except FileNotFoundError:
                     logger.error(f"{filepath} not found.")
@@ -58,6 +59,7 @@ class WorkoutManagement:
             metadata = WorkoutManagement.set_metadata(workout_data, _metadata)
             filepath = metadata.pop("filepath")
             with open(filepath, "w") as file:
+                # noinspection PyTypeChecker
                 json.dump(metadata, file)
         except FileNotFoundError:
             logger.error(f"{filepath} not found.")
@@ -87,7 +89,7 @@ class WorkoutManagement:
         searchedData, isValidKey = None, None
         if isinstance(workout_data, list):
             if len(workout_data) == 0:
-                return
+                return None
             isValidKey = hasattr(workout_data[0], key)
             searchedData = workout_data
         elif isinstance(workout_data, Workout):
@@ -106,11 +108,12 @@ class WorkoutManagement:
 
         else:
             logger.error(f"Sorting {type(workout_data)} by key: {key} FAILED.")
+            return None
 
     @staticmethod
     def view_sets_from_workouts(workout_data: list[Workout]) -> dict:
         # Returns dict of all workouts sets
-        if isinstance(workout_data, list) is not True:
+        if not isinstance(workout_data, list):
             raise TypeError(f"{workout_data} is not type list.")
 
         _dict = dict()

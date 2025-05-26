@@ -72,6 +72,7 @@ class TestManageWorkouts:
 
         with pytest.raises(TypeError):
             # Call the function with invalid data type
+            # noinspection PyTypeChecker
             Manager.dump_to_json("invalid_data", temp_file, "w")
 
     # Test function for invalid options
