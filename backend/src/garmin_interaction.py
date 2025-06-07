@@ -197,7 +197,7 @@ def _format_set_time(
     set_time: str | None, timedelta_from_Garmin: timedelta
 ) -> str | None:
     if set_time is None:
-        return
+        return None
     set_time = set_time.replace(".0", "")
     set_time_dt = datetime.fromisoformat(set_time)
     formatted_time = (set_time_dt - timedelta_from_Garmin).time().isoformat()
@@ -295,7 +295,7 @@ def _get_workout_name(workout: Workout):
         )
     except GarthException as e:
         logger.debug(e.error)
-        return
+        return None
     workout_name_str = garmin_data["activityName"]
     version_str = re.search(pattern, workout_name_str)
     version_str = version_str.group() if version_str is not None else None
@@ -322,7 +322,7 @@ def run_service(
             IDs, dates = get_activities(params)
             workouts = get_workouts(IDs, dates, stored_activity_info)
             if len(workouts) == 0:
-                return
+                return None
             workouts = fill_out_workouts(workouts)
             workouts = Manager.sort_workouts(workouts, "datetime")
             workouts = _set_tracking_status(workouts)

@@ -81,7 +81,7 @@ def format_DB_exercise_names(values: list | str) -> list[str] | str:
     return values
 
 
-def _exercise_info_dict(
+def exercise_info_dict(
     exercise_names: list[str], df: pd.DataFrame, exercise_categories: dict
 ):
 

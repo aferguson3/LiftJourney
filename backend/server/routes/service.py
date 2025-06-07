@@ -22,7 +22,7 @@ from backend.src.dataframe_accessors import (
 )
 from backend.src.garmin_interaction import run_service
 from backend.src.utils import set_params_by_date, set_params_by_weeks
-from backend.src.utils.server_utils import get_sets_df, _exercise_info_dict
+from backend.src.utils.server_utils import get_sets_df, exercise_info_dict
 
 logger = logging.getLogger(__name__)
 service_bp = Blueprint(
@@ -44,7 +44,7 @@ def _validate_dates(start_date: str, end_date: str) -> (str, str, str | None):
         if first_day > last_day:
             error = f"Start Date: {str(first_day)} should occur before the End Date: {str(last_day)}"
             return "", "", error
-    except ValueError as e:
+    except ValueError:
         logger.info(f"Invalid iso format string: '{cur_date}'")
         error = "Invalid date(s). Select valid date(s)"
         return "", "", error
@@ -102,8 +102,9 @@ def retrieve_workouts_post():
             end_date = date.today()
             params = set_params_by_weeks(weeks, end_date)
         case _:
-            logger.debug(f"Option: {option_arg} not implemented.")
-            return
+            logger.error(f"Option: {selected_option} not implemented.")
+            error = "Try again."
+            return render_template("retrieve_workouts.html", error=error)
 
     logger.info(params.items())
     stored_info = dict(zip(select_activityIDs(), select_datetimes()))
@@ -157,7 +158,7 @@ def get_exercise_info(df):
         for _dict in [record.get_dict() for record in muscle_map_entries]
     }
     all_exercise_names = list_available_exercises(df)
-    exercise_info = _exercise_info_dict(all_exercise_names, df, all_muscle_maps)
+    exercise_info = exercise_info_dict(all_exercise_names, df, all_muscle_maps)
     return exercise_info
 
 
@@ -169,6 +170,8 @@ def graph_post():
             session["reps"] = request.form.get("rep_ranges")
             return redirect(url_for(".show_graph"))
 
+    df = get_sets_df()
+    exercise_info = get_exercise_info(df)
     return render_template(
         "graph_params.html",
         muscle_group_field=fitness_select_form,

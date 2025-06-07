@@ -61,8 +61,8 @@ def custom_sso_login(email: str, password: str, client: Client) -> str | None:
         )
     except exc.GarthHTTPError:
         _csrf = None
-    finally:
-        return _csrf
+
+    return _csrf
 
 
 def mfa_authentication(_csrf: str, client: Client, mfa_code: str) -> int | None:

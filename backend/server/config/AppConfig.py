@@ -40,7 +40,7 @@ def _db_uri_selection(uri_type: str):
 
         return selected_URI
     else:
-        logger.debug(f"{uri_type} is not str type")
+        raise TypeError(f"{uri_type} is not str type")
 
 
 def _default_uri_type(uri_type: str, default_uri: str):

@@ -4,7 +4,7 @@ flask
 Flask-Caching
 Flask-SQLAlchemy
 Flask-WTF[email]
-garth==0.5.2
+garth
 gunicorn
 pandas
 plotly
