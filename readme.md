@@ -33,3 +33,5 @@ previous workouts, LiftJourney can group similarly named exercises and display t
    ```bash
    git clone https://github.com/aferguson3/LiftJourney.git
    cd LiftJourney
+   npm install .
+   pip install -r requirements.txt
