@@ -1,5 +1,6 @@
-# LiftJourney
+# Moved to https://codeberg.org/aferguson3/Liftjourney
 
+# LiftJourney
 > A self-hosted web server to visualize workout data from Garmin Connect.
 
 ## Table of Contents
